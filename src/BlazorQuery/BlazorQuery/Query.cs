@@ -100,7 +100,7 @@ public class Query<TArg, TResult> : QueryBase<TResult>
         {
             newData = await thisActionCall;
             // Only update if no new calls have been started since this one started.
-            if (thisActionCall.Id == _lastActionCall.Id)
+            if (thisActionCall == _lastActionCall)
             {
                 IsLoading = false;
                 Data = newData;
@@ -116,7 +116,7 @@ public class Query<TArg, TResult> : QueryBase<TResult>
         catch (Exception ex)
         {
             // Only update if no new calls have been started since this one started.
-            if (thisActionCall.Id == _lastActionCall.Id)
+            if (thisActionCall == _lastActionCall)
             {
                 Error = ex;
                 IsLoading = false;
