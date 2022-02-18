@@ -43,15 +43,15 @@ else if (forecastsQuery.IsSuccess)
 }
 
 @code {
-	private Query<WeatherForecast[]> forecastsQuery = null!;
+	private Query<Unit, WeatherForecast[]> forecastsQuery = null!;
 
-    protected override void OnInitialized()
-    {
-        forecastsQuery = new Query<WeatherForecast[]>(
+	protected override void OnInitialized()
+	{
+		forecastsQuery = new Query<WeatherForecast[]>(
 			StateHasChanged,
-			() => Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json")!
+			token => Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json", token)!
 		);
-    }
+	}
 
     public class WeatherForecast
     {

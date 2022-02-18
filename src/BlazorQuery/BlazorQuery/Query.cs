@@ -6,6 +6,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
+public readonly struct Unit
+{
+    public override int GetHashCode() => 0;
+    public override bool Equals(object obj) => obj is Unit;
+    public bool Equals(Unit _) => true;
+}
+
 public abstract class QueryBase<TResult>
 {
     public TResult? Data { get; protected set; }
@@ -19,40 +26,6 @@ public abstract class QueryBase<TResult>
 
     [MemberNotNullWhen(true, nameof(Data))]
     public bool IsSuccess => Data is not null && !IsLoading && !IsError;
-}
-
-public class Query<TResult> : QueryBase<TResult>
-{
-    private readonly Func<Task<TResult>> _action;
-    private readonly Action? _onStateChanged;
-
-    public Query(Action? onStateChanged, Func<Task<TResult>> action)
-    {
-        _action = action;
-        _onStateChanged = onStateChanged;
-        _ = Refetch();
-    }
-
-    public async Task<TResult?> Refetch()
-    {
-        IsLoading = true;
-        _onStateChanged?.Invoke();
-        try
-        {
-            Data = await _action();
-            return Data;
-        }
-        catch (Exception ex)
-        {
-            Error = ex;
-            return default;
-        }
-        finally
-        {
-            IsLoading = false;
-            _onStateChanged?.Invoke();
-        }
-    }
 }
 
 public class Query<TArg, TResult> : QueryBase<TResult>
@@ -74,9 +47,18 @@ public class Query<TArg, TResult> : QueryBase<TResult>
         _onStateChanged = onStateChanged;
     }
 
-    public async Task<TResult?> SetParams(TArg arg)
+    public async Task<TResult?> Refetch()
     {
-        if (!IsUninitialized && EqualityComparer<TArg>.Default.Equals(arg, _lastArg!))
+        if (IsUninitialized && typeof(TArg) != typeof(Unit))
+        {
+            return default; // TODO throw?
+        }
+        return await SetParams(_lastArg!, true);
+    }
+
+    public async Task<TResult?> SetParams(TArg arg, bool forceLoad = false)
+    {
+        if (!forceLoad & !IsUninitialized && EqualityComparer<TArg>.Default.Equals(arg, _lastArg!))
         {
             return Data;
         }
@@ -87,20 +69,13 @@ public class Query<TArg, TResult> : QueryBase<TResult>
 
         _onStateChanged?.Invoke();
 
-        if (_lastActionCall is not null && !_lastActionCall.IsCompleted)
-        {
-            // Cancel any existing requests that are in progress
-            _cts.Cancel();
-            _cts = new();
-        }
+        CancelQueriesInProgress();
 
         var thisActionCall = _action(arg, _cts.Token);
         _lastActionCall = thisActionCall;
-
-        TResult? newData;
         try
         {
-            newData = await thisActionCall;
+            var newData = await thisActionCall;
             // Only update if no new calls have been started since this one started.
             if (thisActionCall == _lastActionCall)
             {
@@ -126,5 +101,23 @@ public class Query<TArg, TResult> : QueryBase<TResult>
             }
             return default;
         }
+    }
+
+    private void CancelQueriesInProgress()
+    {
+        if (_lastActionCall is not null && !_lastActionCall.IsCompleted)
+        {
+            _cts.Cancel();
+            _cts = new();
+        }
+    }
+}
+
+public class Query<TResult> : Query<Unit, TResult>
+{
+    public Query(Action? onStateChanged, Func<CancellationToken, Task<TResult>> action)
+        : base(onStateChanged, (_, token) => action(token))
+    {
+        _ = SetParams(default, true); // Trigger an initial query
     }
 }
