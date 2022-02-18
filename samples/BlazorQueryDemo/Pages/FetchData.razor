@@ -7,13 +7,15 @@
 
 <p>This component demonstrates fetching data from the server.</p>
 
+<button @onclick=@forecastsQuery.Refetch>Refresh</button>
+
 @if (forecastsQuery.IsLoading)
 {
 	<p><em>Loading...</em></p>
 }
 else if (forecastsQuery.IsError)
 {
-	<p><em>Error: @forecastsQuery.Error!.Message</em></p>
+	<p><em>Error: @forecastsQuery.Error.Message</em></p>
 }
 else if (forecastsQuery.IsSuccess)
 {

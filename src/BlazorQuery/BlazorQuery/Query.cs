@@ -11,6 +11,8 @@ public class Query<TResult>
     public Exception? Error { get; private set; }
 
     public bool IsLoading { get; private set; }
+
+    [MemberNotNullWhen(true, nameof(Error))]
     public bool IsError => Error is not null;
 
     [MemberNotNullWhen(true, nameof(Data))]
@@ -55,6 +57,12 @@ public class Query<TArg, TResult>
     public Exception? Error { get; private set; }
 
     public bool IsLoading { get; private set; }
+
+    [MemberNotNullWhen(true, nameof(Error))]
+    public bool IsError => Error is not null;
+
+    [MemberNotNullWhen(true, nameof(Data))]
+    public bool IsSuccess => Data is not null && !IsLoading && !IsError;
 
     private readonly Func<TArg, Task<TResult>> _action;
     private readonly Action? _onStateChanged;

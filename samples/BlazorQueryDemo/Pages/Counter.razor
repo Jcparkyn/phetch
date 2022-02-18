@@ -1,4 +1,9 @@
 ﻿@page "/counter"
+@inject HttpClient Http
+
+@{
+	_ = isEvenQuery.SetParams(currentCount);
+}
 
 <PageTitle>Counter</PageTitle>
 
@@ -6,13 +11,35 @@
 
 <p role="status">Current count: @currentCount</p>
 
+<p role="status">This number is: @if (isEvenQuery.IsLoading)
+	{
+		<text>...</text>
+	}
+	else if (isEvenQuery.IsSuccess)
+	{
+		<text>@(isEvenQuery.Data ? "even" : "odd")</text>
+	}
+</p>
+
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
 @code {
-    private int currentCount = 0;
+	private int currentCount = 0;
+	private Query<int, bool> isEvenQuery = null!;
 
-    private void IncrementCount()
-    {
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		isEvenQuery = new Query<int, bool>(
+			StateHasChanged,
+			async val => (await Http.GetFromJsonAsync<IsEvenResponse>($"https://api.isevenapi.xyz/api/iseven/{val}"))!.IsEven
+		);
+	}
+
+	private void IncrementCount()
+	{
         currentCount++;
     }
+
+	private record IsEvenResponse(bool IsEven);
 }
