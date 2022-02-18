@@ -1,10 +1,6 @@
 ﻿@page "/counter"
 @inject HttpClient Http
 
-@{
-	_ = isEvenQuery.SetParams(currentCount);
-}
-
 <PageTitle>Counter</PageTitle>
 
 <h1>Counter</h1>
@@ -39,6 +35,7 @@
 	private void IncrementCount()
 	{
         currentCount++;
+		_ = isEvenQuery.SetParams(currentCount);
     }
 
 	private record IsEvenResponse(bool IsEven);

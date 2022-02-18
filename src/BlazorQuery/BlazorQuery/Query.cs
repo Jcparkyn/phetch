@@ -4,20 +4,23 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
-public class Query<TResult>
+public abstract class QueryBase<TResult>
 {
-    public TResult? Data { get; private set; }
+    public TResult? Data { get; protected set; }
 
-    public Exception? Error { get; private set; }
+    public Exception? Error { get; protected set; }
 
-    public bool IsLoading { get; private set; }
+    public bool IsLoading { get; protected set; }
 
     [MemberNotNullWhen(true, nameof(Error))]
     public bool IsError => Error is not null;
 
     [MemberNotNullWhen(true, nameof(Data))]
     public bool IsSuccess => Data is not null && !IsLoading && !IsError;
+}
 
+public class Query<TResult> : QueryBase<TResult>
+{
     private readonly Func<Task<TResult>> _action;
     private readonly Action? _onStateChanged;
 
@@ -50,20 +53,8 @@ public class Query<TResult>
     }
 }
 
-public class Query<TArg, TResult>
+public class Query<TArg, TResult> : QueryBase<TResult>
 {
-    public TResult? Data { get; private set; }
-
-    public Exception? Error { get; private set; }
-
-    public bool IsLoading { get; private set; }
-
-    [MemberNotNullWhen(true, nameof(Error))]
-    public bool IsError => Error is not null;
-
-    [MemberNotNullWhen(true, nameof(Data))]
-    public bool IsSuccess => Data is not null && !IsLoading && !IsError;
-
     private readonly Func<TArg, Task<TResult>> _action;
     private readonly Action? _onStateChanged;
     private TArg? _currentArg;
