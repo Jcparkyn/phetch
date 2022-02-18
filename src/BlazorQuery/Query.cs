@@ -13,8 +13,15 @@ public readonly struct Unit
     public bool Equals(Unit _) => true;
 }
 
-public abstract class QueryBase<TResult>
+public class Query<TArg, TResult>
 {
+    private readonly Func<TArg, CancellationToken, Task<TResult>> _action;
+    private readonly Action? _onStateChanged;
+
+    private TArg? _lastArg;
+    private Task<TResult>? _lastActionCall;
+    private CancellationTokenSource _cts = new();
+
     public TResult? Data { get; protected set; }
 
     public Exception? Error { get; protected set; }
@@ -26,16 +33,6 @@ public abstract class QueryBase<TResult>
 
     [MemberNotNullWhen(true, nameof(Data))]
     public bool IsSuccess => Data is not null && !IsLoading && !IsError;
-}
-
-public class Query<TArg, TResult> : QueryBase<TResult>
-{
-    private readonly Func<TArg, CancellationToken, Task<TResult>> _action;
-    private readonly Action? _onStateChanged;
-
-    private TArg? _lastArg;
-    private Task<TResult>? _lastActionCall;
-    private CancellationTokenSource _cts = new();
 
     public bool IsUninitialized => _lastActionCall is null;
 
