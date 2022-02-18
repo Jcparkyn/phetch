@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\BlazorQuery\BlazorQuery\BlazorQuery.csproj" />
+    <ProjectReference Include="..\..\src\BlazorQuery\BlazorQuery.csproj" />
   </ItemGroup>
 
 </Project>
