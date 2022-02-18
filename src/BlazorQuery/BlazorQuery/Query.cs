@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 
 public abstract class QueryBase<TResult>
@@ -55,11 +56,14 @@ public class Query<TResult> : QueryBase<TResult>
 
 public class Query<TArg, TResult> : QueryBase<TResult>
 {
-    private readonly Func<TArg, Task<TResult>> _action;
+    private readonly Func<TArg, CancellationToken, Task<TResult>> _action;
     private readonly Action? _onStateChanged;
-    private TArg? _currentArg;
 
-    public Query(Action? onStateChanged, Func<TArg, Task<TResult>> action)
+    private TArg? _lastArg;
+    private Task<TResult>? _lastActionCall;
+    private CancellationTokenSource _cts = new();
+
+    public Query(Action? onStateChanged, Func<TArg, CancellationToken, Task<TResult>> action)
     {
         _action = action;
         _onStateChanged = onStateChanged;
@@ -67,27 +71,51 @@ public class Query<TArg, TResult> : QueryBase<TResult>
 
     public async Task<TResult?> SetParams(TArg arg)
     {
-        if (Equals(arg, _currentArg))
+        if (Equals(arg, _lastArg)) // TODO remove boxing
         {
             return Data;
         }
-        _currentArg = arg;
+        _lastArg = arg;
         IsLoading = true;
         _onStateChanged?.Invoke();
+
+        if (_lastActionCall is not null && !_lastActionCall.IsCompleted)
+        {
+            _cts.Cancel();
+            _cts = new();
+        }
+
+        var thisActionCall = _action(arg, _cts.Token);
+        _lastActionCall = thisActionCall;
+
+        TResult? newData;
         try
         {
-            Data = await _action(arg);
+            newData = await thisActionCall;
+            // Only update if no new calls have been started since this one started.
+            if (thisActionCall.Id == _lastActionCall.Id)
+            {
+                IsLoading = false;
+                Data = newData;
+                Error = null;
+                _onStateChanged?.Invoke();
+            }
+            return newData;
+        }
+        catch (TaskCanceledException)
+        {
             return Data;
         }
         catch (Exception ex)
         {
-            Error = ex;
+            // Only update if no new calls have been started since this one started.
+            if (thisActionCall.Id == _lastActionCall.Id)
+            {
+                Error = ex;
+                IsLoading = false;
+                _onStateChanged?.Invoke();
+            }
             return default;
-        }
-        finally
-        {
-            IsLoading = false;
-            _onStateChanged?.Invoke();
         }
     }
 }

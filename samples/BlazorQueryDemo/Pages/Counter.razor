@@ -1,6 +1,10 @@
 ﻿@page "/counter"
 @inject HttpClient Http
 
+@{
+	_ = isEvenQuery.SetParams(currentCount);
+}
+
 <PageTitle>Counter</PageTitle>
 
 <h1>Counter</h1>
@@ -15,6 +19,10 @@
 	{
 		<text>@(isEvenQuery.Data ? "even" : "odd")</text>
 	}
+	else if (isEvenQuery.IsError)
+	{
+		<text>@isEvenQuery.Error.Message</text>
+	}
 </p>
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
@@ -28,14 +36,13 @@
 		base.OnInitialized();
 		isEvenQuery = new Query<int, bool>(
 			StateHasChanged,
-			async val => (await Http.GetFromJsonAsync<IsEvenResponse>($"https://api.isevenapi.xyz/api/iseven/{val}"))!.IsEven
+			async (val, token) => (await Http.GetFromJsonAsync<IsEvenResponse>($"https://api.isevenapi.xyz/api/iseven/{val}", token))!.IsEven
 		);
 	}
 
 	private void IncrementCount()
 	{
         currentCount++;
-		_ = isEvenQuery.SetParams(currentCount);
     }
 
 	private record IsEvenResponse(bool IsEven);
