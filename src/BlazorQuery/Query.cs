@@ -6,13 +6,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
-public readonly struct Unit
-{
-    public override int GetHashCode() => 0;
-    public override bool Equals(object obj) => obj is Unit;
-    public bool Equals(Unit _) => true;
-}
-
 public class Query<TArg, TResult>
 {
     private readonly Func<TArg, CancellationToken, Task<TResult>> _action;
