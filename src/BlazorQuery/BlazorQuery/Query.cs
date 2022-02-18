@@ -1,6 +1,7 @@
 ﻿namespace BlazorQuery;
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -63,7 +64,11 @@ public class Query<TArg, TResult> : QueryBase<TResult>
     private Task<TResult>? _lastActionCall;
     private CancellationTokenSource _cts = new();
 
-    public Query(Action? onStateChanged, Func<TArg, CancellationToken, Task<TResult>> action)
+    public bool IsUninitialized => _lastActionCall is null;
+
+    public Query(
+        Action? onStateChanged,
+        Func<TArg, CancellationToken, Task<TResult>> action)
     {
         _action = action;
         _onStateChanged = onStateChanged;
@@ -71,16 +76,18 @@ public class Query<TArg, TResult> : QueryBase<TResult>
 
     public async Task<TResult?> SetParams(TArg arg)
     {
-        if (Equals(arg, _lastArg)) // TODO remove boxing
+        if (!IsUninitialized && EqualityComparer<TArg>.Default.Equals(arg, _lastArg!))
         {
             return Data;
         }
+
         _lastArg = arg;
         IsLoading = true;
         _onStateChanged?.Invoke();
 
         if (_lastActionCall is not null && !_lastActionCall.IsCompleted)
         {
+            // Cancel any existing requests that are in progress
             _cts.Cancel();
             _cts = new();
         }
