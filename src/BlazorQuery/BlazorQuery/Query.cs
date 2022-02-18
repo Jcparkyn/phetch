@@ -83,6 +83,8 @@ public class Query<TArg, TResult> : QueryBase<TResult>
 
         _lastArg = arg;
         IsLoading = true;
+        Error = null;
+
         _onStateChanged?.Invoke();
 
         if (_lastActionCall is not null && !_lastActionCall.IsCompleted)
