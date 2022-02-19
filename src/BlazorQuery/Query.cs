@@ -6,6 +6,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
+public enum QueryStatus
+{
+    Idle,
+    Loading,
+    Error,
+    Success,
+}
+
 public class Query<TArg, TResult>
 {
     private readonly Func<TArg, CancellationToken, Task<TResult>> _action;
@@ -15,19 +23,21 @@ public class Query<TArg, TResult>
     private Task<TResult>? _lastActionCall;
     private CancellationTokenSource _cts = new();
 
+    public QueryStatus Status { get; private set; } = QueryStatus.Idle;
+
     public TResult? Data { get; protected set; }
 
     public Exception? Error { get; protected set; }
 
-    public bool IsLoading { get; protected set; }
+    public bool IsLoading => Status == QueryStatus.Loading;
 
     [MemberNotNullWhen(true, nameof(Error))]
-    public bool IsError => Error is not null;
+    public bool IsError => Error is not null && Status == QueryStatus.Error;
 
     [MemberNotNullWhen(true, nameof(Data))]
-    public bool IsSuccess => Data is not null && !IsLoading && !IsError;
+    public bool IsSuccess => Data is not null && Status == QueryStatus.Success;
 
-    public bool IsUninitialized => _lastActionCall is null;
+    public bool IsUninitialized => Status == QueryStatus.Idle;
 
     public Query(
         Action? onStateChanged,
@@ -54,10 +64,10 @@ public class Query<TArg, TResult>
         }
 
         _lastArg = arg;
-        IsLoading = true;
+        Status = QueryStatus.Loading;
         Error = null;
 
-        _onStateChanged?.Invoke();
+        _onStateChanged?.Invoke(); // TODO: Avoid unnecessary re-renders
 
         CancelQueriesInProgress();
 
@@ -69,7 +79,7 @@ public class Query<TArg, TResult>
             // Only update if no new calls have been started since this one started.
             if (thisActionCall == _lastActionCall)
             {
-                IsLoading = false;
+                Status = QueryStatus.Success;
                 Data = newData;
                 Error = null;
                 _onStateChanged?.Invoke();
@@ -86,7 +96,7 @@ public class Query<TArg, TResult>
             if (thisActionCall == _lastActionCall)
             {
                 Error = ex;
-                IsLoading = false;
+                Status = QueryStatus.Error;
                 _onStateChanged?.Invoke();
             }
             return default;
