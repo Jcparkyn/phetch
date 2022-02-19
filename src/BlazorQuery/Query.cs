@@ -99,7 +99,8 @@ public class Query<TArg, TResult>
                 Status = QueryStatus.Error;
                 _onStateChanged?.Invoke();
             }
-            return default;
+
+            throw;
         }
     }
 
@@ -115,9 +116,15 @@ public class Query<TArg, TResult>
 
 public class Query<TResult> : Query<Unit, TResult>
 {
-    public Query(Action? onStateChanged, Func<CancellationToken, Task<TResult>> action)
-        : base(onStateChanged, (_, token) => action(token))
+    public Query(
+        Action? onStateChanged,
+        Func<CancellationToken, Task<TResult>> action,
+        bool runAutomatically = true
+    ) : base(onStateChanged, (_, token) => action(token))
     {
-        _ = SetParams(default, true); // Trigger an initial query
+        if (runAutomatically)
+        {
+            _ = SetParams(default, true); // Trigger an initial query
+        }
     }
 }
