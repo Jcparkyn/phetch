@@ -1,49 +1,45 @@
 ﻿@page "/fetchdata"
 @inject HttpClient Http
+@using BlazorQueryDemo.Shared
 
 <PageTitle>Weather forecast</PageTitle>
 
-<h1>Weather forecast</h1>
+<MudText Typo="Typo.h3" GutterBottom="true">Weather forecast</MudText>
+<MudText Class="mb-8">This component demonstrates fetching data from the server.</MudText>
 
-<p>This component demonstrates fetching data from the server.</p>
-
-<button @onclick=@forecastsQuery.Refetch>Refresh</button>
+<MudButton @onclick="() => _ = forecastsQuery.Refetch()">Refresh</MudButton>
 
 @if (forecastsQuery.IsLoading)
 {
-	<p><em>Loading...</em></p>
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
 }
 else if (forecastsQuery.IsError)
 {
-	<p><em>Error: @forecastsQuery.Error.Message</em></p>
+	<MudAlert Severity="Severity.Error">@forecastsQuery.Error.Message</MudAlert>
 }
-else if (forecastsQuery.IsSuccess)
+else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecastsQuery.Data)
-            {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <MudTable Items="forecastsQuery.Data" Hover="true" SortLabel="Sort By" Elevation="0">
+        <HeaderContent>
+            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="(WeatherForecast x) => x.Date">Date</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="(WeatherForecast x) => x.TemperatureC">Temp. (C)</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="(WeatherForecast x) => x.TemperatureF">Temp. (F)</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="(WeatherForecast x) => x.Summary">Summary</MudTableSortLabel></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Date">@context.Date</MudTd>
+            <MudTd DataLabel="Temp. (C)">@context.TemperatureC</MudTd>
+            <MudTd DataLabel="Temp. (F)">@context.TemperatureF</MudTd>
+            <MudTd DataLabel="Summary">@context.Summary</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+        </PagerContent>
+    </MudTable>
 }
 
 @code {
-	private Query<Unit, WeatherForecast[]> forecastsQuery = null!;
+    private Query<Unit, WeatherForecast[]> forecastsQuery = null!;
 
 	protected override void OnInitialized()
 	{

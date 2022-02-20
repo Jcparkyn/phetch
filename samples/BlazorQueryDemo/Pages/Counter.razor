@@ -7,11 +7,10 @@
 
 <PageTitle>Counter</PageTitle>
 
-<h1>Counter</h1>
+<MudText Typo="Typo.h3" GutterBottom="true">Counter</MudText>
+<MudText Class="mb-4">Current count: @currentCount</MudText>
 
-<p role="status">Current count: @currentCount</p>
-
-<p role="status">This number is: @if (isEvenQuery.IsLoading)
+<MudText Class="mb-4">This number is: @if (isEvenQuery.IsLoading)
 	{
 		<text>...</text>
 	}
@@ -23,12 +22,12 @@
 	{
 		<text>@isEvenQuery.Error.Message</text>
 	}
-</p>
+</MudText>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="IncrementCount">Click me</MudButton>
 
 @code {
-	private int currentCount = 0;
+    private int currentCount = 0;
 	private Query<int, bool> isEvenQuery = null!;
 
 	protected override void OnInitialized()
