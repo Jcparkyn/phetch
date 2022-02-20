@@ -54,7 +54,7 @@
                 async token =>
                 {
                     await Task.Delay(10000, token);
-                    return "test"; // This is never reached
+                    return "test"; // This should never be reached
                 },
                 runAutomatically: false
             );
@@ -65,6 +65,8 @@
             await Task.Yield();
 
             _ = query.Refetch();
+
+            await firstTask;
 
             query.Data.Should().BeNull();
             query.Status.Should().Be(QueryStatus.Loading);

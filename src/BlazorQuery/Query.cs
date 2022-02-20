@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 public class Query<TArg, TResult>
 {
     private readonly Func<TArg, CancellationToken, Task<TResult>> _action;
+    private readonly Action? _onError;
     private readonly Action? _onStateChanged;
 
     private TArg? _lastArg;
@@ -33,9 +34,11 @@ public class Query<TArg, TResult>
 
     public Query(
         Action? onStateChanged,
-        Func<TArg, CancellationToken, Task<TResult>> action)
+        Func<TArg, CancellationToken, Task<TResult>> action,
+        Action? onError = null)
     {
         _action = action;
+        _onError = onError;
         _onStateChanged = onStateChanged;
     }
 
@@ -80,7 +83,7 @@ public class Query<TArg, TResult>
         }
         catch (TaskCanceledException)
         {
-            return Data;
+            throw;
         }
         catch (Exception ex)
         {
@@ -89,6 +92,7 @@ public class Query<TArg, TResult>
             {
                 Error = ex;
                 Status = QueryStatus.Error;
+                _onError?.Invoke();
                 _onStateChanged?.Invoke();
             }
 
