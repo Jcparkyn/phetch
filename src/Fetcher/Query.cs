@@ -36,11 +36,13 @@ public class Query<TArg, TResult>
     public Query(
         Action? onStateChanged,
         Func<TArg, CancellationToken, Task<TResult>> action,
+        TResult? initialData = default,
         Action? onError = null)
     {
-        _action = action;
-        _onError = onError;
         OnStateChanged = onStateChanged;
+        _action = action;
+        Data = initialData;
+        _onError = onError;
     }
 
     public void Refetch() => _ = RefetchAsync();
