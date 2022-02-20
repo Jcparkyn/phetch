@@ -9,17 +9,13 @@
 
 <MudButton @onclick="forecastsQuery.Refetch">Refresh</MudButton>
 
-@if (forecastsQuery.IsLoading)
-{
-    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
-}
-else if (forecastsQuery.IsError)
+@if (forecastsQuery.IsError)
 {
 	<MudAlert Severity="Severity.Error">@forecastsQuery.Error.Message</MudAlert>
 }
-else if (forecastsQuery.IsSuccess)
+else
 {
-    <MudTable Items="forecastsQuery.Data" Hover="true" SortLabel="Sort By" Elevation="0">
+    <MudTable Items="forecastsQuery.Data" Hover="true" SortLabel="Sort By" Elevation="0" Loading="forecastsQuery.IsFetching">
         <HeaderContent>
             <MudTh>Date</MudTh>
             <MudTh>Temp. (C)</MudTh>

@@ -19,9 +19,9 @@ public class Query<TArg, TResult>
 
     public QueryStatus Status { get; private set; } = QueryStatus.Idle;
 
-    public TResult? Data { get; protected set; }
+    public TResult? Data { get; private set; }
 
-    public Exception? Error { get; protected set; }
+    public Exception? Error { get; private set; }
 
     public bool IsLoading => Status == QueryStatus.Loading;
 
@@ -32,6 +32,8 @@ public class Query<TArg, TResult>
     public bool IsSuccess => Data is not null && Status == QueryStatus.Success;
 
     public bool IsUninitialized => Status == QueryStatus.Idle;
+
+    public bool IsFetching => IsLoading || (_lastActionCall is not null && !_lastActionCall.IsCompleted);
 
     public Query(
         Action? onStateChanged,
@@ -66,21 +68,26 @@ public class Query<TArg, TResult>
         }
 
         _lastArg = arg;
-        Status = QueryStatus.Loading;
-        Error = null;
+
+        if (Status != QueryStatus.Success)
+        {
+            Status = QueryStatus.Loading;
+        }
 
         OnStateChanged?.Invoke(); // TODO: Avoid unnecessary re-renders
 
         CancelQueriesInProgress();
 
-        var thisActionCall = _action(arg, _cts.Token);
+        var thisActionCall = _action(arg, _cts.Token); // TODO: move inside try
         _lastActionCall = thisActionCall;
+
         try
         {
             var newData = await thisActionCall;
             // Only update if no new calls have been started since this one started.
             if (thisActionCall == _lastActionCall)
             {
+                _lastActionCall = null;
                 Status = QueryStatus.Success;
                 Data = newData;
                 Error = null;

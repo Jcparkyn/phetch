@@ -21,7 +21,51 @@
             query.Data.Should().Be("test");
             query.Status.Should().Be(QueryStatus.Success);
             query.IsSuccess.Should().BeTrue();
+            query.IsLoading.Should().BeFalse();
+            query.IsFetching.Should().BeFalse();
+            query.IsError.Should().BeFalse();
             query.Error.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task Should_set_loading_states_correctly()
+        {
+            var query = new Query<string>(
+                null,
+                async token =>
+                {
+                    await Task.Yield();
+                    return "test";
+                },
+                runAutomatically: false
+            );
+
+            query.Status.Should().Be(QueryStatus.Idle);
+
+            // Fetch once
+            var refetchTask = query.RefetchAsync();
+
+            query.IsLoading.Should().BeTrue();
+            query.IsFetching.Should().BeTrue();
+
+            await refetchTask;
+
+            query.Status.Should().Be(QueryStatus.Success);
+            query.IsSuccess.Should().BeTrue();
+            query.IsLoading.Should().BeFalse();
+            query.IsFetching.Should().BeFalse();
+
+            // Fetch again
+            var refetchTask2 = query.RefetchAsync();
+
+            query.Status.Should().Be(QueryStatus.Success);
+            query.IsLoading.Should().BeFalse();
+            query.IsFetching.Should().BeTrue();
+
+            await refetchTask2;
+
+            query.IsLoading.Should().BeFalse();
+            query.IsFetching.Should().BeFalse();
         }
 
         [Fact]
