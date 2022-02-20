@@ -1,4 +1,4 @@
-﻿namespace BlazorQuery;
+﻿namespace Fetcher;
 
 public readonly struct Unit
 {

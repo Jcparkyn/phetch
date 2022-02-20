@@ -1,4 +1,4 @@
-﻿namespace BlazorQuery;
+﻿namespace Fetcher;
 
 using System;
 using System.Collections.Generic;

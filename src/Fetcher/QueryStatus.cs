@@ -1,4 +1,4 @@
-﻿namespace BlazorQuery;
+﻿namespace Fetcher;
 
 public enum QueryStatus
 {

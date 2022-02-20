@@ -1,4 +1,4 @@
-﻿namespace BlazorQuery.Tests
+﻿namespace Fetcher.Tests
 {
     using System;
     using System.Threading.Tasks;
