@@ -38,7 +38,9 @@ public class Mutation<TArg, TResult>
         _onStateChanged = onStateChanged;
     }
 
-    public async Task<TResult> Trigger(TArg arg)
+    public void Trigger(TArg arg) => _ = TriggerAsync(arg);
+
+    public async Task<TResult> TriggerAsync(TArg arg)
     {
         Status = QueryStatus.Loading;
         Error = null;

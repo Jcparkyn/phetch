@@ -2,7 +2,7 @@
 @inject HttpClient Http
 
 @{
-	_ = query.SetParams(currentPage);
+	query.SetParams(currentPage);
 }
 
 <PageTitle>Pagination Example</PageTitle>
@@ -11,7 +11,7 @@
 
 <MudText Class="mb-8">This component demonstrates fetching paginated data from the server.</MudText>
 
-<MudButton @onclick="() => _ = query.Refetch()">Refresh</MudButton>
+<MudButton @onclick="query.Refetch">Refresh</MudButton>
 
 <MudPagination
 	Color="Color.Primary"

@@ -42,16 +42,20 @@ public class Query<TArg, TResult>
         _onStateChanged = onStateChanged;
     }
 
-    public async Task<TResult?> Refetch()
+    public void Refetch() => _ = RefetchAsync();
+
+    public Task<TResult?> RefetchAsync()
     {
         if (IsUninitialized && typeof(TArg) != typeof(Unit))
         {
-            return default; // TODO throw?
+            return Task.FromResult(default(TResult)); // TODO throw?
         }
-        return await SetParams(_lastArg!, true);
+        return SetParamsAsync(_lastArg!, true);
     }
 
-    public async Task<TResult?> SetParams(TArg arg, bool forceLoad = false)
+    public void SetParams(TArg arg, bool forceLoad = false) => _ = SetParamsAsync(arg, forceLoad);
+
+    public async Task<TResult?> SetParamsAsync(TArg arg, bool forceLoad = false)
     {
         if (!forceLoad & !IsUninitialized && EqualityComparer<TArg>.Default.Equals(arg, _lastArg!))
         {
@@ -120,7 +124,7 @@ public class Query<TResult> : Query<Unit, TResult>
     {
         if (runAutomatically)
         {
-            _ = SetParams(default, true); // Trigger an initial query
+            SetParams(default, true); // Trigger an initial query
         }
     }
 }

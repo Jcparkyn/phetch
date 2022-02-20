@@ -15,7 +15,7 @@
                 token => Task.FromResult("test"),
                 runAutomatically: false
             );
-            var result = await query.Refetch();
+            var result = await query.RefetchAsync();
 
             result.Should().Be("test");
             query.Data.Should().Be("test");
@@ -34,7 +34,7 @@
                 runAutomatically: false
             );
 
-            await query.Invoking(x => x.Refetch())
+            await query.Invoking(x => x.RefetchAsync())
                 .Should().ThrowExactlyAsync<IndexOutOfRangeException>();
 
             query.Data.Should().BeNull();
@@ -59,12 +59,12 @@
                 runAutomatically: false
             );
 
-            var firstTask = query.Awaiting(q => q.Refetch())
+            var firstTask = query.Awaiting(q => q.RefetchAsync())
                 .Should().ThrowAsync<TaskCanceledException>();
 
             await Task.Yield();
 
-            _ = query.Refetch();
+            query.Refetch();
 
             await firstTask;
 
