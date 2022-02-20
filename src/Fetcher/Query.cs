@@ -9,11 +9,13 @@ using System.Threading.Tasks;
 public class Query<TArg, TResult>
 {
     private readonly Func<TArg, CancellationToken, Task<TResult>> _action;
+    private readonly MultipleQueryHandling _multipleQueryHandling;
     private readonly Action? _onError;
 
     private TArg? _lastArg;
     private Task<TResult>? _lastActionCall;
-    private CancellationTokenSource _cts = new();
+    private CancellationTokenSource _cts = new(); // TODO: Only allocate when needed
+    private bool _isQueryQueued;
 
     public event Action? OnStateChanged;
 
@@ -39,11 +41,13 @@ public class Query<TArg, TResult>
         Action? onStateChanged,
         Func<TArg, CancellationToken, Task<TResult>> action,
         TResult? initialData = default,
+        MultipleQueryHandling multipleQueryHandling = MultipleQueryHandling.CancelRunningQueries,
         Action? onError = null)
     {
         OnStateChanged = onStateChanged;
         _action = action;
         Data = initialData;
+        _multipleQueryHandling = multipleQueryHandling;
         _onError = onError;
     }
 
@@ -69,6 +73,19 @@ public class Query<TArg, TResult>
 
         _lastArg = arg;
 
+        if (IsFetching)
+        {
+            switch (_multipleQueryHandling)
+            {
+                case MultipleQueryHandling.QueueNewest:
+                    _isQueryQueued = true;
+                    return default; // TODO: return next Task instead
+                case MultipleQueryHandling.CancelRunningQueries:
+                    CancelQueriesInProgress();
+                    break;
+            }
+        }
+
         if (Status != QueryStatus.Success)
         {
             Status = QueryStatus.Loading;
@@ -76,27 +93,27 @@ public class Query<TArg, TResult>
 
         OnStateChanged?.Invoke(); // TODO: Avoid unnecessary re-renders
 
-        CancelQueriesInProgress();
-
-        var thisActionCall = _action(arg, _cts.Token); // TODO: move inside try
-        _lastActionCall = thisActionCall;
-
+        Task<TResult>? thisActionCall = null;
         try
         {
+            thisActionCall = _action(arg, _cts.Token);
+            _lastActionCall = thisActionCall;
             var newData = await thisActionCall;
             // Only update if no new calls have been started since this one started.
             if (thisActionCall == _lastActionCall)
             {
-                _lastActionCall = null;
-                Status = QueryStatus.Success;
-                Data = newData;
-                Error = null;
-                OnStateChanged?.Invoke();
+                SetSuccessState(newData);
+            }
+            if (_isQueryQueued)
+            {
+                _isQueryQueued = false;
+                _ = SetParamsAsync(_lastArg!, true);
             }
             return newData;
         }
-        catch (TaskCanceledException)
+        catch (TaskCanceledException) when (_multipleQueryHandling == MultipleQueryHandling.CancelRunningQueries)
         {
+            // TODO is this needed?
             throw;
         }
         catch (Exception ex)
@@ -114,13 +131,18 @@ public class Query<TArg, TResult>
         }
     }
 
+    private void SetSuccessState(TResult? newData)
+    {
+        Status = QueryStatus.Success;
+        Data = newData;
+        Error = null;
+        OnStateChanged?.Invoke();
+    }
+
     private void CancelQueriesInProgress()
     {
-        if (_lastActionCall is not null && !_lastActionCall.IsCompleted)
-        {
-            _cts.Cancel();
-            _cts = new();
-        }
+        _cts.Cancel();
+        _cts = new();
     }
 }
 

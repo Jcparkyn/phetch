@@ -52,7 +52,7 @@ else
 		query = new Query<int, ApiResponse>(
 			StateHasChanged,
 			(pageNum, token) => Http.GetFromJsonAsync<ApiResponse>(
-				$"https://www.coinbase.com/api/v2/assets/search?base=AUD&country=AU&filter=all&include_prices=true&limit=10&order=asc&page={pageNum}&query=&resolution=day&sort=rank",
+				$"https://www.coinbase.com/api/v2/assets/search?filter=all&include_prices=true&limit=10&order=asc&page={pageNum}&query=&resolution=day&sort=rank",
 				token)!
 		);
 	}
