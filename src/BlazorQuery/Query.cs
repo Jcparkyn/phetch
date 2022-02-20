@@ -6,14 +6,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
-public enum QueryStatus
-{
-    Idle,
-    Loading,
-    Error,
-    Success,
-}
-
 public class Query<TArg, TResult>
 {
     private readonly Func<TArg, CancellationToken, Task<TResult>> _action;
