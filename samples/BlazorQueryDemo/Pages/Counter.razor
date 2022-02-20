@@ -33,7 +33,7 @@
 	protected override void OnInitialized()
 	{
 		base.OnInitialized();
-		isEvenQuery = new Query<int, bool>(
+		isEvenQuery = new(
 			StateHasChanged,
 			async (val, token) => (await Http.GetFromJsonAsync<IsEvenResponse>($"https://api.isevenapi.xyz/api/iseven/{val}", token))!.IsEven
 		);

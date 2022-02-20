@@ -17,14 +17,14 @@ else if (forecastsQuery.IsError)
 {
 	<MudAlert Severity="Severity.Error">@forecastsQuery.Error.Message</MudAlert>
 }
-else
+else if (forecastsQuery.IsSuccess)
 {
     <MudTable Items="forecastsQuery.Data" Hover="true" SortLabel="Sort By" Elevation="0">
         <HeaderContent>
-            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="(WeatherForecast x) => x.Date">Date</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortBy="(WeatherForecast x) => x.TemperatureC">Temp. (C)</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortBy="(WeatherForecast x) => x.TemperatureF">Temp. (F)</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortBy="(WeatherForecast x) => x.Summary">Summary</MudTableSortLabel></MudTh>
+            <MudTh>Date</MudTh>
+            <MudTh>Temp. (C)</MudTh>
+            <MudTh>Temp. (F)</MudTh>
+            <MudTh>Summary</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Date">@context.Date</MudTd>
@@ -32,18 +32,16 @@ else
             <MudTd DataLabel="Temp. (F)">@context.TemperatureF</MudTd>
             <MudTd DataLabel="Summary">@context.Summary</MudTd>
         </RowTemplate>
-        <PagerContent>
-            <MudTablePager PageSizeOptions="new int[]{50, 100}" />
-        </PagerContent>
     </MudTable>
 }
 
 @code {
-    private Query<Unit, WeatherForecast[]> forecastsQuery = null!;
+    private Query<WeatherForecast[]> forecastsQuery = null!;
 
 	protected override void OnInitialized()
 	{
-		forecastsQuery = new Query<WeatherForecast[]>(
+		base.OnInitialized();
+		forecastsQuery = new(
 			StateHasChanged,
 			token => Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json", token)!
 		);
