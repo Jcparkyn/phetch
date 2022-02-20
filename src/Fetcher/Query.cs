@@ -10,11 +10,12 @@ public class Query<TArg, TResult>
 {
     private readonly Func<TArg, CancellationToken, Task<TResult>> _action;
     private readonly Action? _onError;
-    private readonly Action? _onStateChanged;
 
     private TArg? _lastArg;
     private Task<TResult>? _lastActionCall;
     private CancellationTokenSource _cts = new();
+
+    public event Action? OnStateChanged;
 
     public QueryStatus Status { get; private set; } = QueryStatus.Idle;
 
@@ -39,7 +40,7 @@ public class Query<TArg, TResult>
     {
         _action = action;
         _onError = onError;
-        _onStateChanged = onStateChanged;
+        OnStateChanged = onStateChanged;
     }
 
     public void Refetch() => _ = RefetchAsync();
@@ -66,7 +67,7 @@ public class Query<TArg, TResult>
         Status = QueryStatus.Loading;
         Error = null;
 
-        _onStateChanged?.Invoke(); // TODO: Avoid unnecessary re-renders
+        OnStateChanged?.Invoke(); // TODO: Avoid unnecessary re-renders
 
         CancelQueriesInProgress();
 
@@ -81,7 +82,7 @@ public class Query<TArg, TResult>
                 Status = QueryStatus.Success;
                 Data = newData;
                 Error = null;
-                _onStateChanged?.Invoke();
+                OnStateChanged?.Invoke();
             }
             return newData;
         }
@@ -97,7 +98,7 @@ public class Query<TArg, TResult>
                 Error = ex;
                 Status = QueryStatus.Error;
                 _onError?.Invoke();
-                _onStateChanged?.Invoke();
+                OnStateChanged?.Invoke();
             }
 
             throw;

@@ -8,9 +8,10 @@ public class Mutation<TArg, TResult>
 {
     private readonly Func<TArg, Task<TResult>> _action;
     private readonly Action? _onError;
-    private readonly Action? _onStateChanged;
 
     private Task<TResult>? _lastActionCall;
+
+    public event Action? OnStateChanged;
 
     public QueryStatus Status { get; private set; } = QueryStatus.Idle;
 
@@ -35,7 +36,7 @@ public class Mutation<TArg, TResult>
     {
         _action = action;
         _onError = onError;
-        _onStateChanged = onStateChanged;
+        OnStateChanged = onStateChanged;
     }
 
     public void Trigger(TArg arg) => _ = TriggerAsync(arg);
@@ -45,7 +46,7 @@ public class Mutation<TArg, TResult>
         Status = QueryStatus.Loading;
         Error = null;
 
-        _onStateChanged?.Invoke(); // TODO: Avoid unnecessary re-renders
+        OnStateChanged?.Invoke(); // TODO: Avoid unnecessary re-renders
 
         var thisActionCall = _action(arg);
         _lastActionCall = thisActionCall;
@@ -58,7 +59,7 @@ public class Mutation<TArg, TResult>
                 Status = QueryStatus.Success;
                 Data = newData;
                 Error = null;
-                _onStateChanged?.Invoke();
+                OnStateChanged?.Invoke();
             }
             return newData;
         }
@@ -70,7 +71,7 @@ public class Mutation<TArg, TResult>
                 Error = ex;
                 Status = QueryStatus.Error;
                 _onError?.Invoke();
-                _onStateChanged?.Invoke();
+                OnStateChanged?.Invoke();
             }
 
             throw;
