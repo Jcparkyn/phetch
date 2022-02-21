@@ -10,6 +10,7 @@ public class Query<TArg, TResult>
 {
     private readonly Func<TArg, CancellationToken, Task<TResult>> _queryFn;
     private readonly MultipleQueryHandling _multipleQueryHandling;
+    private readonly Action<TResult?>? _onSuccess;
     private readonly Action? _onError;
 
     private TArg? _lastArg;
@@ -42,12 +43,14 @@ public class Query<TArg, TResult>
         Action? onStateChanged,
         TResult? initialData = default,
         MultipleQueryHandling multipleQueryHandling = MultipleQueryHandling.CancelRunningQueries,
+        Action<TResult?>? onSuccess = null,
         Action? onError = null)
     {
         OnStateChanged = onStateChanged;
         _queryFn = queryFn;
         Data = initialData;
         _multipleQueryHandling = multipleQueryHandling;
+        _onSuccess = onSuccess;
         _onError = onError;
     }
 
@@ -136,6 +139,7 @@ public class Query<TArg, TResult>
         Status = QueryStatus.Success;
         Data = newData;
         Error = null;
+        _onSuccess?.Invoke(newData);
         OnStateChanged?.Invoke();
     }
 
@@ -153,6 +157,7 @@ public class Query<TResult> : Query<Unit, TResult>
         Action? onStateChanged,
         TResult? initialData = default,
         MultipleQueryHandling multipleQueryHandling = MultipleQueryHandling.CancelRunningQueries,
+        Action<TResult?>? onSuccess = null,
         Action? onError = null,
         bool runAutomatically = true
     ) : base(
@@ -160,6 +165,7 @@ public class Query<TResult> : Query<Unit, TResult>
         onStateChanged: onStateChanged,
         initialData: initialData,
         multipleQueryHandling: multipleQueryHandling,
+        onSuccess: onSuccess,
         onError: onError)
     {
         if (runAutomatically)

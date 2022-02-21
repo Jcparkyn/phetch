@@ -3,14 +3,6 @@
 @using FetcherBlazorDemo.Shared
 @using System.Text.Json
 
-@{
-	if (query1.IsSuccess)
-	{
-		// Note: you could also do this by supplying an onSuccess function to query1
-		query2.SetParams(query1.Data);
-	}
-}
-
 <PageTitle>Dependent Queries</PageTitle>
 
 <MudText Typo="Typo.h3" GutterBottom="true">Dependent Queries</MudText>
@@ -88,7 +80,9 @@
 				await Task.Delay(500);
 				return random.Next() % 10000;
 			},
-			onStateChanged: StateHasChanged
+			onStateChanged: StateHasChanged,
+			// Note: you could also do this by conditionally calling query2.SetParams before each render.
+			onSuccess: val => query2.SetParams(val)
 		);
 
 		query2 = new(
