@@ -1,0 +1,53 @@
+﻿@page "/mutations"
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+<PageTitle>Counter</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Counter</MudText>
+<MudText Class="mb-4">Current count: @currentCount</MudText>
+
+<MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="IncrementCount">Click me</MudButton>
+
+@if (mutation.IsLoading)
+{
+	<MudProgressLinear Indeterminate />
+}
+else if (mutation.IsError)
+{
+	<MudAlert Severity="Severity.Error">
+		@mutation.Error.Message
+	</MudAlert>
+}
+else if (mutation.IsSuccess)
+{
+	<MudAlert Severity="Severity.Success">
+		Saved value to local storage
+	</MudAlert>
+}
+
+@code {
+	private int currentCount = 0;
+	private Mutation<int> mutation = null!;
+
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		mutation = new(
+			async val =>
+			{
+				await Task.Delay(500); // Artificial delay
+				await LocalStorage.SetItemAsync("counterVal", val);
+			},
+			StateHasChanged
+		);
+		mutation.Trigger(currentCount);
+	}
+
+	private void IncrementCount()
+	{
+		currentCount++;
+
+		// Use TriggerAsync if you need the return value
+		mutation.Trigger(currentCount);
+	}
+}

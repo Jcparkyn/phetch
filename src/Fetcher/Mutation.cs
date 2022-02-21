@@ -30,8 +30,8 @@ public class Mutation<TArg, TResult>
     public bool IsUninitialized => Status == QueryStatus.Idle;
 
     public Mutation(
-        Action? onStateChanged,
         Func<TArg, Task<TResult>> mutationFn,
+        Action? onStateChanged,
         Action? onError = null)
     {
         _mutationFn = mutationFn;
@@ -76,5 +76,23 @@ public class Mutation<TArg, TResult>
 
             throw;
         }
+    }
+}
+
+public class Mutation<TArg> : Mutation<TArg, Unit>
+{
+    public Mutation(
+        Func<TArg, Task> mutationFn,
+        Action? onStateChanged,
+        Action? onError = null
+    ) : base(
+        async arg =>
+        {
+            await mutationFn(arg);
+            return new Unit();
+        },
+        onStateChanged,
+        onError)
+    {
     }
 }
