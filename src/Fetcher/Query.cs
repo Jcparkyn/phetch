@@ -6,6 +6,16 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
+/// <summary>
+/// Encapsulates an asynchronous query taking one parameter of type <typeparamref name="TArg"/> and
+/// returning a result of type <typeparamref name="TResult"/>
+/// </summary>
+/// <remarks>
+/// <para>For queries with no parameters, you can use the <see cref="Query{TResult}"/> class.</para>
+/// <para>For queries with multiple parameters, you can use a tuple in place of <c>TArg</c>:
+/// <code>Query&lt;(int, string), string&gt;</code>
+/// </para>
+/// </remarks>
 public class Query<TArg, TResult>
 {
     private readonly Func<TArg, CancellationToken, Task<TResult>> _queryFn;
@@ -54,8 +64,18 @@ public class Query<TArg, TResult>
         _onError = onError;
     }
 
+    /// <summary>
+    /// Re-runs the query using the same parameters from the last call to <see cref="SetParams"/> or
+    /// <see cref="SetParamsAsync"/>.
+    /// </summary>
     public void Refetch() => _ = RefetchAsync();
 
+    /// <summary>
+    /// Identical to <see cref="Refetch"/>, but returns the result from the query function (or
+    /// throws if an error occurred).
+    /// </summary>
+    /// <remarks>Only use this if you need to use the query result, otherwise use <see cref="Refetch"/>.
+    /// </remarks>
     public Task<TResult?> RefetchAsync()
     {
         if (IsUninitialized && typeof(TArg) != typeof(Unit))
@@ -65,6 +85,17 @@ public class Query<TArg, TResult>
         return SetParamsAsync(_lastArg!, true);
     }
 
+    /// <summary>
+    /// Sets the input parameters to the query function, and re-runs the query if the parameters
+    /// have changed.
+    /// </summary>
+    /// <remarks>
+    /// It is safe to call this multiple times with the same value (e.g., in the render method of a component).
+    /// </remarks>
+    /// <param name="arg">The argument to supply to the query function.</param>
+    /// <param name="forceLoad">
+    /// If true, the query will always be re-run, regardless of whether the parameters changed.
+    /// </param>
     public void SetParams(TArg arg, bool forceLoad = false) => _ = SetParamsAsync(arg, forceLoad);
 
     public async Task<TResult?> SetParamsAsync(TArg arg, bool forceLoad = false)
@@ -150,6 +181,10 @@ public class Query<TArg, TResult>
     }
 }
 
+/// <summary>
+/// Encapsulates an asynchronous query taking no parameters and returning a result of type
+/// <typeparamref name="TResult"/>
+/// </summary>
 public class Query<TResult> : Query<Unit, TResult>
 {
     public Query(
