@@ -13,7 +13,7 @@ Currently, Fetcher is only designed for use with Blazor WebAssembly. However, th
 - Built-in support for CancellationTokens
 - Built-in debouncing, to (optionally) limit the rate of queries being sent
 - Supports mutations, dependent queries, and pagination
-- 100% stronly typed, with nullability annotations
+- 100% strongly typed, with nullability annotations
 - Super lightweight and easy to mix-and-match with other state management methods
 - No Javascript whatsoever!
 
@@ -30,6 +30,7 @@ If you've been paying attention, you might notice that your queries sometimes re
 And then you get to the next component and do it all over again.
 
 Fetcher aims to solve all of these problems.
+
 ## Show me some code!
 
 [Click here to view the source code for the sample project, with more detailed examples.](https://github.com/Jcparkyn/Fetcher/tree/main/samples/FetcherBlazorDemo)
@@ -68,10 +69,24 @@ else
 
 ```
 
+Fetcher will also come with some useful extension methods to do things like this:
+
+```html
+<p>
+    This number is: @isEvenQuery.Match(
+        fetching: () => @<text>...</text>,
+        error: ex => @<em>Something went wrong!</em>,
+        success: isEven => @<b>@(isEven ? "even" : "odd")</b>
+    )
+</p>
+```
+
 ## Installing
 
 You can install Fetcher via the .NET CLI with the following command:
 
-```dotnet add package Blazored.LocalStorage```
+```sh
+dotnet add package Fetcher
+```
 
 If you're using Visual Studio, you can also install via the built in NuGet package manager.
