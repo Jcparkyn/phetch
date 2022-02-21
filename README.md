@@ -83,6 +83,9 @@ Fetcher will also come with some useful extension methods to do things like this
 
 ## Installing
 
+Note: Because many features have not been finalized, I won't yet be updating the NuGet version on a regular basis.
+If you want to try out Fetcher in the meantime, I would recommend downloading the source code instead.
+
 You can install Fetcher via the .NET CLI with the following command:
 
 ```sh
