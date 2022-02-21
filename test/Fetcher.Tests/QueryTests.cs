@@ -11,8 +11,8 @@
         public async Task Should_work_with_basic_query()
         {
             var query = new Query<string>(
-                null,
                 token => Task.FromResult("test"),
+                null,
                 runAutomatically: false
             );
             var result = await query.RefetchAsync();
@@ -31,12 +31,12 @@
         public async Task Should_set_loading_states_correctly()
         {
             var query = new Query<string>(
-                null,
                 async token =>
                 {
                     await Task.Yield();
                     return "test";
                 },
+                null,
                 runAutomatically: false
             );
 
@@ -73,8 +73,8 @@
         {
             var error = new IndexOutOfRangeException("message");
             var query = new Query<string>(
-                null,
                 token => Task.FromException<string>(error),
+                null,
                 runAutomatically: false
             );
 
@@ -94,12 +94,12 @@
         public async Task Should_cancel_running_query()
         {
             var query = new Query<string>(
-                null,
                 async token =>
                 {
                     await Task.Delay(10000, token);
                     return "test"; // This should never be reached
                 },
+                null,
                 runAutomatically: false
             );
 

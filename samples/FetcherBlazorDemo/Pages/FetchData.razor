@@ -38,8 +38,8 @@ else
 	{
 		base.OnInitialized();
 		forecastsQuery = new(
-			StateHasChanged,
-			token => Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json", token)!
+			token => Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json", token)!,
+			StateHasChanged
 		);
 	}
 

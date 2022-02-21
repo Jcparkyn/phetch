@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 public class Query<TArg, TResult>
 {
-    private readonly Func<TArg, CancellationToken, Task<TResult>> _action;
+    private readonly Func<TArg, CancellationToken, Task<TResult>> _queryFn;
     private readonly MultipleQueryHandling _multipleQueryHandling;
     private readonly Action? _onError;
 
@@ -38,14 +38,14 @@ public class Query<TArg, TResult>
     public bool IsFetching => IsLoading || (_lastActionCall is not null && !_lastActionCall.IsCompleted);
 
     public Query(
+        Func<TArg, CancellationToken, Task<TResult>> queryFn,
         Action? onStateChanged,
-        Func<TArg, CancellationToken, Task<TResult>> action,
         TResult? initialData = default,
         MultipleQueryHandling multipleQueryHandling = MultipleQueryHandling.CancelRunningQueries,
         Action? onError = null)
     {
         OnStateChanged = onStateChanged;
-        _action = action;
+        _queryFn = queryFn;
         Data = initialData;
         _multipleQueryHandling = multipleQueryHandling;
         _onError = onError;
@@ -96,7 +96,7 @@ public class Query<TArg, TResult>
         Task<TResult>? thisActionCall = null;
         try
         {
-            thisActionCall = _action(arg, _cts.Token);
+            thisActionCall = _queryFn(arg, _cts.Token);
             _lastActionCall = thisActionCall;
             var newData = await thisActionCall;
             // Only update if no new calls have been started since this one started.
@@ -149,10 +149,18 @@ public class Query<TArg, TResult>
 public class Query<TResult> : Query<Unit, TResult>
 {
     public Query(
+        Func<CancellationToken, Task<TResult>> queryFn,
         Action? onStateChanged,
-        Func<CancellationToken, Task<TResult>> action,
+        TResult? initialData = default,
+        MultipleQueryHandling multipleQueryHandling = MultipleQueryHandling.CancelRunningQueries,
+        Action? onError = null,
         bool runAutomatically = true
-    ) : base(onStateChanged, (_, token) => action(token))
+    ) : base(
+        (_, token) => queryFn(token),
+        onStateChanged: onStateChanged,
+        initialData: initialData,
+        multipleQueryHandling: multipleQueryHandling,
+        onError: onError)
     {
         if (runAutomatically)
         {

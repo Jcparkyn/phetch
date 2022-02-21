@@ -45,15 +45,16 @@ else
 
 @code {
 	private int currentPage = 1;
-	private Query<int, ApiResponse> query = null!;
+	private Query<int, ApiResponse?> query = null!;
 
 	protected override void OnInitialized()
 	{
-		query = new Query<int, ApiResponse>(
-			StateHasChanged,
+		query = new Query<int, ApiResponse?>(
 			(pageNum, token) => Http.GetFromJsonAsync<ApiResponse>(
 				$"https://www.coinbase.com/api/v2/assets/search?filter=all&include_prices=true&limit=10&order=asc&page={pageNum}&query=&resolution=day&sort=rank",
-				token)!
+				token
+			),
+			StateHasChanged
 		);
 	}
 

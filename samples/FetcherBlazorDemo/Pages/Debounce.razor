@@ -52,7 +52,7 @@ else
 		base.OnInitialized();
 		query = new(
 			onStateChanged: StateHasChanged,
-			action: Search,
+			queryFn: Search,
 			multipleQueryHandling: MultipleQueryHandling.QueueNewest
 		);
 	}

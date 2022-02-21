@@ -83,21 +83,21 @@
 		base.OnInitialized();
 		var random = new Random();
 		query1 = new(
-			StateHasChanged,
 			async _ =>
 			{
 				await Task.Delay(500);
 				return random.Next() % 10000;
-			}
+			},
+			onStateChanged: StateHasChanged
 		);
 
 		query2 = new(
-			StateHasChanged,
 			async (val, _) =>
 			{
 				await Task.Delay(500);
 				return val + 1;
-			}
+			},
+			onStateChanged: StateHasChanged
 		);
 	}
 }

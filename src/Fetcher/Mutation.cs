@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 public class Mutation<TArg, TResult>
 {
-    private readonly Func<TArg, Task<TResult>> _action;
+    private readonly Func<TArg, Task<TResult>> _mutationFn;
     private readonly Action? _onError;
 
     private Task<TResult>? _lastActionCall;
@@ -31,10 +31,10 @@ public class Mutation<TArg, TResult>
 
     public Mutation(
         Action? onStateChanged,
-        Func<TArg, Task<TResult>> action,
+        Func<TArg, Task<TResult>> mutationFn,
         Action? onError = null)
     {
-        _action = action;
+        _mutationFn = mutationFn;
         _onError = onError;
         OnStateChanged = onStateChanged;
     }
@@ -48,7 +48,7 @@ public class Mutation<TArg, TResult>
 
         OnStateChanged?.Invoke(); // TODO: Avoid unnecessary re-renders
 
-        var thisActionCall = _action(arg);
+        var thisActionCall = _mutationFn(arg);
         _lastActionCall = thisActionCall;
         try
         {
