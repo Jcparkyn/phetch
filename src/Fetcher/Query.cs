@@ -145,11 +145,6 @@ public class Query<TArg, TResult>
             }
             return newData;
         }
-        catch (TaskCanceledException) when (_multipleQueryHandling == MultipleQueryHandling.CancelRunningQueries)
-        {
-            // TODO is this needed?
-            throw;
-        }
         catch (Exception ex)
         {
             // Only update if no new calls have been started since this one started.
