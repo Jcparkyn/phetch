@@ -33,7 +33,7 @@
             var query = new Query<string>(
                 async token =>
                 {
-                    await Task.Yield();
+                    await Task.Delay(1, token);
                     return "test";
                 },
                 null,
@@ -45,6 +45,7 @@
             // Fetch once
             var refetchTask = query.RefetchAsync();
 
+            // TODO: Fix threading issue that causes this to sometimes fail.
             query.IsLoading.Should().BeTrue();
             query.IsFetching.Should().BeTrue();
 
