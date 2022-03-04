@@ -1,0 +1,44 @@
+﻿@implements IDisposable
+@typeparam TArg
+@typeparam TResult
+
+<div></div>
+
+@code {
+    [Parameter, EditorRequired]
+    public QueryHandle<TArg, TResult> Target { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public Action OnChanged { get; set; } = null!;
+
+    // TODO: Handle params setting
+    //[Parameter]
+    //public TArg? Params { get; set; }
+
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        // TODO: Implement properly
+        //if (parameters.TryGetValue<Action>(nameof(OnChanged), out var newAction))
+        //{
+        //    //Observable.StateChanged -= OnChanged;
+        //}
+        if (parameters.TryGetValue<QueryHandle<TArg, TResult>>(nameof(Target), out var newTarget))
+        {
+            //Observable.StateChanged -= OnChanged;
+            if (!ReferenceEquals(Target, newTarget)
+                && parameters.TryGetValue<Action>(nameof(OnChanged), out var newAction))
+            {
+                if (Target is not null)
+                    Target.StateChanged -= OnChanged;
+
+                newTarget.StateChanged += newAction;
+            }
+        }
+        await base.SetParametersAsync(parameters);
+    }
+
+    public void Dispose()
+    {
+        Target.StateChanged -= OnChanged;
+    }
+}

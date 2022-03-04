@@ -17,4 +17,10 @@
     <ProjectReference Include="..\..\src\Fetcher\Fetcher.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="Pages\Counter2.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+  </ItemGroup>
+
 </Project>

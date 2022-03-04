@@ -1,0 +1,51 @@
+﻿@page "/counter2"
+@inject IsEvenApi Api
+
+@{
+    isEvenQuery.SetParams(currentCount);
+}
+
+<Observer Target=isEvenQuery OnChanged=@StateHasChanged />
+
+<PageTitle>Counter</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Counter</MudText>
+<MudText Class="mb-4">Current count: @currentCount</MudText>
+
+<MudText Class="mb-4">This number is: @if (isEvenQuery.Query.IsFetching)
+    {
+        <text>...</text>
+    }
+    else if (isEvenQuery.Query.IsSuccess)
+    {
+        <text>@(isEvenQuery.Query.Data ? "even" : "odd")</text>
+    }
+    else if (isEvenQuery.Query.IsError)
+    {
+        <text>@isEvenQuery.Query.Error.Message</text>
+    }
+</MudText>
+
+<MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="DecrementCount">-</MudButton>
+<MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="IncrementCount">+</MudButton>
+
+@code {
+    private int currentCount = 0;
+    private QueryHandle<int, bool> isEvenQuery = null!;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        isEvenQuery = Api.IsEven.Use(null);
+    }
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+
+    private void DecrementCount()
+    {
+        currentCount--;
+    }
+}
