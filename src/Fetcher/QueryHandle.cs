@@ -24,7 +24,7 @@ public class QueryHandle<TArg, TResult>
         _currentQuery?.Refetch();
     }
 
-    public void SetParams(TArg arg, bool forceLoad = false)
+    public void SetParams(TArg arg)
     {
         var newQuery = _cache.GetOrAdd(arg);
         if (newQuery != _currentQuery)

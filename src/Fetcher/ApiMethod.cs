@@ -28,23 +28,5 @@ public class ApiMethod<TArg, TResult>
         throw new NotImplementedException();
     }
 
-    //public void UpdateQueryData(TArg arg, TResult resultData)
-    //{
-    //    if (_cachedResponses.TryGetValue(arg, out var result))
-    //    {
-    //        _cachedResponses[arg] = result with
-    //        {
-    //            Data = resultData,
-    //        };
-    //        foreach (var stateChangedAction in result.OnStateChangedActions)
-    //        {
-    //            if (stateChangedAction.TryGetTarget(out var stateChanged))
-    //            {
-    //                stateChanged();
-    //            }
-    //            // TODO: Remove dead references
-    //        }
-    //        _cachedResponses.Remove(arg);
-    //    }
-    //}
+    public void UpdateQueryData(TArg arg, TResult resultData) => _cache.UpdateQueryData(arg, resultData);
 }

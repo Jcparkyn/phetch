@@ -30,12 +30,18 @@ public class QueryCache<TArg, TResult>
             return value;
         }
 
-        var newQuery = new FixedQuery<TResult>(
-            () => _queryFn(arg),
-            null);
+        var newQuery = new FixedQuery<TResult>(() => _queryFn(arg));
 
         _cachedResponses.Add(arg, newQuery);
 
         return newQuery;
+    }
+
+    public void UpdateQueryData(TArg arg, TResult resultData)
+    {
+        if (_cachedResponses.TryGetValue(arg, out var result))
+        {
+            result.UpdateQueryData(resultData);
+        }
     }
 }

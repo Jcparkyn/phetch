@@ -35,13 +35,17 @@ public class FixedQuery<TResult>
 
     public FixedQuery(
         Func<Task<TResult>> queryFn,
-        Action? onStateChanged,
         TResult? initialData = default)
     {
-        StateChanged += onStateChanged;
         _queryFn = queryFn;
         Data = initialData;
         Refetch();
+    }
+
+    public void UpdateQueryData(TResult? resultData)
+    {
+        Data = resultData;
+        NotifyStateChange();
     }
 
     public void Invalidate()
