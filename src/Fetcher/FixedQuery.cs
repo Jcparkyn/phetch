@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 public class FixedQuery<TResult>
@@ -14,8 +12,6 @@ public class FixedQuery<TResult>
 
     private Task<TResult>? _lastActionCall;
     private bool _isInvalidated = false;
-
-    //public event Action? StateChanged = delegate { };
 
     public QueryStatus Status { get; private set; } = QueryStatus.Idle;
 
