@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 public class FixedQuery<TResult>
 {
     private readonly Func<Task<TResult>> _queryFn;
-    private readonly HashSet<IQueryObserver<TResult>> _observers = new();
+    private readonly HashSet<IQueryObserver> _observers = new();
 
     private Task<TResult>? _lastActionCall;
 
@@ -96,12 +96,12 @@ public class FixedQuery<TResult>
         }
     }
 
-    internal void AddObserver(IQueryObserver<TResult> observer)
+    internal void AddObserver(IQueryObserver observer)
     {
         _observers.Add(observer);
     }
 
-    internal void RemoveObserver(IQueryObserver<TResult> observer)
+    internal void RemoveObserver(IQueryObserver observer)
     {
         _observers.Remove(observer);
     }

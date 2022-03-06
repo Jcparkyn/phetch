@@ -39,5 +39,6 @@
     public void Dispose()
     {
         Target.StateChanged -= OnChanged;
+        Target.Detach();
     }
 }

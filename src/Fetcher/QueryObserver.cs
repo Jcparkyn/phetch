@@ -2,12 +2,12 @@
 
 using System;
 
-internal interface IQueryObserver<TResult>
+internal interface IQueryObserver
 {
     internal void OnQueryUpdate();
 }
 
-public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
+public class QueryObserver<TArg, TResult> : IQueryObserver
 {
     private readonly QueryCache<TArg, TResult> _cache;
     private FixedQuery<TResult>? _currentQuery;
@@ -40,7 +40,14 @@ public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
         _currentQuery = newQuery;
     }
 
-    void IQueryObserver<TResult>.OnQueryUpdate()
+    public void Detach()
+    {
+        // TODO: Consider redesign
+        _currentQuery?.RemoveObserver(this);
+        _currentQuery = null;
+    }
+
+    void IQueryObserver.OnQueryUpdate()
     {
         StateChanged?.Invoke();
     }
