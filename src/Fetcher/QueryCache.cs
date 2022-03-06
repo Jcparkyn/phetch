@@ -23,6 +23,14 @@ public class QueryCache<TArg, TResult>
         }
     }
 
+    public void Invalidate(TArg arg)
+    {
+        if (_cachedResponses.TryGetValue(arg, out var query))
+        {
+            query?.Invalidate();
+        }
+    }
+
     public FixedQuery<TResult> GetOrAdd(TArg arg)
     {
         if (_cachedResponses.TryGetValue(arg, out var value))

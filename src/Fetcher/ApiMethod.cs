@@ -25,7 +25,7 @@ public class ApiMethod<TArg, TResult>
 
     public void Invalidate(TArg arg)
     {
-        throw new NotImplementedException();
+        _cache.Invalidate(arg);
     }
 
     public void UpdateQueryData(TArg arg, TResult resultData) => _cache.UpdateQueryData(arg, resultData);

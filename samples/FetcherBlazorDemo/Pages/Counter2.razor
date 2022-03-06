@@ -26,8 +26,13 @@
     }
 </MudText>
 
-<MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="DecrementCount">-</MudButton>
-<MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="IncrementCount">+</MudButton>
+<MudButtonGroup>
+    <MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="DecrementCount">-</MudButton>
+    <MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="IncrementCount">+</MudButton>
+</MudButtonGroup>
+
+<MudButton @onclick="() => Api.IsEven.Invalidate(3)">Invalidate 3</MudButton>
+<MudButton @onclick="Api.IsEven.InvalidateAll">Invalidate All</MudButton>
 
 @code {
     private int currentCount = 0;

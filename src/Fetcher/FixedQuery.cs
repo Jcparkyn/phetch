@@ -55,7 +55,7 @@ public class FixedQuery<TResult>
         {
             Refetch();
         }
-        throw new NotImplementedException();
+        // TODO: Track stale status
     }
 
     public void Refetch() => _ = RefetchAsync();
