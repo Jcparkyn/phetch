@@ -36,8 +36,13 @@ public class QueryObserver<TArg, TResult> : IQueryObserver
         {
             _currentQuery?.RemoveObserver(this);
             newQuery.AddObserver(this);
+            _currentQuery = newQuery;
+
+            if (newQuery.IsStale)
+            {
+                newQuery.Refetch();
+            }
         }
-        _currentQuery = newQuery;
     }
 
     public void Detach()

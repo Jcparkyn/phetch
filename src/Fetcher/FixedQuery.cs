@@ -13,6 +13,7 @@ public class FixedQuery<TResult>
     private readonly HashSet<IQueryObserver> _observers = new();
 
     private Task<TResult>? _lastActionCall;
+    private bool _isInvalidated = false;
 
     //public event Action? StateChanged = delegate { };
 
@@ -55,8 +56,14 @@ public class FixedQuery<TResult>
         {
             Refetch();
         }
-        // TODO: Track stale status
+        else
+        {
+            _isInvalidated = true;
+        }
     }
+
+    // TODO: Implement timeout
+    public bool IsStale => _isInvalidated;
 
     public void Refetch() => _ = RefetchAsync();
 
@@ -117,6 +124,7 @@ public class FixedQuery<TResult>
 
     private void SetSuccessState(TResult? newData)
     {
+        _isInvalidated = false;
         Status = QueryStatus.Success;
         Data = newData;
         Error = null;
