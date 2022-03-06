@@ -6,7 +6,7 @@
 
 @code {
     [Parameter, EditorRequired]
-    public QueryHandle<TArg, TResult> Target { get; set; } = null!;
+    public QueryObserver<TArg, TResult> Target { get; set; } = null!;
 
     [Parameter, EditorRequired]
     public Action OnChanged { get; set; } = null!;
@@ -22,9 +22,8 @@
         //{
         //    //Observable.StateChanged -= OnChanged;
         //}
-        if (parameters.TryGetValue<QueryHandle<TArg, TResult>>(nameof(Target), out var newTarget))
+        if (parameters.TryGetValue<QueryObserver<TArg, TResult>>(nameof(Target), out var newTarget))
         {
-            //Observable.StateChanged -= OnChanged;
             if (!ReferenceEquals(Target, newTarget)
                 && parameters.TryGetValue<Action>(nameof(OnChanged), out var newAction))
             {

@@ -2,7 +2,12 @@
 
 using System;
 
-public class QueryHandle<TArg, TResult>
+internal interface IQueryObserver<TResult>
+{
+    internal void OnQueryUpdate();
+}
+
+public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
 {
     private readonly QueryCache<TArg, TResult> _cache;
     private FixedQuery<TResult>? _currentQuery;
@@ -13,7 +18,7 @@ public class QueryHandle<TArg, TResult>
 
     public FixedQuery<TResult>? Query => _currentQuery;
 
-    public QueryHandle(
+    public QueryObserver(
         QueryCache<TArg, TResult> cache)
     {
         _cache = cache;
@@ -29,16 +34,13 @@ public class QueryHandle<TArg, TResult>
         var newQuery = _cache.GetOrAdd(arg);
         if (newQuery != _currentQuery)
         {
-            if (_currentQuery is not null)
-            {
-                _currentQuery.StateChanged -= OnStateChanged;
-            }
-            newQuery.StateChanged += OnStateChanged;
+            _currentQuery?.RemoveObserver(this);
+            newQuery.AddObserver(this);
         }
         _currentQuery = newQuery;
     }
 
-    private void OnStateChanged()
+    void IQueryObserver<TResult>.OnQueryUpdate()
     {
         StateChanged?.Invoke();
     }

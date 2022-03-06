@@ -13,9 +13,9 @@ public class ApiMethod<TArg, TResult>
         _cache = new(queryFn);
     }
 
-    public QueryHandle<TArg, TResult> Use()
+    public QueryObserver<TArg, TResult> Use()
     {
-        return new QueryHandle<TArg, TResult>(_cache);
+        return new QueryObserver<TArg, TResult>(_cache);
     }
 
     public void InvalidateAll()

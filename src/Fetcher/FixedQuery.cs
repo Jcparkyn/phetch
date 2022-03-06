@@ -10,10 +10,11 @@ using System.Threading.Tasks;
 public class FixedQuery<TResult>
 {
     private readonly Func<Task<TResult>> _queryFn;
+    private readonly HashSet<IQueryObserver<TResult>> _observers = new();
 
     private Task<TResult>? _lastActionCall;
 
-    public event Action? StateChanged = delegate { };
+    //public event Action? StateChanged = delegate { };
 
     public QueryStatus Status { get; private set; } = QueryStatus.Idle;
 
@@ -50,6 +51,10 @@ public class FixedQuery<TResult>
 
     public void Invalidate()
     {
+        if (_observers.Count > 0)
+        {
+            Refetch();
+        }
         throw new NotImplementedException();
     }
 
@@ -91,9 +96,23 @@ public class FixedQuery<TResult>
         }
     }
 
+    internal void AddObserver(IQueryObserver<TResult> observer)
+    {
+        _observers.Add(observer);
+    }
+
+    internal void RemoveObserver(IQueryObserver<TResult> observer)
+    {
+        _observers.Remove(observer);
+    }
+
     private void NotifyStateChange()
     {
-        StateChanged?.Invoke();
+        foreach (var observer in _observers)
+        {
+            observer.OnQueryUpdate();
+        }
+        //StateChanged?.Invoke();
     }
 
     private void SetSuccessState(TResult? newData)
