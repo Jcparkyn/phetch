@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 public class FixedQuery<TResult>
 {
     private readonly Func<Task<TResult>> _queryFn;
-    private readonly HashSet<IQueryObserver> _observers = new();
+    private readonly HashSet<IQueryObserver<TResult>> _observers = new();
 
     private Task<TResult>? _lastActionCall;
     private bool _isInvalidated = false;
@@ -33,17 +33,20 @@ public class FixedQuery<TResult>
 
     public FixedQuery(
         Func<Task<TResult>> queryFn,
-        TResult? initialData = default)
+        QueryOptions<TResult> options)
     {
         _queryFn = queryFn;
-        Data = initialData;
+        Data = options.InitialData;
         Refetch();
     }
 
     public void UpdateQueryData(TResult? resultData)
     {
         Data = resultData;
-        NotifyStateChange();
+        foreach (var observer in _observers)
+        {
+            observer.OnQueryUpdate(QueryEvent.Other, default, null);
+        }
     }
 
     public void Invalidate()
@@ -70,7 +73,7 @@ public class FixedQuery<TResult>
             Status = QueryStatus.Loading;
         }
 
-        NotifyStateChange(); // TODO: Avoid unnecessary re-renders
+        //NotifyStateChange(); // TODO: Avoid unnecessary re-renders
 
         Task<TResult>? thisActionCall = null;
         try
@@ -92,30 +95,24 @@ public class FixedQuery<TResult>
             {
                 Error = ex;
                 Status = QueryStatus.Error;
-                NotifyStateChange();
+                foreach (var observer in _observers)
+                {
+                    observer.OnQueryUpdate(QueryEvent.Error, default, ex);
+                }
             }
 
             throw;
         }
     }
 
-    internal void AddObserver(IQueryObserver observer)
+    internal void AddObserver(IQueryObserver<TResult> observer)
     {
         _observers.Add(observer);
     }
 
-    internal void RemoveObserver(IQueryObserver observer)
+    internal void RemoveObserver(IQueryObserver<TResult> observer)
     {
         _observers.Remove(observer);
-    }
-
-    private void NotifyStateChange()
-    {
-        foreach (var observer in _observers)
-        {
-            observer.OnQueryUpdate();
-        }
-        //StateChanged?.Invoke();
     }
 
     private void SetSuccessState(TResult? newData)
@@ -124,6 +121,9 @@ public class FixedQuery<TResult>
         Status = QueryStatus.Success;
         Data = newData;
         Error = null;
-        NotifyStateChange();
+        foreach (var observer in _observers)
+        {
+            observer.OnQueryUpdate(QueryEvent.Success, newData, null);
+        }
     }
 }

@@ -2,14 +2,22 @@
 
 using System;
 
-internal interface IQueryObserver
+internal interface IQueryObserver<TResult>
 {
-    internal void OnQueryUpdate();
+    internal void OnQueryUpdate(QueryEvent e, TResult? result, Exception? exception);
 }
 
-public class QueryObserver<TArg, TResult> : IQueryObserver
+internal enum QueryEvent
+{
+    Other,
+    Success,
+    Error,
+}
+
+public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
 {
     private readonly QueryCache<TArg, TResult> _cache;
+    private readonly QueryObserverOptions<TResult> _options;
     private FixedQuery<TResult>? _currentQuery;
 
     public event Action StateChanged = delegate { };
@@ -19,9 +27,11 @@ public class QueryObserver<TArg, TResult> : IQueryObserver
     public FixedQuery<TResult>? Query => _currentQuery;
 
     public QueryObserver(
-        QueryCache<TArg, TResult> cache)
+        QueryCache<TArg, TResult> cache,
+        QueryObserverOptions<TResult> options)
     {
         _cache = cache;
+        _options = options;
     }
 
     public void Refetch()
@@ -52,8 +62,17 @@ public class QueryObserver<TArg, TResult> : IQueryObserver
         _currentQuery = null;
     }
 
-    void IQueryObserver.OnQueryUpdate()
+    void IQueryObserver<TResult>.OnQueryUpdate(QueryEvent e, TResult? result, Exception? exception)
     {
+        switch (e)
+        {
+            case QueryEvent.Success:
+                _options.OnSuccess?.Invoke(result);
+                break;
+            case QueryEvent.Error:
+                _options.OnFailure?.Invoke(exception!);
+                break;
+        }
         StateChanged?.Invoke();
     }
 }

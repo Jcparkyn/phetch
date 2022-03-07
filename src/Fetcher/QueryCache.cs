@@ -9,10 +9,12 @@ public class QueryCache<TArg, TResult>
 {
     private readonly Dictionary<TArg, FixedQuery<TResult>> _cachedResponses = new();
     private readonly Func<TArg, Task<TResult>> _queryFn;
+    private readonly QueryOptions<TResult> _options;
 
-    public QueryCache(Func<TArg, Task<TResult>> queryFn)
+    public QueryCache(Func<TArg, Task<TResult>> queryFn, QueryOptions<TResult> options)
     {
         _queryFn = queryFn;
+        _options = options;
     }
 
     public void InvalidateAll()
@@ -38,11 +40,16 @@ public class QueryCache<TArg, TResult>
             return value;
         }
 
-        var newQuery = new FixedQuery<TResult>(() => _queryFn(arg));
+        var newQuery = CreateQuery(arg);
 
         _cachedResponses.Add(arg, newQuery);
 
         return newQuery;
+    }
+
+    private FixedQuery<TResult> CreateQuery(TArg arg)
+    {
+        return new FixedQuery<TResult>(() => _queryFn(arg), _options);
     }
 
     public void UpdateQueryData(TArg arg, TResult resultData)
