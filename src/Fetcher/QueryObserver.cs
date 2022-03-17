@@ -34,6 +34,11 @@ public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
         _options = options;
     }
 
+    public QueryObserver(
+        Func<TArg, Task<TResult>> queryFn,
+        QueryObserverOptions<TResult> options
+    ) : this(new QueryCache<TArg, TResult>(queryFn, options), options) { }
+
     public void Refetch()
     {
         _currentQuery?.Refetch();
