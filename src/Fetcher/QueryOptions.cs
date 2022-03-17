@@ -11,7 +11,7 @@ public class QueryMethodOptions<TResult>
 public class QueryObserverOptions<TResult>
 {
     //public TResult? PlaceholderData { get; init; }
-    //public TimeSpan StaleTime { get; init; } = TimeSpan.Zero;
+    public TimeSpan StaleTime { get; init; } = TimeSpan.Zero;
     public Action<TResult?>? OnSuccess { get; init; }
     public Action<Exception>? OnFailure { get; init; }
 }

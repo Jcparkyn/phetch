@@ -59,7 +59,7 @@ public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
             newQuery.AddObserver(this);
             _currentQuery = newQuery;
 
-            if (newQuery.IsStale)
+            if (newQuery.IsStaleByTime(_options.StaleTime))
             {
                 newQuery.Refetch();
             }

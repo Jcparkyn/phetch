@@ -22,6 +22,11 @@ public class ApiMethod<TArg, TResult>
         return new QueryObserver<TArg, TResult>(_cache, options);
     }
 
+    public QueryObserver<TArg, TResult> Use()
+    {
+        return new QueryObserver<TArg, TResult>(_cache, new());
+    }
+
     public void InvalidateAll()
     {
         _cache.InvalidateAll();

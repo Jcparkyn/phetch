@@ -16,6 +16,7 @@ public class FixedQuery<TResult>
     private Task<TResult>? _lastActionCall;
     private bool _isInvalidated = false;
     private Timer? _gcTimer;
+    private DateTime? _dataUpdatedAt;
 
     public QueryStatus Status { get; private set; } = QueryStatus.Idle;
 
@@ -49,10 +50,19 @@ public class FixedQuery<TResult>
     public void UpdateQueryData(TResult? resultData)
     {
         Data = resultData;
+        _dataUpdatedAt = DateTime.Now;
         foreach (var observer in _observers)
         {
             observer.OnQueryUpdate(QueryEvent.Other, default, null);
         }
+    }
+
+    public bool IsStaleByTime(TimeSpan staleTime)
+    {
+        return _isInvalidated
+            || _dataUpdatedAt is null
+            || _dataUpdatedAt + staleTime < DateTime.Now;
+        // TODO: Make testable?
     }
 
     public void Invalidate()
@@ -66,9 +76,6 @@ public class FixedQuery<TResult>
             _isInvalidated = true;
         }
     }
-
-    // TODO: Implement timeout
-    public bool IsStale => _isInvalidated;
 
     public void Refetch() => _ = RefetchAsync();
 
@@ -128,6 +135,7 @@ public class FixedQuery<TResult>
     private void SetSuccessState(TResult? newData)
     {
         _isInvalidated = false;
+        _dataUpdatedAt = DateTime.Now;
         Status = QueryStatus.Success;
         Data = newData;
         Error = null;
