@@ -33,10 +33,12 @@
 
 <MudButton @onclick="() => Api.IsEven.Invalidate(3)">Invalidate 3</MudButton>
 <MudButton @onclick="Api.IsEven.InvalidateAll">Invalidate All</MudButton>
+<MudButton @onclick="MakeTimers">Make Timers</MudButton>
 
 @code {
     private int currentCount = 0;
     private QueryObserver<int, bool> isEvenQuery = null!;
+    private List<Timer> timers = new();
 
     protected override void OnInitialized()
     {
@@ -52,5 +54,26 @@
     private void DecrementCount()
     {
         currentCount--;
+    }
+
+    private void MakeTimers()
+    {
+        int sum = 0;
+        const int maxCount = 1000;
+        for(int i = 0; i < maxCount; i++)
+        {
+            var i2 = i;
+            timers.Add(new Timer(
+                _ =>
+                {
+                    Interlocked.Add(ref sum, i2);
+                    if (i2 == maxCount - 1)
+                        Console.WriteLine($"Timer finished, sum = {sum}");
+                },
+                null,
+                TimeSpan.FromMilliseconds(i),
+                Timeout.InfiniteTimeSpan
+            ));
+        }
     }
 }

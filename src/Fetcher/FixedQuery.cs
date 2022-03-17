@@ -3,15 +3,19 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 
 public class FixedQuery<TResult>
 {
+    private readonly IQueryCache<TResult> _queryCache;
     private readonly Func<Task<TResult>> _queryFn;
     private readonly HashSet<IQueryObserver<TResult>> _observers = new();
+    private readonly TimeSpan _cacheTime;
 
     private Task<TResult>? _lastActionCall;
     private bool _isInvalidated = false;
+    private Timer? _gcTimer;
 
     public QueryStatus Status { get; private set; } = QueryStatus.Idle;
 
@@ -32,10 +36,13 @@ public class FixedQuery<TResult>
     public bool IsFetching => IsLoading || (_lastActionCall is not null && !_lastActionCall.IsCompleted);
 
     public FixedQuery(
+        IQueryCache<TResult> queryCache,
         Func<Task<TResult>> queryFn,
         QueryOptions<TResult> options)
     {
+        _queryCache = queryCache;
         _queryFn = queryFn;
+        _cacheTime = options.CacheTime;
         Data = options.InitialData;
         Refetch();
     }
@@ -108,11 +115,15 @@ public class FixedQuery<TResult>
     internal void AddObserver(IQueryObserver<TResult> observer)
     {
         _observers.Add(observer);
+        UnscheduleGc();
     }
 
     internal void RemoveObserver(IQueryObserver<TResult> observer)
     {
         _observers.Remove(observer);
+
+        if (_observers.Count == 0)
+            ScheduleGc();
     }
 
     private void SetSuccessState(TResult? newData)
@@ -125,5 +136,27 @@ public class FixedQuery<TResult>
         {
             observer.OnQueryUpdate(QueryEvent.Success, newData, null);
         }
+    }
+
+    private void ScheduleGc()
+    {
+        _gcTimer?.Dispose();
+        if (_cacheTime > TimeSpan.Zero)
+            _gcTimer = new Timer(GcTimerCallback, null, _cacheTime, Timeout.InfiniteTimeSpan);
+    }
+
+    private void UnscheduleGc()
+    {
+        _gcTimer?.Dispose();
+        _gcTimer = null;
+    }
+
+    private void GcTimerCallback(object _) => Cleanup();
+
+    private void Cleanup()
+    {
+        _gcTimer?.Dispose();
+        _gcTimer = null;
+        _queryCache.Remove(this);
     }
 }
