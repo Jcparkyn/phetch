@@ -38,12 +38,11 @@ public class FixedQuery<TResult>
     public FixedQuery(
         IQueryCache<TResult> queryCache,
         Func<Task<TResult>> queryFn,
-        QueryOptions<TResult> options)
+        QueryMethodOptions<TResult> options)
     {
         _queryCache = queryCache;
         _queryFn = queryFn;
         _cacheTime = options.CacheTime;
-        Data = options.InitialData;
         Refetch();
     }
 

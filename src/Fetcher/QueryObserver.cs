@@ -1,6 +1,8 @@
 ﻿namespace Fetcher;
 
 using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 
 internal interface IQueryObserver<TResult>
 {
@@ -24,6 +26,10 @@ public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
 
     public QueryStatus Status => _currentQuery?.Status ?? QueryStatus.Idle;
 
+    public TResult? Data => _currentQuery is null
+        ? default
+        : _currentQuery.Data;
+
     public FixedQuery<TResult>? Query => _currentQuery;
 
     public QueryObserver(
@@ -37,7 +43,7 @@ public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
     public QueryObserver(
         Func<TArg, Task<TResult>> queryFn,
         QueryObserverOptions<TResult> options
-    ) : this(new QueryCache<TArg, TResult>(queryFn, options), options) { }
+    ) : this(new QueryCache<TArg, TResult>(queryFn, null), options) { }
 
     public void Refetch()
     {

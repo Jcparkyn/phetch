@@ -14,12 +14,12 @@ public class QueryCache<TArg, TResult> : IQueryCache<TResult>
 {
     private readonly Dictionary<TArg, FixedQuery<TResult>> _cachedResponses = new();
     private readonly Func<TArg, Task<TResult>> _queryFn;
-    private readonly QueryOptions<TResult> _options;
+    private readonly QueryMethodOptions<TResult> _options;
 
-    public QueryCache(Func<TArg, Task<TResult>> queryFn, QueryOptions<TResult> options)
+    public QueryCache(Func<TArg, Task<TResult>> queryFn, QueryMethodOptions<TResult>? options)
     {
         _queryFn = queryFn;
-        _options = options;
+        _options = options ?? new();
     }
 
     public void InvalidateAll()

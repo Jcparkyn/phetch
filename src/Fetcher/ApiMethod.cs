@@ -6,20 +6,20 @@ using System.Threading.Tasks;
 public class ApiMethod<TArg, TResult>
 {
     private readonly QueryCache<TArg, TResult> _cache;
-    private readonly QueryObserverOptions<TResult> _options;
+    private readonly QueryMethodOptions<TResult> _options;
 
     public ApiMethod(
         Func<TArg, Task<TResult>> queryFn,
-        QueryObserverOptions<TResult>? options = null)
+        QueryMethodOptions<TResult>? options = null)
     {
         options ??= new();
         _cache = new(queryFn, options);
         _options = options;
     }
 
-    public QueryObserver<TArg, TResult> Use()
+    public QueryObserver<TArg, TResult> Use(QueryObserverOptions<TResult> options)
     {
-        return new QueryObserver<TArg, TResult>(_cache, _options);
+        return new QueryObserver<TArg, TResult>(_cache, options);
     }
 
     public void InvalidateAll()

@@ -1,18 +1,17 @@
 ﻿namespace Fetcher;
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
-public class QueryOptions<TResult>
+public class QueryMethodOptions<TResult>
 {
-    public TResult? InitialData { get; init; }
     public TimeSpan CacheTime { get; init; } = TimeSpan.FromMinutes(5);
+    //public QueryObserverOptions<TResult>? DefaultObserverOptions { get; set; }
 }
 
-public class QueryObserverOptions<TResult> : QueryOptions<TResult>
+public class QueryObserverOptions<TResult>
 {
-    public TimeSpan StaleTime { get; init; } = TimeSpan.Zero;
-    public Action<TResult?>? OnSuccess { get; init; } // TODO: Handle OnSuccess for unwatched queries?
+    //public TResult? PlaceholderData { get; init; }
+    //public TimeSpan StaleTime { get; init; } = TimeSpan.Zero;
+    public Action<TResult?>? OnSuccess { get; init; }
     public Action<Exception>? OnFailure { get; init; }
 }
