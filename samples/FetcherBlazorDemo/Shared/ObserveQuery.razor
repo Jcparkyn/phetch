@@ -2,43 +2,38 @@
 @typeparam TArg
 @typeparam TResult
 
-<div></div>
 
 @code {
+    private QueryObserver<TArg, TResult>? _target;
     [Parameter, EditorRequired]
-    public QueryObserver<TArg, TResult> Target { get; set; } = null!;
+    public QueryObserver<TArg, TResult>? Target
+    {
+        get => _target;
+        set
+        {
+            if (_target == value) return;
+            if (_target is not null)
+                _target.StateChanged -= OnStateChanged;
+            if (value is not null)
+                value.StateChanged += OnStateChanged;
+            _target = value;
+        }
+    }
 
     [Parameter, EditorRequired]
     public Action OnChanged { get; set; } = null!;
 
-    // TODO: Handle params setting
-    //[Parameter]
-    //public TArg? Params { get; set; }
-
-    public override async Task SetParametersAsync(ParameterView parameters)
-    {
-        // TODO: Implement properly
-        //if (parameters.TryGetValue<Action>(nameof(OnChanged), out var newAction))
-        //{
-        //    //Observable.StateChanged -= OnChanged;
-        //}
-        if (parameters.TryGetValue<QueryObserver<TArg, TResult>>(nameof(Target), out var newTarget))
-        {
-            if (!ReferenceEquals(Target, newTarget)
-                && parameters.TryGetValue<Action>(nameof(OnChanged), out var newAction))
-            {
-                if (Target is not null)
-                    Target.StateChanged -= OnChanged;
-
-                newTarget.StateChanged += newAction;
-            }
-        }
-        await base.SetParametersAsync(parameters);
-    }
-
     public void Dispose()
     {
-        Target.StateChanged -= OnChanged;
-        Target.Detach();
+        if (Target is not null)
+        {
+            Target.StateChanged -= OnChanged;
+            Target.Detach();
+        }
+    }
+
+    private void OnStateChanged()
+    {
+        OnChanged?.Invoke();
     }
 }
