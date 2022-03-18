@@ -24,17 +24,7 @@ public class FixedQuery<TResult>
 
     public Exception? Error { get; private set; }
 
-    public bool IsLoading => Status == QueryStatus.Loading;
-
-    [MemberNotNullWhen(true, nameof(Error))]
-    public bool IsError => Error is not null && Status == QueryStatus.Error;
-
-    [MemberNotNullWhen(true, nameof(Data))]
-    public bool IsSuccess => Data is not null && Status == QueryStatus.Success;
-
-    public bool IsUninitialized => Status == QueryStatus.Idle;
-
-    public bool IsFetching => IsLoading || (_lastActionCall is not null && !_lastActionCall.IsCompleted);
+    public bool IsFetching => _lastActionCall is not null && !_lastActionCall.IsCompleted;
 
     public FixedQuery(
         IQueryCache<TResult> queryCache,

@@ -30,7 +30,21 @@ public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
         ? default
         : _currentQuery.Data;
 
-    public FixedQuery<TResult>? Query => _currentQuery;
+    public Exception? Error => _currentQuery?.Error;
+
+    public bool IsLoading => Status == QueryStatus.Loading;
+
+    [MemberNotNullWhen(true, nameof(Error))]
+    public bool IsError => Status == QueryStatus.Error;
+
+    public bool IsSuccess => _currentQuery?.Status == QueryStatus.Success;
+
+    [MemberNotNullWhen(true, nameof(Data))]
+    public bool HasData => Data is not null;
+
+    public bool IsUninitialized => Status == QueryStatus.Idle;
+
+    public bool IsFetching => _currentQuery?.IsFetching ?? false;
 
     public QueryObserver(
         QueryCache<TArg, TResult> cache,

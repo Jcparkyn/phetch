@@ -12,17 +12,20 @@
 <MudText Typo="Typo.h3" GutterBottom="true">Counter</MudText>
 <MudText Class="mb-4">Current count: @currentCount</MudText>
 
-<MudText Class="@("mb-4 " + (isEvenQuery.Query.IsFetching ? "subtle" : ""))">This number is: @if (isEvenQuery.Query.IsLoading)
+<MudText Class="mb-4">
+    This number is: @if (isEvenQuery.IsLoading)
     {
-        <text>...</text>
+        <MudProgressLinear Indeterminate />
     }
-    else if (isEvenQuery.Query.IsSuccess)
+    else if (isEvenQuery.IsError)
     {
-        <text>@(isEvenQuery.Query.Data ? "even" : "odd")</text>
+        <MudAlert Severity="Severity.Error">@isEvenQuery.Error.Message</MudAlert>
     }
-    else if (isEvenQuery.Query.IsError)
+    else if (isEvenQuery.HasData)
     {
-        <text>@isEvenQuery.Query.Error.Message</text>
+        <span style="@(isEvenQuery.IsFetching ? "opacity: 0.7" : "")">
+            @(isEvenQuery.Data ? "even" : "odd")
+        </span>
     }
 </MudText>
 
@@ -33,17 +36,18 @@
 
 <MudButton @onclick="() => Api.IsEven.Invalidate(3)">Invalidate 3</MudButton>
 <MudButton @onclick="Api.IsEven.InvalidateAll">Invalidate All</MudButton>
-<MudButton @onclick="MakeTimers">Make Timers</MudButton>
 
 @code {
     private int currentCount = 0;
     private QueryObserver<int, bool> isEvenQuery = null!;
-    private List<Timer> timers = new();
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        isEvenQuery = Api.IsEven.Use();
+        isEvenQuery = Api.IsEven.Use(new()
+        {
+            StaleTime = TimeSpan.FromSeconds(5),
+        });
     }
 
     private void IncrementCount()
@@ -54,26 +58,5 @@
     private void DecrementCount()
     {
         currentCount--;
-    }
-
-    private void MakeTimers()
-    {
-        int sum = 0;
-        const int maxCount = 1000;
-        for(int i = 0; i < maxCount; i++)
-        {
-            var i2 = i;
-            timers.Add(new Timer(
-                _ =>
-                {
-                    Interlocked.Add(ref sum, i2);
-                    if (i2 == maxCount - 1)
-                        Console.WriteLine($"Timer finished, sum = {sum}");
-                },
-                null,
-                TimeSpan.FromMilliseconds(i),
-                Timeout.InfiniteTimeSpan
-            ));
-        }
     }
 }
