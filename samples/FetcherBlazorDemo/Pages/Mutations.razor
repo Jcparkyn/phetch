@@ -10,44 +10,44 @@
 
 @if (mutation.IsLoading)
 {
-	<MudProgressLinear Indeterminate />
+    <MudProgressLinear Indeterminate />
 }
 else if (mutation.IsError)
 {
-	<MudAlert Severity="Severity.Error">
-		@mutation.Error.Message
-	</MudAlert>
+    <MudAlert Severity="Severity.Error">
+        @mutation.Error.Message
+    </MudAlert>
 }
 else if (mutation.IsSuccess)
 {
-	<MudAlert Severity="Severity.Success">
-		Saved value to local storage
-	</MudAlert>
+    <MudAlert Severity="Severity.Success">
+        Saved value to local storage
+    </MudAlert>
 }
 
 @code {
-	private int currentCount = 0;
-	private Mutation<int> mutation = null!;
+    private int currentCount = 0;
+    private Mutation<int> mutation = null!;
 
-	protected override void OnInitialized()
-	{
-		base.OnInitialized();
-		mutation = new(
-			async val =>
-			{
-				await Task.Delay(500); // Artificial delay
-				await LocalStorage.SetItemAsync("counterVal", val);
-			},
-			StateHasChanged
-		);
-		mutation.Trigger(currentCount);
-	}
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        mutation = new(
+            async val =>
+            {
+                await Task.Delay(500); // Artificial delay
+                await LocalStorage.SetItemAsync("counterVal", val);
+            },
+            StateHasChanged
+        );
+        mutation.Trigger(currentCount);
+    }
 
-	private void IncrementCount()
-	{
-		currentCount++;
+    private void IncrementCount()
+    {
+        currentCount++;
 
-		// Use TriggerAsync if you need the return value
-		mutation.Trigger(currentCount);
-	}
+        // Use TriggerAsync if you need the return value
+        mutation.Trigger(currentCount);
+    }
 }

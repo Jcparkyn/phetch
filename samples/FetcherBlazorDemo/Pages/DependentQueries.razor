@@ -7,91 +7,91 @@
 
 <MudText Typo="Typo.h3" GutterBottom="true">Dependent Queries</MudText>
 <MudText Class="mb-8">
-	This component demonstrates dependent queries, which depend on previous ones to finish before they can execute.
+    This component demonstrates dependent queries, which depend on previous ones to finish before they can execute.
 </MudText>
 
 <MudGrid>
-	<MudItem xs="6">
-		<MudCard>
-			<MudCardHeader>
-				<CardHeaderContent>
-					<MudText Typo="Typo.h6">Random Number:</MudText>
-				</CardHeaderContent>
-				<CardHeaderActions>
-					<MudIconButton OnClick="query1.Refetch" Icon="@Icons.Material.Filled.Refresh" Color="Color.Secondary" />
-				</CardHeaderActions>
-			</MudCardHeader>
-			<MudCardContent>
-				@if (query1.IsError)
-				{
-					<MudAlert Severity="Severity.Error">@query1.Error.Message</MudAlert>
-				}
-				else if (query1.IsFetching)
-				{
-					<MudProgressLinear Indeterminate />
-				}
-				else if (query1.IsSuccess)
-				{
-					<MudText>@query1.Data</MudText>
-				}
-			</MudCardContent>
-		</MudCard>
-	</MudItem>
+    <MudItem xs="6">
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Random Number:</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudIconButton OnClick="query1.Refetch" Icon="@Icons.Material.Filled.Refresh" Color="Color.Secondary" />
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (query1.IsError)
+                {
+                    <MudAlert Severity="Severity.Error">@query1.Error.Message</MudAlert>
+                }
+                else if (query1.IsFetching)
+                {
+                    <MudProgressLinear Indeterminate />
+                }
+                else if (query1.IsSuccess)
+                {
+                    <MudText>@query1.Data</MudText>
+                }
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
 
-	<MudItem xs="6">
-		<MudCard>
-			<MudCardHeader>
-				<CardHeaderContent>
-					<MudText Typo="Typo.h6">Plus One:</MudText>
-				</CardHeaderContent>
-				<CardHeaderActions>
-					<MudIconButton OnClick="query2.Refetch" Icon="@Icons.Material.Filled.Refresh" Color="Color.Secondary" />
-				</CardHeaderActions>
-			</MudCardHeader>
-			<MudCardContent>
-				@if (query2.IsError)
-				{
-					<MudAlert Severity="Severity.Error">@query2.Error.Message</MudAlert>
-				}
-				else if (query2.IsFetching)
-				{
-					<MudProgressLinear Indeterminate />
-				}
-				else if (query2.IsSuccess)
-				{
-					<MudText>@query2.Data</MudText>
-				}
-			</MudCardContent>
-		</MudCard>
-	</MudItem>
+    <MudItem xs="6">
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Plus One:</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudIconButton OnClick="query2.Refetch" Icon="@Icons.Material.Filled.Refresh" Color="Color.Secondary" />
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (query2.IsError)
+                {
+                    <MudAlert Severity="Severity.Error">@query2.Error.Message</MudAlert>
+                }
+                else if (query2.IsFetching)
+                {
+                    <MudProgressLinear Indeterminate />
+                }
+                else if (query2.IsSuccess)
+                {
+                    <MudText>@query2.Data</MudText>
+                }
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
 </MudGrid>
 
 @code {
-	private Query<int> query1 = null!;
-	private Query<int, int> query2 = null!;
+    private Query<int> query1 = null!;
+    private Query<int, int> query2 = null!;
 
-	protected override void OnInitialized()
-	{
-		base.OnInitialized();
-		var random = new Random();
-		query1 = new(
-			async _ =>
-			{
-				await Task.Delay(500);
-				return random.Next() % 10000;
-			},
-			onStateChanged: StateHasChanged,
-			// Note: you could also do this by conditionally calling query2.SetParams before each render.
-			onSuccess: val => query2.SetParams(val)
-		);
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        var random = new Random();
+        query1 = new(
+            async _ =>
+            {
+                await Task.Delay(500);
+                return random.Next() % 10000;
+            },
+            onStateChanged: StateHasChanged,
+            // Note: you could also do this by conditionally calling query2.SetParams before each render.
+            onSuccess: val => query2.SetParams(val)
+        );
 
-		query2 = new(
-			async (val, _) =>
-			{
-				await Task.Delay(500);
-				return val + 1;
-			},
-			onStateChanged: StateHasChanged
-		);
-	}
+        query2 = new(
+            async (val, _) =>
+            {
+                await Task.Delay(500);
+                return val + 1;
+            },
+            onStateChanged: StateHasChanged
+        );
+    }
 }
