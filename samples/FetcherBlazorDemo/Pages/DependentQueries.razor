@@ -3,6 +3,9 @@
 @using FetcherBlazorDemo.Shared
 @using System.Text.Json
 
+<ObserveQuery Target="query1" OnChanged="StateHasChanged" />
+<ObserveQuery Target="query2" OnChanged="StateHasChanged" />
+
 <PageTitle>Dependent Queries</PageTitle>
 
 <MudText Typo="Typo.h3" GutterBottom="true">Dependent Queries</MudText>
@@ -67,31 +70,29 @@
 </MudGrid>
 
 @code {
-    private Query<int> query1 = null!;
-    private Query<int, int> query2 = null!;
+    private QueryObserver<int> query1 = null!;
+    private QueryObserver<int, int> query2 = null!;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
         var random = new Random();
         query1 = new(
-            async _ =>
+            async () =>
             {
                 await Task.Delay(500);
                 return random.Next() % 10000;
             },
-            onStateChanged: StateHasChanged,
             // Note: you could also do this by conditionally calling query2.SetParams before each render.
-            onSuccess: val => query2.SetParams(val)
+            new() { OnSuccess = val => query2.SetParams(val) }
         );
 
         query2 = new(
-            async (val, _) =>
+            async val =>
             {
                 await Task.Delay(500);
                 return val + 1;
-            },
-            onStateChanged: StateHasChanged
+            }
         );
     }
 }
