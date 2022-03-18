@@ -2,50 +2,53 @@
 @inject HttpClient Http
 
 @{
-	isEvenQuery.SetParams(currentCount);
+    isEvenQuery.SetParams(currentCount);
 }
+
+<Observer Target="isEvenQuery" OnChanged="StateHasChanged" />
 
 <PageTitle>Counter</PageTitle>
 
 <MudText Typo="Typo.h3" GutterBottom="true">Counter</MudText>
 <MudText Class="mb-4">Current count: @currentCount</MudText>
 
-<MudText Class="mb-4">This number is: @if (isEvenQuery.IsFetching)
-	{
-		<text>...</text>
-	}
-	else if (isEvenQuery.IsSuccess)
-	{
-		<text>@(isEvenQuery.Data ? "even" : "odd")</text>
-	}
-	else if (isEvenQuery.IsError)
-	{
-		<text>@isEvenQuery.Error.Message</text>
-	}
+<MudText Class="mb-4">
+    This number is: @if (isEvenQuery.IsLoading)
+    {
+        <MudProgressLinear Indeterminate />
+    }
+    else if (isEvenQuery.IsError)
+    {
+        <MudAlert Severity="Severity.Error">@isEvenQuery.Error.Message</MudAlert>
+    }
+    else if (isEvenQuery.HasData)
+    {
+        <span style="@(isEvenQuery.IsFetching ? "opacity: 0.7" : "")">
+            @(isEvenQuery.Data ? "even" : "odd")
+        </span>
+    }
 </MudText>
 
 <MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="IncrementCount">Click me</MudButton>
 
 @code {
     private int currentCount = 0;
-	private Query<int, bool> isEvenQuery = null!;
+    private QueryObserver<int, bool> isEvenQuery = null!;
 
-	protected override void OnInitialized()
-	{
-		base.OnInitialized();
-		isEvenQuery = new(
-			async (val, token) => (await Http.GetFromJsonAsync<IsEvenResponse>(
-				$"https://api.isevenapi.xyz/api/iseven/{val}",
-				token
-			))!.IsEven,
-			StateHasChanged
-		);
-	}
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        isEvenQuery = new(
+            async val => (await Http.GetFromJsonAsync<IsEvenResponse>(
+                $"https://api.isevenapi.xyz/api/iseven/{val}"
+            ))!.IsEven
+        );
+    }
 
-	private void IncrementCount()
-	{
+    private void IncrementCount()
+    {
         currentCount++;
     }
 
-	private record IsEvenResponse(bool IsEven);
+    private record IsEvenResponse(bool IsEven);
 }

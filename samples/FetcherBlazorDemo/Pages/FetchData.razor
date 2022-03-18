@@ -2,6 +2,8 @@
 @inject HttpClient Http
 @using FetcherBlazorDemo.Shared
 
+<Observer Target="forecastsQuery" OnChanged="StateHasChanged" />
+
 <PageTitle>Weather forecast</PageTitle>
 
 <MudText Typo="Typo.h3" GutterBottom="true">Weather forecast</MudText>
@@ -11,7 +13,7 @@
 
 @if (forecastsQuery.IsError)
 {
-	<MudAlert Severity="Severity.Error">@forecastsQuery.Error.Message</MudAlert>
+    <MudAlert Severity="Severity.Error">@forecastsQuery.Error.Message</MudAlert>
 }
 else
 {
@@ -32,16 +34,15 @@ else
 }
 
 @code {
-    private Query<WeatherForecast[]> forecastsQuery = null!;
+    private QueryObserver<WeatherForecast[]> forecastsQuery = null!;
 
-	protected override void OnInitialized()
-	{
-		base.OnInitialized();
-		forecastsQuery = new(
-			token => Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json", token)!,
-			StateHasChanged
-		);
-	}
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        forecastsQuery = new(
+            () => Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json")!
+        );
+    }
 
     public class WeatherForecast
     {
