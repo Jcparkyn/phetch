@@ -27,7 +27,7 @@
 }
 else
 {
-    <MudTable Items="query.Data?.Artists ?? new()"
+    <MudTable Items="query.Data?.Artists"
           Hover="true"
           Dense
           Elevation="0"
@@ -60,7 +60,7 @@ else
     private async Task<ApiResponse?> Search(string searchString, CancellationToken _)
     {
         if (string.IsNullOrWhiteSpace(searchString))
-            return new ApiResponse(new());
+            return null;
 
         return await Http.GetFromJsonAsync<ApiResponse>($"https://musicbrainz.org/ws/2/artist?query={searchString}&fmt=json&limit=10");
     }
