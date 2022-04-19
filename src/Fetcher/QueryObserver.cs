@@ -72,7 +72,17 @@ public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
         _currentQuery?.Refetch();
     }
 
-    public void SetParams(TArg arg)
+    public Task<TResult?> RefetchAsync()
+    {
+        if (_currentQuery is null)
+            throw new InvalidOperationException("Cannot refetch an unititialized query");
+
+        return _currentQuery.RefetchAsync();
+    }
+
+    public void SetParams(TArg arg) => _ = SetParamsAsync(arg);
+
+    public async Task SetParamsAsync(TArg arg)
     {
         var newQuery = _cache.GetOrAdd(arg);
         if (newQuery != _currentQuery)
@@ -83,7 +93,7 @@ public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
 
             if (newQuery.IsStaleByTime(_options.StaleTime))
             {
-                newQuery.Refetch();
+                await newQuery.RefetchAsync().ConfigureAwait(false);
             }
         }
     }
@@ -115,8 +125,13 @@ public class QueryObserver<TResult> : QueryObserver<Unit, TResult>
 {
     public QueryObserver(
         Func<Task<TResult>> queryFn,
-        QueryObserverOptions<TResult>? options = null) : base(_ => queryFn(), options)
+        QueryObserverOptions<TResult>? options = null,
+        bool runAutomatically = true
+    ) : base(_ => queryFn(), options)
     {
-        SetParams(default);
+        if (runAutomatically)
+        {
+            SetParams(default); // Trigger an initial query
+        }
     }
 }
