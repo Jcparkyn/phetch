@@ -17,12 +17,12 @@ public class ApiMethod<TArg, TResult>
         _options = options;
     }
 
-    public QueryObserver<TArg, TResult> Use(QueryObserverOptions<TResult> options)
+    public Query<TArg, TResult> Use(QueryObserverOptions<TResult> options)
     {
-        return new QueryObserver<TArg, TResult>(_cache, options);
+        return new Query<TArg, TResult>(_cache, options);
     }
 
-    public QueryObserver<TArg, TResult> Use() => Use(new());
+    public Query<TArg, TResult> Use() => Use(new());
 
     public void InvalidateAll()
     {

@@ -4,9 +4,9 @@
 
 
 @code {
-    private QueryObserver<TArg, TResult>? _target;
+    private Query<TArg, TResult>? _target;
     [Parameter, EditorRequired]
-    public QueryObserver<TArg, TResult>? Target
+    public Query<TArg, TResult>? Target
     {
         get => _target;
         set

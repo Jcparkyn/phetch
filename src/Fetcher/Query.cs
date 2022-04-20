@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
-internal interface IQueryObserver<TResult>
+internal interface IQuery<TResult>
 {
     internal void OnQueryUpdate(QueryEvent e, TResult? result, Exception? exception);
 }
@@ -16,7 +16,17 @@ internal enum QueryEvent
     Error,
 }
 
-public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
+/// <summary>
+/// An asynchronous query taking one parameter of type <typeparamref name="TArg"/> and returning a
+/// result of type <typeparamref name="TResult"/>
+/// </summary>
+/// <remarks>
+/// <para>For queries with no parameters, you can use the <see cref="Query{TResult}"/> class.</para>
+/// <para>For queries with multiple parameters, you can use a tuple in place of <c>TArg</c>:
+/// <code>Query&lt;(int, string), string&gt;</code>
+/// </para>
+/// </remarks>
+public class Query<TArg, TResult> : IQuery<TResult>
 {
     private readonly QueryCache<TArg, TResult> _cache;
     private readonly QueryObserverOptions<TResult> _options;
@@ -54,7 +64,7 @@ public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
 
     public bool IsFetching => _currentQuery?.IsFetching ?? false;
 
-    public QueryObserver(
+    public Query(
         QueryCache<TArg, TResult> cache,
         QueryObserverOptions<TResult>? options = null)
     {
@@ -62,7 +72,7 @@ public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
         _options = options ?? new();
     }
 
-    public QueryObserver(
+    public Query(
         Func<TArg, Task<TResult>> queryFn,
         QueryObserverOptions<TResult>? options = null
     ) : this(new QueryCache<TArg, TResult>(queryFn, null), options) { }
@@ -105,7 +115,7 @@ public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
         _currentQuery = null;
     }
 
-    void IQueryObserver<TResult>.OnQueryUpdate(QueryEvent e, TResult? result, Exception? exception)
+    void IQuery<TResult>.OnQueryUpdate(QueryEvent e, TResult? result, Exception? exception)
     {
         switch (e)
         {
@@ -121,9 +131,9 @@ public class QueryObserver<TArg, TResult> : IQueryObserver<TResult>
     }
 }
 
-public class QueryObserver<TResult> : QueryObserver<Unit, TResult>
+public class Query<TResult> : Query<Unit, TResult>
 {
-    public QueryObserver(
+    public Query(
         Func<Task<TResult>> queryFn,
         QueryObserverOptions<TResult>? options = null,
         bool runAutomatically = true

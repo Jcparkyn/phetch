@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,7 +9,7 @@ public class FixedQuery<TResult>
 {
     private readonly IQueryCache<TResult> _queryCache;
     private readonly Func<Task<TResult>> _queryFn;
-    private readonly HashSet<IQueryObserver<TResult>> _observers = new();
+    private readonly HashSet<IQuery<TResult>> _observers = new();
     private readonly TimeSpan _cacheTime;
 
     private Task<TResult>? _lastActionCall;
@@ -108,13 +107,13 @@ public class FixedQuery<TResult>
         }
     }
 
-    internal void AddObserver(IQueryObserver<TResult> observer)
+    internal void AddObserver(IQuery<TResult> observer)
     {
         _observers.Add(observer);
         UnscheduleGc();
     }
 
-    internal void RemoveObserver(IQueryObserver<TResult> observer)
+    internal void RemoveObserver(IQuery<TResult> observer)
     {
         _observers.Remove(observer);
 

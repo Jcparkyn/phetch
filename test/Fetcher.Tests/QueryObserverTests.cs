@@ -10,7 +10,7 @@
         [Fact]
         public async Task Should_work_with_basic_query()
         {
-            var query = new QueryObserver<string>(
+            var query = new Query<string>(
                 () => Task.FromResult("test"),
                 runAutomatically: false
             );
@@ -29,7 +29,7 @@
         public async Task Should_set_loading_states_correctly()
         {
             var tcs = new TaskCompletionSource<string>();
-            var query = new QueryObserver<string>(
+            var query = new Query<string>(
                 () => tcs.Task,
                 runAutomatically: false
             );
@@ -70,7 +70,7 @@
         public async Task Should_handle_query_error()
         {
             var error = new IndexOutOfRangeException("message");
-            var query = new QueryObserver<string>(
+            var query = new Query<string>(
                 () => Task.FromException<string>(error),
                 runAutomatically: false
             );
