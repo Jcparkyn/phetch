@@ -1,0 +1,57 @@
+﻿@page "/fetchdata"
+@inject HttpClient Http
+@using PhetchBlazorDemo.Shared
+
+<ObserveQuery Target="forecastsQuery" OnChanged="StateHasChanged" />
+
+<PageTitle>Weather forecast</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Weather forecast</MudText>
+<MudText Class="mb-8">This component demonstrates fetching data from the server.</MudText>
+
+<MudButton @onclick="forecastsQuery.Refetch">Refresh</MudButton>
+
+@if (forecastsQuery.IsError)
+{
+    <MudAlert Severity="Severity.Error">@forecastsQuery.Error.Message</MudAlert>
+}
+else
+{
+    <MudTable Items="forecastsQuery.Data" Hover="true" SortLabel="Sort By" Elevation="0" Loading="forecastsQuery.IsFetching">
+        <HeaderContent>
+            <MudTh>Date</MudTh>
+            <MudTh>Temp. (C)</MudTh>
+            <MudTh>Temp. (F)</MudTh>
+            <MudTh>Summary</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Date">@context.Date</MudTd>
+            <MudTd DataLabel="Temp. (C)">@context.TemperatureC</MudTd>
+            <MudTd DataLabel="Temp. (F)">@context.TemperatureF</MudTd>
+            <MudTd DataLabel="Summary">@context.Summary</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private Query<WeatherForecast[]> forecastsQuery = null!;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        forecastsQuery = new(
+            () => Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json")!
+        );
+    }
+
+    public class WeatherForecast
+    {
+        public DateTime Date { get; set; }
+
+        public int TemperatureC { get; set; }
+
+        public string? Summary { get; set; }
+
+        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    }
+}

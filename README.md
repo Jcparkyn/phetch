@@ -1,10 +1,10 @@
-# Fetcher
+# Phetch
 
-Fetcher is a small Blazor library for handling async query state, in the style of [React Query](https://github.com/tannerlinsley/react-query) or [SWR](https://github.com/vercel/swr).
+Phetch is a small Blazor library for handling async query state, in the style of [React Query](https://github.com/tannerlinsley/react-query) or [SWR](https://github.com/vercel/swr).
 
-Currently, Fetcher is only designed for use with Blazor WebAssembly. However, there are no dependencies on Blazor or ASP.NET Core, so in theory it can be used anywhere that supports .NET Standard 2.1.
+Currently, Phetch is only designed for use with Blazor WebAssembly. However, there are no dependencies on Blazor or ASP.NET Core, so in theory it can be used anywhere that supports .NET Standard 2.1.
 
-| :warning: Note: Fetcher is in early development and likely to change. |
+| :warning: Note: Phetch is in early development and likely to change. |
 |:----------------------------------------------------------------------|
 
 ## Features
@@ -29,14 +29,14 @@ Then you need to be able to cancel queries after they've started, so you add a `
 If you've been paying attention, you might notice that your queries sometimes return in the wrong order because your server doesn't always take the same amount of time.
 And then you get to the next component and do it all over again.
 
-Fetcher aims to solve all of these problems.
+Phetch aims to solve all of these problems.
 
 ## Show me some code!
 
-[Click here to view the source code for the sample project, with more detailed examples.](https://github.com/Jcparkyn/Fetcher/tree/main/samples/FetcherBlazorDemo)
+[Click here to view the source code for the sample project, with more detailed examples.](https://github.com/Jcparkyn/Phetch/tree/main/samples/PhetchBlazorDemo)
 
 Below is the code for a super-basic component that runs a query when the component is first loaded.
-Fetcher can do a whole lot more than that though, so make sure to check out the samples project and full documentation!
+Phetch can do a whole lot more than that though, so make sure to check out the samples project and full documentation!
 
 ```csharp
 @inject HttpClient Http
@@ -69,7 +69,7 @@ else
 
 ```
 
-Fetcher will also come with some useful extension methods to do things like this:
+Phetch will also come with some useful extension methods to do things like this:
 
 ```html
 <p>
@@ -84,12 +84,12 @@ Fetcher will also come with some useful extension methods to do things like this
 ## Installing
 
 Note: Because many features have not been finalized, I won't yet be updating the NuGet version on a regular basis.
-If you want to try out Fetcher in the meantime, I would recommend downloading the source code instead.
+If you want to try out Phetch in the meantime, I would recommend downloading the source code instead.
 
-You can install Fetcher via the .NET CLI with the following command:
+You can install Phetch via the .NET CLI with the following command:
 
 ```sh
-dotnet add package Fetcher
+dotnet add package Phetch
 ```
 
 If you're using Visual Studio, you can also install via the built in NuGet package manager.
