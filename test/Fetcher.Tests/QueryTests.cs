@@ -10,7 +10,7 @@
         [Fact]
         public async Task Should_work_with_basic_query()
         {
-            var query = new Query<string>(
+            var query = new SimpleQuery<string>(
                 token => Task.FromResult("test"),
                 null,
                 runAutomatically: false
@@ -30,7 +30,7 @@
         [Fact]
         public async Task Should_set_loading_states_correctly()
         {
-            var query = new Query<string>(
+            var query = new SimpleQuery<string>(
                 async token =>
                 {
                     await Task.Delay(1, token);
@@ -73,7 +73,7 @@
         public async Task Should_handle_query_error()
         {
             var error = new IndexOutOfRangeException("message");
-            var query = new Query<string>(
+            var query = new SimpleQuery<string>(
                 token => Task.FromException<string>(error),
                 null,
                 runAutomatically: false
@@ -94,7 +94,7 @@
         [Fact]
         public async Task Should_cancel_running_query()
         {
-            var query = new Query<string>(
+            var query = new SimpleQuery<string>(
                 async token =>
                 {
                     await Task.Delay(10000, token);

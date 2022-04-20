@@ -7,16 +7,16 @@ using System.Threading;
 using System.Threading.Tasks;
 
 /// <summary>
-/// Encapsulates an asynchronous query taking one parameter of type <typeparamref name="TArg"/> and
-/// returning a result of type <typeparamref name="TResult"/>
+/// An asynchronous query taking one parameter of type <typeparamref name="TArg"/> and returning a
+/// result of type <typeparamref name="TResult"/>
 /// </summary>
 /// <remarks>
-/// <para>For queries with no parameters, you can use the <see cref="Query{TResult}"/> class.</para>
+/// <para>For queries with no parameters, you can use the <see cref="SimpleQuery{TResult}"/> class.</para>
 /// <para>For queries with multiple parameters, you can use a tuple in place of <c>TArg</c>:
-/// <code>Query&lt;(int, string), string&gt;</code>
+/// <code>SimpleQuery&lt;(int, string), string&gt;</code>
 /// </para>
 /// </remarks>
-public class Query<TArg, TResult>
+public class SimpleQuery<TArg, TResult>
 {
     private readonly Func<TArg, CancellationToken, Task<TResult>> _queryFn;
     private readonly MultipleQueryHandling _multipleQueryHandling;
@@ -48,7 +48,7 @@ public class Query<TArg, TResult>
 
     public bool IsFetching => IsLoading || (_lastActionCall is not null && !_lastActionCall.IsCompleted);
 
-    public Query(
+    public SimpleQuery(
         Func<TArg, CancellationToken, Task<TResult>> queryFn,
         Action? onStateChanged,
         TResult? initialData = default,
@@ -177,12 +177,11 @@ public class Query<TArg, TResult>
 }
 
 /// <summary>
-/// Encapsulates an asynchronous query taking no parameters and returning a result of type
-/// <typeparamref name="TResult"/>
+/// An asynchronous query taking no parameters and returning a result of type <typeparamref name="TResult"/>
 /// </summary>
-public class Query<TResult> : Query<Unit, TResult>
+public class SimpleQuery<TResult> : SimpleQuery<Unit, TResult>
 {
-    public Query(
+    public SimpleQuery(
         Func<CancellationToken, Task<TResult>> queryFn,
         Action? onStateChanged,
         TResult? initialData = default,
