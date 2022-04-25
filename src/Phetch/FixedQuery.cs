@@ -33,7 +33,6 @@ public class FixedQuery<TResult>
         _queryCache = queryCache;
         _queryFn = queryFn;
         _cacheTime = options.CacheTime;
-        Refetch();
     }
 
     public void UpdateQueryData(TResult? resultData)
