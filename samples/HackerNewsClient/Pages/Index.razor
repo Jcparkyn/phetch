@@ -1,7 +1,42 @@
 ﻿@page "/"
+@inject HackerNewsApi Api;
+
+<ObserveQuery OnChanged="StateHasChanged" Target="topPostsQuery" />
 
 <PageTitle>Index</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Hello, world!</MudText>
-<MudText Class="mb-8">Welcome to your new app, powered by MudBlazor!</MudText>
-<MudAlert Severity="Severity.Normal">You can find documentation and examples on our website here: <MudLink Href="https://mudblazor.com" Typo="Typo.body2" Color="Color.Inherit"><b>www.mudblazor.com</b></MudLink></MudAlert>
+<MudText Typo="Typo.h3" GutterBottom="true">Top Posts</MudText>
+
+@if (topPostsQuery.HasData)
+{
+    <MudList>
+        <Virtualize Items="topPostsQuery.Data" Context="postId" OverscanCount="5">
+            <MudListItem>
+                <PostPreview @key="postId" ItemId="postId" />
+            </MudListItem>
+        </Virtualize>
+    </MudList>
+}
+else if (topPostsQuery.IsLoading)
+{
+    <MudProgressLinear Indeterminate />
+}
+else
+{
+    <MudAlert Severity="Severity.Error">
+        Something went wrong!
+    </MudAlert>
+}
+
+@code {
+    private Query<Unit, List<int>> topPostsQuery = null!;
+
+    protected override void OnInitialized()
+    {
+        topPostsQuery = Api.GetTopStories.Use(new()
+        {
+            StaleTime = TimeSpan.FromSeconds(30),
+        });
+        topPostsQuery.SetParams(default);
+    }
+ }

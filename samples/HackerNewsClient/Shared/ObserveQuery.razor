@@ -1,0 +1,39 @@
+﻿@implements IDisposable
+@typeparam TArg
+@typeparam TResult
+
+
+@code {
+    private Query<TArg, TResult>? _target;
+    [Parameter, EditorRequired]
+    public Query<TArg, TResult>? Target
+    {
+        get => _target;
+        set
+        {
+            if (_target == value) return;
+            if (_target is not null)
+                _target.StateChanged -= OnStateChanged;
+            if (value is not null)
+                value.StateChanged += OnStateChanged;
+            _target = value;
+        }
+    }
+
+    [Parameter, EditorRequired]
+    public Action OnChanged { get; set; } = null!;
+
+    public void Dispose()
+    {
+        if (Target is not null)
+        {
+            Target.StateChanged -= OnChanged;
+            Target.Detach();
+        }
+    }
+
+    private void OnStateChanged()
+    {
+        OnChanged?.Invoke();
+    }
+}

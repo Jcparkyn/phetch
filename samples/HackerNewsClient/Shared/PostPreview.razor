@@ -1,0 +1,48 @@
+﻿@inject HackerNewsApi Api
+
+@{
+    itemQuery.SetParams(ItemId);
+}
+
+<ObserveQuery Target="itemQuery" OnChanged="StateHasChanged" />
+
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderContent>
+            @if (itemQuery.HasData)
+            {
+                <MudText Typo="Typo.h6">@itemQuery.Data.Title</MudText>
+            }
+            else
+            {
+                <MudSkeleton />
+            }
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        @if (itemQuery.HasData)
+        {
+            <MudText>@itemQuery.Data.By</MudText>
+        }
+        else
+        {
+            <MudSkeleton />
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter, EditorRequired]
+    public int ItemId { get; set; }
+
+    private Query<int, HnItem> itemQuery = null!;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        itemQuery = Api.GetItem.Use(new()
+        {
+            StaleTime = TimeSpan.FromMinutes(1),
+        });
+    }
+}
