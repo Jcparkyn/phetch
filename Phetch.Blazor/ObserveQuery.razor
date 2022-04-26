@@ -2,7 +2,6 @@
 @typeparam TArg
 @typeparam TResult
 
-
 @code {
     private Query<TArg, TResult>? _target;
     [Parameter, EditorRequired]
@@ -13,7 +12,10 @@
         {
             if (_target == value) return;
             if (_target is not null)
+            {
                 _target.StateChanged -= OnStateChanged;
+                _target.Detach();
+            }
             if (value is not null)
                 value.StateChanged += OnStateChanged;
             _target = value;

@@ -1,0 +1,81 @@
+﻿@implements IDisposable
+@typeparam TArg
+@typeparam TResult
+
+@{
+    query?.SetParams(Param);
+}
+
+@if (query is not null)
+{
+    @ChildContent(query)
+}
+
+@code {
+    private ApiMethod<TArg, TResult>? endpoint { get; set; }
+
+    [Parameter, EditorRequired]
+    public ApiMethod<TArg, TResult>? Endpoint
+    {
+        get => endpoint;
+        set
+        {
+            if (ReferenceEquals(endpoint, value)) return;
+            TryUnsubscribe(query);
+            if (value is not null)
+            {
+                query = GetQuery(value, options);
+                endpoint = value;
+            }
+        }
+    }
+
+    [Parameter, EditorRequired]
+    public RenderFragment<Query<TArg, TResult>> ChildContent { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public TArg Param { get; set; } = default!;
+
+    private QueryObserverOptions<TResult>? options;
+
+    [Parameter]
+    public QueryObserverOptions<TResult>? Options
+    {
+        get => options;
+        set
+        {
+            if (ReferenceEquals(options, value)) return;
+            TryUnsubscribe(query);
+            if (endpoint is not null)
+            {
+                query = GetQuery(endpoint, value);
+            }
+            options = value;
+        }
+    }
+
+    private Query<TArg, TResult>? query;
+
+    public void Dispose()
+    {
+        TryUnsubscribe(query);
+    }
+
+    private Query<TArg, TResult> GetQuery(ApiMethod<TArg, TResult> endpoint, QueryObserverOptions<TResult>? options)
+    {
+        var newQuery = options is null
+            ? endpoint.Use()
+            : endpoint.Use(options);
+        newQuery.StateChanged += StateHasChanged;
+        return newQuery;
+    }
+
+    private void TryUnsubscribe(Query<TArg, TResult>? query)
+    {
+        if (query is not null)
+        {
+            query.StateChanged -= StateHasChanged;
+            query.Detach();
+        }
+    }
+}
