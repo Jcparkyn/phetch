@@ -14,5 +14,6 @@ builder.Services
     .AddMudServices()
     .AddBlazoredLocalStorage();
 builder.Services.AddScoped<IsEvenApi>();
+builder.Services.AddScoped<CoinbaseApi>();
 
 await builder.Build().RunAsync();

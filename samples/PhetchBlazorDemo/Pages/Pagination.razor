@@ -1,11 +1,5 @@
 ﻿@page "/pagination"
-@inject HttpClient Http
-
-@{
-    query.SetParams(currentPage);
-}
-
-<ObserveQuery Target="query" OnChanged="StateHasChanged" />
+@inject CoinbaseApi Api
 
 <PageTitle>Pagination Example</PageTitle>
 
@@ -13,58 +7,38 @@
 
 <MudText Class="mb-8">This component demonstrates fetching paginated data from the server.</MudText>
 
-<MudButton @onclick="query.Refetch">Refresh</MudButton>
+<UseEndpoint Endpoint="Api.GetTopAssets" Param="currentPage" Context="query">
+    <MudButton @onclick="query.Refetch">Refresh</MudButton>
 
-<MudPagination Color="Color.Primary"
-               Count="query.LastData?.Pagination.total_pages ?? 1"
-               @bind-Selected="@currentPage" />
+    <MudPagination Color="Color.Primary"
+                   Count="query.LastData?.Pagination.total_pages ?? 1"
+                   @bind-Selected="@currentPage" />
 
-@if (query.IsError)
-{
-    <MudAlert Severity="Severity.Error">@query.Error.Message</MudAlert>
-}
-else
-{
-    <MudTable Items="query.LastData?.Data"
-          Hover="true"
-          Elevation="0"
-          Dense
-          Loading="query.IsFetching">
-        <HeaderContent>
-            <MudTh>Name</MudTh>
-            <MudTh>Latest Price</MudTh>
-            <MudTh>ID</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Latest">$@context.Latest</MudTd>
-            <MudTd DataLabel="ID">@context.Id</MudTd>
-        </RowTemplate>
-    </MudTable>
-}
+    @if (query.IsError)
+    {
+        <MudAlert Severity="Severity.Error">@query.Error.Message</MudAlert>
+    }
+    else
+    {
+        <MudTable Items="query.LastData?.Data ?? new()"
+              Hover="true"
+              Elevation="0"
+              Dense
+              Loading="query.IsFetching">
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Latest Price</MudTh>
+                <MudTh>ID</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Latest">$@context.Latest</MudTd>
+                <MudTd DataLabel="ID">@context.Id</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</UseEndpoint>
 
 @code {
     private int currentPage = 1;
-    private Query<int, ApiResponse?> query = null!;
-
-    protected override void OnInitialized()
-    {
-        query = new(
-            pageNum => Http.GetFromJsonAsync<ApiResponse>(
-                $"https://www.coinbase.com/api/v2/assets/search?filter=all&include_prices=true&limit=10&order=asc&page={pageNum}&query=&resolution=day&sort=rank"
-            )
-        );
-    }
-
-    public record ApiResponse(
-        PaginationData Pagination,
-        List<Currency> Data
-    );
-
-    public record Currency(string Id, string Name, decimal Latest);
-
-    public record PaginationData(
-        int total_pages
-    );
 }
-
