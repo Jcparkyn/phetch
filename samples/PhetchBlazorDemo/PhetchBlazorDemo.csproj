@@ -14,7 +14,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Phetch.Blazor\Phetch.Blazor.csproj" />
+	  <ProjectReference Include="..\..\src\Phetch.Blazor\Phetch.Blazor.csproj" />
 	</ItemGroup>
 
   <ItemGroup>

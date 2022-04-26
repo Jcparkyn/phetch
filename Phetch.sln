@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phetch.Tests", "test\Phetch.Tests\Phetch.Tests.csproj", "{298B16C5-6AB6-4CB1-A263-F157FC2D8E41}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Phetch.Blazor", "Phetch.Blazor\Phetch.Blazor.csproj", "{93BF1454-0250-4678-929F-8B3F842CE2A7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Phetch.Blazor", "src\Phetch.Blazor\Phetch.Blazor.csproj", "{93BF1454-0250-4678-929F-8B3F842CE2A7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
