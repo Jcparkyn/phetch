@@ -1,6 +1,7 @@
 ﻿namespace HackerNewsClient.Shared;
 
 using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 using Phetch;
 
 public class HackerNewsApi
@@ -8,28 +9,56 @@ public class HackerNewsApi
     public HackerNewsApi(HttpClient httpClient)
     {
         GetItem = new(
-            async (itemId) => (await httpClient.GetFromJsonAsync<HnItem>(
-                $"https://hacker-news.firebaseio.com/v0/item/{itemId}.json"
+            async (itemId) => (await httpClient.GetFromJsonAsync<HnItemDetails>(
+                $"https://hn.algolia.com/api/v1/items/{itemId}"
             ))!
         );
 
         GetTopStories = new(
-            async _ => (await httpClient.GetFromJsonAsync<List<int>>(
-                $"https://hacker-news.firebaseio.com/v0/topstories.json"
+            async _ => (await httpClient.GetFromJsonAsync<SearchResponse<HnItem>>(
+                $"https://hn.algolia.com/api/v1/search?tags=front_page"
             ))!
         );
     }
 
-    public ApiMethod<Unit, List<int>> GetTopStories { get; }
+    public ApiMethod<Unit, SearchResponse<HnItem>> GetTopStories { get; }
 
-    public ApiMethod<int, HnItem> GetItem { get; }
+    public ApiMethod<int, HnItemDetails> GetItem { get; }
 }
 
-public record HnItem(
-    int Id,
-    bool Deleted,
-    string By,
-    int Time,
-    string Title,
-    string Text
+public enum HnItemType
+{
+    Story,
+    Coment,
+}
+
+public record SearchResponse<T>(
+    List<T> Hits,
+    int NbHits,
+    int Page,
+    int NbPages
 );
+
+public record HnItem(
+    [property: JsonPropertyName("objectID")] int Id,
+    [property: JsonPropertyName("created_at")] DateTime CreatedAt,
+    string Title,
+    string? Url,
+    string Author,
+    int? Points,
+    [property: JsonPropertyName("story_text")] string StoryText,
+    [property: JsonPropertyName("num_comments")] int NumComments
+);
+
+public record HnItemDetails(
+    int Id,
+    [property: JsonPropertyName("created_at")] DateTime CreatedAt,
+    string Title,
+    string? Url,
+    string Author,
+    int? Points,
+    string? Text,
+    string Type,
+    List<HnItemDetails> Children
+);
+

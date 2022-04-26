@@ -10,9 +10,9 @@
 @if (topPostsQuery.HasData)
 {
     <MudList>
-        <Virtualize Items="topPostsQuery.Data" Context="postId" OverscanCount="5">
+        <Virtualize Items="topPostsQuery.Data.Hits" Context="post" OverscanCount="5">
             <MudListItem>
-                <PostPreview @key="postId" ItemId="postId" />
+                <PostPreview @key="post.Id" Post="post" />
             </MudListItem>
         </Virtualize>
     </MudList>
@@ -29,7 +29,7 @@ else
 }
 
 @code {
-    private Query<Unit, List<int>> topPostsQuery = null!;
+    private Query<Unit, SearchResponse<HnItem>> topPostsQuery = null!;
 
     protected override void OnInitialized()
     {

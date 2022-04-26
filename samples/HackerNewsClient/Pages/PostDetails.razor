@@ -1,0 +1,27 @@
+﻿@page "/post/{postId:int}"
+@inject HackerNewsApi Api
+
+<UseEndpoint Endpoint="@Api.GetItem" Param="PostId" Context="query">
+    @if (query.HasData)
+    {
+        <MudText Typo="Typo.h4" GutterBottom="true">@query.Data.Title</MudText>
+        <MudText Typo="Typo.body1">@query.Data.Text</MudText>
+    }
+    else if (query.IsLoading)
+    {
+        <MudSkeleton Height="60px" Width="50%" />
+        <MudSkeleton Height="200px" />
+    }
+    else if (query.IsError)
+    {
+        <MudAlert Severity="Severity.Error">
+            There was an error loading the selected post.
+            <p>@query.Error.Message</p>
+        </MudAlert>
+    }
+</UseEndpoint>
+
+@code {
+    [Parameter]
+    public int PostId { get; set; }
+}

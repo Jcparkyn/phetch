@@ -1,48 +1,36 @@
-﻿@inject HackerNewsApi Api
+﻿
 
-@{
-    itemQuery.SetParams(ItemId);
-}
-
-<ObserveQuery Target="itemQuery" OnChanged="StateHasChanged" />
-
-<MudCard>
-    <MudCardHeader>
-        <CardHeaderContent>
-            @if (itemQuery.HasData)
-            {
-                <MudText Typo="Typo.h6">@itemQuery.Data.Title</MudText>
-            }
-            else
+<a href="/post/@Post.Id">
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                @if (Loading)
+                {
+                    <MudSkeleton />
+                }
+                else
+                {
+                    <MudText Typo="Typo.h6">@Post.Title</MudText>
+                }
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            @if (Loading)
             {
                 <MudSkeleton />
             }
-        </CardHeaderContent>
-    </MudCardHeader>
-    <MudCardContent>
-        @if (itemQuery.HasData)
-        {
-            <MudText>@itemQuery.Data.By</MudText>
-        }
-        else
-        {
-            <MudSkeleton />
-        }
-    </MudCardContent>
-</MudCard>
+            else
+            {
+                <MudText>@Post.Author</MudText>
+            }
+        </MudCardContent>
+    </MudCard>
+</a>
 
 @code {
     [Parameter, EditorRequired]
-    public int ItemId { get; set; }
+    public HnItem Post { get; set; } = null!;
 
-    private Query<int, HnItem> itemQuery = null!;
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        itemQuery = Api.GetItem.Use(new()
-        {
-            StaleTime = TimeSpan.FromMinutes(1),
-        });
-    }
+    [Parameter]
+    public bool Loading { get; set; }
 }
