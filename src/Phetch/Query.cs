@@ -58,7 +58,7 @@ public class Query<TArg, TResult> : IQuery<TResult>
     public bool IsSuccess => _currentQuery?.Status == QueryStatus.Success;
 
     [MemberNotNullWhen(true, nameof(Data))]
-    public bool HasData => Data is not null; // TODO: support value types
+    public bool HasData => IsSuccess && Data is not null;
 
     public bool IsUninitialized => Status == QueryStatus.Idle;
 
