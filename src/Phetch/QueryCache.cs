@@ -26,7 +26,7 @@ public class QueryCache<TArg, TResult> : IQueryCache<TResult>
     {
         foreach (var (_, query) in _cachedResponses)
         {
-            query.Invalidate();
+            query?.Invalidate();
         }
     }
 
@@ -35,6 +35,17 @@ public class QueryCache<TArg, TResult> : IQueryCache<TResult>
         if (_cachedResponses.TryGetValue(arg, out var query))
         {
             query?.Invalidate();
+        }
+    }
+
+    internal void InvalidateWhere(Func<TArg, FixedQuery<TResult>, bool> predicate)
+    {
+        foreach (var (arg, query) in _cachedResponses)
+        {
+            if (predicate(arg, query))
+            {
+                query?.Invalidate();
+            }
         }
     }
 

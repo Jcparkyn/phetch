@@ -32,6 +32,11 @@ public class QueryEndpoint<TArg, TResult>
         Cache.Invalidate(arg);
     }
 
+    public void InvalidateWhere(Func<TArg, FixedQuery<TResult>, bool> predicate)
+    {
+        Cache.InvalidateWhere(predicate);
+    }
+
     public void UpdateQueryData(TArg arg, TResult resultData) => Cache.UpdateQueryData(arg, resultData);
 }
 
