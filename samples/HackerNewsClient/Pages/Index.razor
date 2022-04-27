@@ -1,42 +1,36 @@
 ﻿@page "/"
-@inject HackerNewsApi Api;
-
-<ObserveQuery OnChanged="StateHasChanged" Target="topPostsQuery" />
+@inject HackerNewsApi Api
 
 <PageTitle>Hacker News Demo</PageTitle>
 
 <MudText Typo="Typo.h3" GutterBottom="true">Top Posts</MudText>
 
-@if (topPostsQuery.HasData)
-{
-    <MudList>
-        <Virtualize Items="topPostsQuery.Data.Hits" Context="post" OverscanCount="5">
-            <MudListItem>
-                <PostPreview @key="post.Id" Post="post" />
-            </MudListItem>
-        </Virtualize>
-    </MudList>
-}
-else if (topPostsQuery.IsLoading)
-{
-    <MudProgressLinear Indeterminate />
-}
-else
-{
-    <MudAlert Severity="Severity.Error">
-        Something went wrong!
-    </MudAlert>
-}
+<UseEndpoint Endpoint="Api.GetTopStories" Param="default" Context="topPostsQuery" Options="queryOptions">
+    @if (topPostsQuery.HasData)
+    {
+        <MudList>
+            <Virtualize Items="topPostsQuery.Data.Hits" Context="post" OverscanCount="5">
+                <MudListItem>
+                    <PostPreview @key="post.Id" Post="post" />
+                </MudListItem>
+            </Virtualize>
+        </MudList>
+    }
+    else if (topPostsQuery.IsLoading)
+    {
+        <MudProgressLinear Indeterminate />
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Error">
+            Something went wrong!
+        </MudAlert>
+    }
+</UseEndpoint>
 
 @code {
-    private Query<Unit, SearchResponse<HnItem>> topPostsQuery = null!;
-
-    protected override void OnInitialized()
+    private QueryObserverOptions<SearchResponse<HnItem>> queryOptions = new()
     {
-        topPostsQuery = Api.GetTopStories.Use(new()
-        {
-            StaleTime = TimeSpan.FromSeconds(30),
-        });
-        topPostsQuery.SetParams(default);
-    }
+        StaleTime = TimeSpan.FromSeconds(30),
+    };
  }
