@@ -3,18 +3,16 @@
 using System;
 using System.Threading.Tasks;
 
-public class ApiMethod<TArg, TResult>
+public class QueryEndpoint<TArg, TResult>
 {
     private readonly QueryCache<TArg, TResult> _cache;
-    private readonly QueryMethodOptions<TResult> _options;
 
-    public ApiMethod(
+    public QueryEndpoint(
         Func<TArg, Task<TResult>> queryFn,
         QueryMethodOptions<TResult>? options = null)
     {
         options ??= new();
         _cache = new(queryFn, options);
-        _options = options;
     }
 
     public Query<TArg, TResult> Use(QueryObserverOptions<TResult> options)

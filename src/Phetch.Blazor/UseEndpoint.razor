@@ -12,10 +12,10 @@
 }
 
 @code {
-    private ApiMethod<TArg, TResult>? endpoint { get; set; }
+    private QueryEndpoint<TArg, TResult>? endpoint { get; set; }
 
     [Parameter, EditorRequired]
-    public ApiMethod<TArg, TResult>? Endpoint
+    public QueryEndpoint<TArg, TResult>? Endpoint
     {
         get => endpoint;
         set
@@ -61,7 +61,7 @@
         TryUnsubscribe(query);
     }
 
-    private Query<TArg, TResult> GetQuery(ApiMethod<TArg, TResult> endpoint, QueryObserverOptions<TResult>? options)
+    private Query<TArg, TResult> GetQuery(QueryEndpoint<TArg, TResult> endpoint, QueryObserverOptions<TResult>? options)
     {
         var newQuery = options is null
             ? endpoint.Use()

@@ -21,9 +21,9 @@ public class HackerNewsApi
         );
     }
 
-    public ApiMethod<Unit, SearchResponse<HnItem>> GetTopStories { get; }
+    public QueryEndpoint<Unit, SearchResponse<HnItem>> GetTopStories { get; }
 
-    public ApiMethod<int, HnItemDetails> GetItem { get; }
+    public QueryEndpoint<int, HnItemDetails> GetItem { get; }
 }
 
 public enum HnItemType
