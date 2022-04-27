@@ -44,7 +44,7 @@
         get => options;
         set
         {
-            if (ReferenceEquals(options, value)) return;
+            if (options == value) return;
             TryUnsubscribe(query);
             if (endpoint is not null)
             {
