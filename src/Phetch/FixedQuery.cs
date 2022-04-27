@@ -9,7 +9,7 @@ public class FixedQuery<TResult>
 {
     private readonly IQueryCache<TResult> _queryCache;
     private readonly Func<Task<TResult>> _queryFn;
-    private readonly HashSet<IQuery<TResult>> _observers = new();
+    private readonly List<IQuery<TResult>> _observers = new();
     private readonly TimeSpan _cacheTime;
 
     private Task<TResult>? _lastActionCall;
