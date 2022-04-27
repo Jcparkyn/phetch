@@ -45,12 +45,11 @@ public class FixedQuery<TResult>
         }
     }
 
-    public bool IsStaleByTime(TimeSpan staleTime)
+    public bool IsStaleByTime(TimeSpan staleTime, DateTime now)
     {
         return _isInvalidated
             || _dataUpdatedAt is null
-            || _dataUpdatedAt + staleTime < DateTime.Now;
-        // TODO: Make testable?
+            || _dataUpdatedAt + staleTime < now;
     }
 
     public void Invalidate()

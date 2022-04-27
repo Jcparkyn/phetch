@@ -174,7 +174,7 @@ public class Query<TArg, TResult> : IQuery<TResult>
             newQuery.AddObserver(this);
             _currentQuery = newQuery;
 
-            if (newQuery.IsStaleByTime(_options.StaleTime))
+            if (newQuery.IsStaleByTime(_options.StaleTime, DateTime.Now))
             {
                 await newQuery.RefetchAsync().ConfigureAwait(false);
             }
