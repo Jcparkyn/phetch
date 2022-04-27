@@ -15,13 +15,13 @@ public class HackerNewsApi
         );
 
         GetTopStories = new(
-            async _ => (await httpClient.GetFromJsonAsync<SearchResponse<HnItem>>(
+            async () => (await httpClient.GetFromJsonAsync<SearchResponse<HnItem>>(
                 $"https://hn.algolia.com/api/v1/search?tags=front_page"
             ))!
         );
     }
 
-    public QueryEndpoint<Unit, SearchResponse<HnItem>> GetTopStories { get; }
+    public QueryEndpoint<SearchResponse<HnItem>> GetTopStories { get; }
 
     public QueryEndpoint<int, HnItemDetails> GetItem { get; }
 }

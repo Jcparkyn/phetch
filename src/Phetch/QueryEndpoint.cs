@@ -5,32 +5,47 @@ using System.Threading.Tasks;
 
 public class QueryEndpoint<TArg, TResult>
 {
-    private readonly QueryCache<TArg, TResult> _cache;
+    protected readonly QueryCache<TArg, TResult> Cache;
 
     public QueryEndpoint(
         Func<TArg, Task<TResult>> queryFn,
         QueryMethodOptions<TResult>? options = null)
     {
         options ??= new();
-        _cache = new(queryFn, options);
+        Cache = new(queryFn, options);
     }
 
     public Query<TArg, TResult> Use(QueryObserverOptions<TResult> options)
     {
-        return new Query<TArg, TResult>(_cache, options);
+        return new Query<TArg, TResult>(Cache, options);
     }
 
     public Query<TArg, TResult> Use() => Use(new());
 
     public void InvalidateAll()
     {
-        _cache.InvalidateAll();
+        Cache.InvalidateAll();
     }
 
     public void Invalidate(TArg arg)
     {
-        _cache.Invalidate(arg);
+        Cache.Invalidate(arg);
     }
 
-    public void UpdateQueryData(TArg arg, TResult resultData) => _cache.UpdateQueryData(arg, resultData);
+    public void UpdateQueryData(TArg arg, TResult resultData) => Cache.UpdateQueryData(arg, resultData);
+}
+
+public class QueryEndpoint<TResult> : QueryEndpoint<Unit, TResult>
+{
+    public QueryEndpoint(
+        Func<Task<TResult>> queryFn,
+        QueryMethodOptions<TResult>? options = null
+    ) : base(_ => queryFn(), options)
+    {
+    }
+
+    public new Query<TResult> Use(QueryObserverOptions<TResult> options)
+    {
+        return new Query<TResult>(Cache, options);
+    }
 }

@@ -144,4 +144,16 @@ public class Query<TResult> : Query<Unit, TResult>
             SetParams(default); // Trigger an initial query
         }
     }
+
+    public Query(
+        QueryCache<Unit, TResult> cache,
+        QueryObserverOptions<TResult>? options = null,
+        bool runAutomatically = true
+    ) : base(cache, options)
+    {
+        if (runAutomatically)
+        {
+            SetParams(default); // Trigger an initial query
+        }
+    }
 }
