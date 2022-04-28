@@ -37,7 +37,8 @@ public class QueryEndpoint<TArg, TResult>
         Cache.InvalidateWhere(predicate);
     }
 
-    public void UpdateQueryData(TArg arg, TResult resultData) => Cache.UpdateQueryData(arg, resultData);
+    /// <inheritdoc cref="QueryCache{TArg, TResult}.UpdateQueryData(TArg, TResult)"/>
+    public bool UpdateQueryData(TArg arg, TResult resultData) => Cache.UpdateQueryData(arg, resultData);
 }
 
 public class QueryEndpoint<TResult> : QueryEndpoint<Unit, TResult>

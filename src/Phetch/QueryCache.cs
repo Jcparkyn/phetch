@@ -68,12 +68,20 @@ public class QueryCache<TArg, TResult> : IQueryCache<TResult>
         return new FixedQuery<TResult>(this, () => _queryFn(arg), _options);
     }
 
-    public void UpdateQueryData(TArg arg, TResult resultData)
+    /// <summary>
+    /// Updates the response data for a given query, if it exists.
+    /// </summary>
+    /// <param name="arg"></param>
+    /// <param name="resultData"></param>
+    /// <returns><c>true</c> if the query existed, otherwise <c>false</c>.</returns>
+    public bool UpdateQueryData(TArg arg, TResult resultData)
     {
         if (_cachedResponses.TryGetValue(arg, out var result))
         {
             result.UpdateQueryData(resultData);
+            return true;
         }
+        return false;
     }
 
     public void Remove(FixedQuery<TResult> query)
