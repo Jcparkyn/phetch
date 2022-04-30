@@ -2,10 +2,6 @@
 @typeparam TArg
 @typeparam TResult
 
-@{
-    query?.SetParams(Param);
-}
-
 @if (query is not null)
 {
     @ChildContent(query)
@@ -33,8 +29,21 @@
     [Parameter, EditorRequired]
     public RenderFragment<Query<TArg, TResult>> ChildContent { get; set; } = null!;
 
+    // Other parameters can be set before Param is set, so don't use Param until it has been set.
+    // A nullable here would not work for queries where null is a valid argument.
+    private bool hasSetParam = false;
+    private TArg param = default!;
+
     [Parameter, EditorRequired]
-    public TArg Param { get; set; } = default!;
+    public TArg Param
+    {
+        get => param;
+        set
+        {
+            hasSetParam = true;
+            query?.SetParams(value);
+        }
+    }
 
     private QueryObserverOptions<TResult>? options;
 
@@ -67,6 +76,10 @@
             ? endpoint.Use()
             : endpoint.Use(options);
         newQuery.StateChanged += StateHasChanged;
+
+        if (hasSetParam)
+            newQuery.SetParams(param);
+
         return newQuery;
     }
 
