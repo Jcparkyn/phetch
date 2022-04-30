@@ -15,3 +15,15 @@ public class QueryObserverOptions<TResult>
     public Action<TResult?>? OnSuccess { get; init; }
     public Action<Exception>? OnFailure { get; init; }
 }
+
+public class MutationEndpointOptions<TResult>
+{
+    public Action<TResult>? OnSuccess { get; init; }
+    public Action<Exception>? OnFailure { get; init; }
+}
+
+public class MutationOptions<TResult>
+{
+    public Action<TResult>? OnSuccess { get; init; }
+    public Action<Exception>? OnFailure { get; init; }
+}

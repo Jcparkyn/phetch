@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 public class Mutation<TArg, TResult>
 {
     private readonly Func<TArg, Task<TResult>> _mutationFn;
-    private readonly Action? _onError;
+    private readonly MutationOptions<TResult> _options;
+    private readonly MutationEndpointOptions<TResult>? _endpointOptions;
 
     private Task<TResult>? _lastActionCall;
 
-    public event Action? OnStateChanged;
+    public event Action? StateChanged = delegate { };
 
     public QueryStatus Status { get; private set; } = QueryStatus.Idle;
 
@@ -31,12 +32,12 @@ public class Mutation<TArg, TResult>
 
     public Mutation(
         Func<TArg, Task<TResult>> mutationFn,
-        Action? onStateChanged,
-        Action? onError = null)
+        MutationOptions<TResult> options,
+        MutationEndpointOptions<TResult>? endpointOptions = null)
     {
         _mutationFn = mutationFn;
-        _onError = onError;
-        OnStateChanged = onStateChanged;
+        _options = options;
+        _endpointOptions = endpointOptions;
     }
 
     public void Trigger(TArg arg) => _ = TriggerAsync(arg);
@@ -46,7 +47,7 @@ public class Mutation<TArg, TResult>
         Status = QueryStatus.Loading;
         Error = null;
 
-        OnStateChanged?.Invoke(); // TODO: Avoid unnecessary re-renders
+        StateChanged?.Invoke();
 
         var thisActionCall = _mutationFn(arg);
         _lastActionCall = thisActionCall;
@@ -59,7 +60,9 @@ public class Mutation<TArg, TResult>
                 Status = QueryStatus.Success;
                 Data = newData;
                 Error = null;
-                OnStateChanged?.Invoke();
+                _endpointOptions?.OnSuccess?.Invoke(newData);
+                _options?.OnSuccess?.Invoke(newData);
+                StateChanged?.Invoke();
             }
             return newData;
         }
@@ -70,8 +73,9 @@ public class Mutation<TArg, TResult>
             {
                 Error = ex;
                 Status = QueryStatus.Error;
-                _onError?.Invoke();
-                OnStateChanged?.Invoke();
+                _endpointOptions?.OnFailure?.Invoke(ex);
+                _options?.OnFailure?.Invoke(ex);
+                StateChanged?.Invoke();
             }
 
             throw;
@@ -82,17 +86,14 @@ public class Mutation<TArg, TResult>
 public class Mutation<TArg> : Mutation<TArg, Unit>
 {
     public Mutation(
-        Func<TArg, Task> mutationFn,
-        Action? onStateChanged,
-        Action? onError = null
+        Func<TArg, Task> mutationFn
     ) : base(
         async arg =>
         {
             await mutationFn(arg);
             return new Unit();
         },
-        onStateChanged,
-        onError)
+        new())
     {
     }
 }

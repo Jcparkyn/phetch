@@ -37,9 +37,9 @@ else if (mutation.IsSuccess)
             {
                 await Task.Delay(500); // Artificial delay
                 await LocalStorage.SetItemAsync("counterVal", val);
-            },
-            StateHasChanged
+            }
         );
+        mutation.StateChanged += StateHasChanged;
         mutation.Trigger(currentCount);
     }
 
