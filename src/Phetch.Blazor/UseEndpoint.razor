@@ -41,7 +41,7 @@
         set
         {
             hasSetParam = true;
-            query?.SetParams(value);
+            query?.SetParam(value);
         }
     }
 
@@ -78,7 +78,7 @@
         newQuery.StateChanged += StateHasChanged;
 
         if (hasSetParam)
-            newQuery.SetParams(param);
+            newQuery.SetParam(param);
 
         return newQuery;
     }

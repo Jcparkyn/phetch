@@ -14,7 +14,7 @@
                 () => Task.FromResult("test"),
                 runAutomatically: false
             );
-            await query.SetParamsAsync(default);
+            await query.SetParamAsync(default);
 
             query.Data.Should().Be("test");
             query.Status.Should().Be(QueryStatus.Success);
@@ -37,7 +37,7 @@
             query.Status.Should().Be(QueryStatus.Idle);
 
             // Fetch once
-            var refetchTask = query.SetParamsAsync(default);
+            var refetchTask = query.SetParamAsync(default);
 
             query.IsLoading.Should().BeTrue();
             query.IsFetching.Should().BeTrue();
@@ -75,7 +75,7 @@
                 runAutomatically: false
             );
 
-            await query.Invoking(x => x.SetParamsAsync(default))
+            await query.Invoking(x => x.SetParamAsync(default))
                 .Should().ThrowExactlyAsync<IndexOutOfRangeException>();
 
             query.Data.Should().BeNull();

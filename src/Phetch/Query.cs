@@ -151,21 +151,21 @@ public class Query<TArg, TResult> : IQuery<TResult>
     /// Update the parameters of this query, and re-run the query if the parameters have changed.
     /// </summary>
     /// <remarks>
-    /// If you need to <c>await</c> the completion of the query, use <see cref="SetParamsAsync(TArg)"/> instead.
+    /// If you need to <c>await</c> the completion of the query, use <see cref="SetParamAsync(TArg)"/> instead.
     /// </remarks>
-    public void SetParams(TArg arg) => _ = SetParamsAsync(arg);
+    public void SetParam(TArg arg) => _ = SetParamAsync(arg);
 
     /// <summary>
     /// Update the parameters of this query, and re-run the query if the parameters have changed.
     /// </summary>
     /// <remarks>
-    /// If you do not need to <c>await</c> the completion of the query, use <see cref="SetParams(TArg)"/> instead.
+    /// If you do not need to <c>await</c> the completion of the query, use <see cref="SetParam(TArg)"/> instead.
     /// </remarks>
     /// <returns>
     /// A <see cref="Task"/> which completes when the query returns, or immediately if the
     /// parameters have not changed.
     /// </returns>
-    public async Task SetParamsAsync(TArg arg)
+    public async Task SetParamAsync(TArg arg)
     {
         var newQuery = _cache.GetOrAdd(arg);
         if (newQuery != _currentQuery)
@@ -217,7 +217,7 @@ public class Query<TResult> : Query<Unit, TResult>
     {
         if (runAutomatically)
         {
-            SetParams(default); // Trigger an initial query
+            SetParam(default); // Trigger an initial query
         }
     }
 
@@ -229,7 +229,7 @@ public class Query<TResult> : Query<Unit, TResult>
     {
         if (runAutomatically)
         {
-            SetParams(default); // Trigger an initial query
+            SetParam(default); // Trigger an initial query
         }
     }
 }

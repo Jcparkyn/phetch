@@ -2,7 +2,7 @@
 @inject HttpClient Http
 
 @{
-    isEvenQuery.SetParams(currentCount);
+    isEvenQuery.SetParam(currentCount);
 }
 
 <ObserveQuery Target="isEvenQuery" OnChanged="StateHasChanged" />
