@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
-internal interface IQuery<TResult>
+internal interface IQueryObserver<TResult>
 {
     internal void OnQueryUpdate(QueryEvent e, TResult? result, Exception? exception);
 }
@@ -26,7 +26,7 @@ internal enum QueryEvent
 /// <code>Query&lt;(int, string), string&gt;</code>
 /// </para>
 /// </remarks>
-public class Query<TArg, TResult> : IQuery<TResult>
+public class Query<TArg, TResult> : IQueryObserver<TResult>
 {
     private readonly QueryCache<TArg, TResult> _cache;
     private readonly QueryObserverOptions<TResult> _options;
@@ -191,7 +191,7 @@ public class Query<TArg, TResult> : IQuery<TResult>
         _currentQuery = null;
     }
 
-    void IQuery<TResult>.OnQueryUpdate(QueryEvent e, TResult? result, Exception? exception)
+    void IQueryObserver<TResult>.OnQueryUpdate(QueryEvent e, TResult? result, Exception? exception)
     {
         switch (e)
         {

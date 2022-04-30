@@ -9,7 +9,7 @@ public class FixedQuery<TResult>
 {
     private readonly IQueryCache<TResult> _queryCache;
     private readonly Func<Task<TResult>> _queryFn;
-    private readonly List<IQuery<TResult>> _observers = new();
+    private readonly List<IQueryObserver<TResult>> _observers = new();
     private readonly TimeSpan _cacheTime;
 
     private Task<TResult>? _lastActionCall;
@@ -105,13 +105,13 @@ public class FixedQuery<TResult>
         }
     }
 
-    internal void AddObserver(IQuery<TResult> observer)
+    internal void AddObserver(IQueryObserver<TResult> observer)
     {
         _observers.Add(observer);
         UnscheduleGc();
     }
 
-    internal void RemoveObserver(IQuery<TResult> observer)
+    internal void RemoveObserver(IQueryObserver<TResult> observer)
     {
         _observers.Remove(observer);
 
