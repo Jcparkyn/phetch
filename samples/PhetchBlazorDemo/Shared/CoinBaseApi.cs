@@ -1,6 +1,7 @@
 ﻿namespace PhetchBlazorDemo.Shared;
 
 using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 using Phetch;
 
 public class CoinbaseApi
@@ -24,6 +25,6 @@ public class CoinbaseApi
     public record Currency(string Id, string Name, decimal Latest);
 
     public record PaginationData(
-        int total_pages
+        [property: JsonPropertyName("total_pages")] int TotalPages
     );
 }

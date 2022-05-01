@@ -11,7 +11,7 @@
     <MudButton @onclick="query.Refetch">Refresh</MudButton>
 
     <MudPagination Color="Color.Primary"
-                   Count="query.LastData?.Pagination.total_pages ?? 1"
+                   Count="query.LastData?.Pagination.TotalPages ?? 1"
                    @bind-Selected="@currentPage" />
 
     @if (query.IsError)
