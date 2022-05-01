@@ -5,7 +5,7 @@
 
 <MudText Typo="Typo.h3" GutterBottom="true">Top Posts</MudText>
 
-<UseEndpoint Endpoint="Api.GetTopStories" Param="default" Context="topPostsQuery" Options="queryOptions">
+<UseQueryEndpoint Endpoint="Api.GetTopStories" Param="default" Context="topPostsQuery" Options="queryOptions">
     @if (topPostsQuery.HasData)
     {
         <MudList>
@@ -26,7 +26,7 @@
             Something went wrong!
         </MudAlert>
     }
-</UseEndpoint>
+</UseQueryEndpoint>
 
 @code {
     private QueryOptions<SearchResponse<HnItem>> queryOptions = new()

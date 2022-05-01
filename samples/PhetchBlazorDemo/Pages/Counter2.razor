@@ -1,7 +1,7 @@
 ﻿@page "/counter2"
 @inject IsEvenApi Api
 
-<UseEndpoint Endpoint="Api.IsEven" Param="currentCount" Context="isEvenQuery" Options="queryOptions">
+<UseQueryEndpoint Endpoint="Api.IsEven" Param="currentCount" Context="isEvenQuery" Options="queryOptions">
     <MudText Class="mb-4">
         This number is: @if (isEvenQuery.IsLoading)
         {
@@ -18,7 +18,7 @@
             </span>
         }
     </MudText>
-</UseEndpoint>
+</UseQueryEndpoint>
 
 <PageTitle>Counter</PageTitle>
 
