@@ -2,76 +2,78 @@
 
 using Microsoft.AspNetCore.Components;
 
-public partial class UseQueryEndpoint<TArg, TResult>
+public sealed partial class UseQueryEndpoint<TArg, TResult>
 {
-    private Query<TArg, TResult>? query;
-    private QueryEndpoint<TArg, TResult>? endpoint { get; set; }
+    private Query<TArg, TResult>? _query;
+    private QueryEndpoint<TArg, TResult>? _endpoint;
 
     [Parameter, EditorRequired]
     public QueryEndpoint<TArg, TResult>? Endpoint
     {
-        get => endpoint;
+        get => _endpoint;
         set
         {
-            if (ReferenceEquals(endpoint, value))
+            if (ReferenceEquals(_endpoint, value))
                 return;
-            TryUnsubscribe(query);
+            TryUnsubscribe(_query);
             if (value is not null)
             {
-                query = GetQuery(value, options);
-                endpoint = value;
+                _query = GetQuery(value, _options);
+                _endpoint = value;
             }
         }
     }
 
     [Parameter, EditorRequired]
-    public RenderFragment<Query<TArg, TResult>> ChildContent { get; set; } = null !;
+    public RenderFragment<Query<TArg, TResult>> ChildContent { get; set; } = null!;
+
     // Other parameters can be set before Param is set, so don't use Param until it has been set.
     // A nullable here would not work for queries where null is a valid argument.
-    private bool hasSetParam = false;
-    private TArg param = default!;
+    private bool _hasSetParam = false;
+    private TArg _param = default!;
 
     [Parameter, EditorRequired]
     public TArg Param
     {
-        get => param;
+        get => _param;
         set
         {
-            hasSetParam = true;
-            query?.SetParam(value);
+            _param = value;
+            _hasSetParam = true;
+            _query?.SetParam(value);
         }
     }
 
-    private QueryOptions<TResult>? options;
+    private QueryOptions<TResult>? _options;
     [Parameter]
     public QueryOptions<TResult>? Options
     {
-        get => options;
+        get => _options;
         set
         {
-            if (options == value)
+            if (_options == value)
                 return;
-            TryUnsubscribe(query);
-            if (endpoint is not null)
+            TryUnsubscribe(_query);
+            if (_endpoint is not null)
             {
-                query = GetQuery(endpoint, value);
+                _query = GetQuery(_endpoint, value);
             }
 
-            options = value;
+            _options = value;
         }
     }
 
-    public void Dispose()
+    void IDisposable.Dispose()
     {
-        TryUnsubscribe(query);
+        TryUnsubscribe(_query);
     }
 
     private Query<TArg, TResult> GetQuery(QueryEndpoint<TArg, TResult> endpoint, QueryOptions<TResult>? options)
     {
         var newQuery = options is null ? endpoint.Use() : endpoint.Use(options);
         newQuery.StateChanged += StateHasChanged;
-        if (hasSetParam)
-            newQuery.SetParam(param);
+        if (_hasSetParam)
+            newQuery.SetParam(_param);
         return newQuery;
     }
 
