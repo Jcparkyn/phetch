@@ -29,7 +29,7 @@ internal enum QueryEvent
 public class Query<TArg, TResult> : IQueryObserver<TResult>
 {
     private readonly QueryCache<TArg, TResult> _cache;
-    private readonly QueryObserverOptions<TResult> _options;
+    private readonly QueryOptions<TResult> _options;
     private FixedQuery<TResult>? _lastSuccessfulQuery;
     private FixedQuery<TResult>? _currentQuery;
 
@@ -112,7 +112,7 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
 
     public Query(
         QueryCache<TArg, TResult> cache,
-        QueryObserverOptions<TResult>? options = null)
+        QueryOptions<TResult>? options = null)
     {
         _cache = cache;
         _options = options ?? new();
@@ -120,7 +120,7 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
 
     public Query(
         Func<TArg, Task<TResult>> queryFn,
-        QueryObserverOptions<TResult>? options = null
+        QueryOptions<TResult>? options = null
     ) : this(new QueryCache<TArg, TResult>(queryFn, null), options) { }
 
     /// <summary>
@@ -211,7 +211,7 @@ public class Query<TResult> : Query<Unit, TResult>
 {
     public Query(
         Func<Task<TResult>> queryFn,
-        QueryObserverOptions<TResult>? options = null,
+        QueryOptions<TResult>? options = null,
         bool runAutomatically = true
     ) : base(_ => queryFn(), options)
     {
@@ -223,7 +223,7 @@ public class Query<TResult> : Query<Unit, TResult>
 
     public Query(
         QueryCache<Unit, TResult> cache,
-        QueryObserverOptions<TResult>? options = null,
+        QueryOptions<TResult>? options = null,
         bool runAutomatically = true
     ) : base(cache, options)
     {

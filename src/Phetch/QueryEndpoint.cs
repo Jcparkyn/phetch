@@ -9,13 +9,13 @@ public class QueryEndpoint<TArg, TResult>
 
     public QueryEndpoint(
         Func<TArg, Task<TResult>> queryFn,
-        QueryMethodOptions<TResult>? options = null)
+        QueryEndpointOptions<TResult>? options = null)
     {
         options ??= new();
         Cache = new(queryFn, options);
     }
 
-    public Query<TArg, TResult> Use(QueryObserverOptions<TResult> options)
+    public Query<TArg, TResult> Use(QueryOptions<TResult> options)
     {
         return new Query<TArg, TResult>(Cache, options);
     }
@@ -45,12 +45,12 @@ public class QueryEndpoint<TResult> : QueryEndpoint<Unit, TResult>
 {
     public QueryEndpoint(
         Func<Task<TResult>> queryFn,
-        QueryMethodOptions<TResult>? options = null
+        QueryEndpointOptions<TResult>? options = null
     ) : base(_ => queryFn(), options)
     {
     }
 
-    public new Query<TResult> Use(QueryObserverOptions<TResult> options)
+    public new Query<TResult> Use(QueryOptions<TResult> options)
     {
         return new Query<TResult>(Cache, options);
     }

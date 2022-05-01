@@ -14,9 +14,9 @@ public class QueryCache<TArg, TResult> : IQueryCache<TResult>
 {
     private readonly Dictionary<TArg, FixedQuery<TResult>> _cachedResponses = new();
     private readonly Func<TArg, Task<TResult>> _queryFn;
-    private readonly QueryMethodOptions<TResult> _options;
+    private readonly QueryEndpointOptions<TResult> _options;
 
-    public QueryCache(Func<TArg, Task<TResult>> queryFn, QueryMethodOptions<TResult>? options)
+    public QueryCache(Func<TArg, Task<TResult>> queryFn, QueryEndpointOptions<TResult>? options)
     {
         _queryFn = queryFn;
         _options = options ?? new();

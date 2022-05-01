@@ -28,7 +28,7 @@ public class FixedQuery<TResult>
     public FixedQuery(
         IQueryCache<TResult> queryCache,
         Func<Task<TResult>> queryFn,
-        QueryMethodOptions<TResult> options)
+        QueryEndpointOptions<TResult> options)
     {
         _queryCache = queryCache;
         _queryFn = queryFn;

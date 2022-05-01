@@ -45,10 +45,10 @@
         }
     }
 
-    private QueryObserverOptions<TResult>? options;
+    private QueryOptions<TResult>? options;
 
     [Parameter]
-    public QueryObserverOptions<TResult>? Options
+    public QueryOptions<TResult>? Options
     {
         get => options;
         set
@@ -70,7 +70,7 @@
         TryUnsubscribe(query);
     }
 
-    private Query<TArg, TResult> GetQuery(QueryEndpoint<TArg, TResult> endpoint, QueryObserverOptions<TResult>? options)
+    private Query<TArg, TResult> GetQuery(QueryEndpoint<TArg, TResult> endpoint, QueryOptions<TResult>? options)
     {
         var newQuery = options is null
             ? endpoint.Use()

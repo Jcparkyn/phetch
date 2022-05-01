@@ -35,7 +35,7 @@
 
 @code {
     private int currentCount = 0;
-    private readonly QueryObserverOptions<bool> queryOptions = new()
+    private readonly QueryOptions<bool> queryOptions = new()
         {
             StaleTime = TimeSpan.FromSeconds(5),
         };
