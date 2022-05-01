@@ -23,3 +23,19 @@ public class MutationEndpoint<TArg, TResult>
             endpointOptions: _options);
     }
 }
+
+public class MutationEndpoint<TArg> : MutationEndpoint<TArg, Unit>
+{
+    public MutationEndpoint(
+        Func<TArg, Task> queryFn,
+        MutationEndpointOptions<Unit>? options = null
+    ) : base(
+        async arg =>
+        {
+            await queryFn(arg);
+            return default;
+        },
+        options
+    )
+    { }
+}
