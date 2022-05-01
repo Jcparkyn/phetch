@@ -1,6 +1,7 @@
 ﻿namespace Phetch.Blazor;
 
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 public sealed partial class UseQueryEndpoint<TArg, TResult>
 {
@@ -26,6 +27,13 @@ public sealed partial class UseQueryEndpoint<TArg, TResult>
 
     [Parameter, EditorRequired]
     public RenderFragment<Query<TArg, TResult>> ChildContent { get; set; } = null!;
+
+    /// <summary>
+    /// If set to true, any exceptions from the query will be re-thrown during rendering. This
+    /// allows them to be caught by an <see cref="ErrorBoundary"/> further up the component hierarchy.
+    /// </summary>
+    [Parameter]
+    public bool UseErrorBoundary { get; set; } = false;
 
     // Other parameters can be set before Param is set, so don't use Param until it has been set.
     // A nullable here would not work for queries where null is a valid argument.

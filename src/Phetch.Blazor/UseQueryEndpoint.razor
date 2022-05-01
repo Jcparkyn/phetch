@@ -4,5 +4,9 @@
 
 @if (_query is not null)
 {
+    if (UseErrorBoundary && _query.IsError && _query.Error is not null)
+    {
+        throw _query.Error;
+    }
     @ChildContent(_query)
 }
