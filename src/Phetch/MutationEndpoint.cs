@@ -16,13 +16,10 @@ public class MutationEndpoint<TArg, TResult>
         _options = options;
     }
 
-    public Mutation<TArg, TResult> Use(MutationOptions<TResult> options)
+    public Mutation<TArg, TResult> Use()
     {
         return new Mutation<TArg, TResult>(
             _queryFn,
-            options,
             endpointOptions: _options);
     }
-
-    public Mutation<TArg, TResult> Use() => Use(new());
 }

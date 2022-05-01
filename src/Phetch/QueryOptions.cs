@@ -21,9 +21,3 @@ public class MutationEndpointOptions<TResult>
     public Action<TResult>? OnSuccess { get; init; }
     public Action<Exception>? OnFailure { get; init; }
 }
-
-public class MutationOptions<TResult>
-{
-    public Action<TResult>? OnSuccess { get; init; }
-    public Action<Exception>? OnFailure { get; init; }
-}

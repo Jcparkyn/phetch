@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 public class Mutation<TArg, TResult>
 {
     private readonly Func<TArg, Task<TResult>> _mutationFn;
-    private readonly MutationOptions<TResult> _options;
     private readonly MutationEndpointOptions<TResult>? _endpointOptions;
 
     private Task<TResult>? _lastActionCall;
 
     public event Action? StateChanged = delegate { };
+    public event Action<TResult>? Succeeded = delegate { };
+    public event Action<Exception>? Failed = delegate { };
 
     public QueryStatus Status { get; private set; } = QueryStatus.Idle;
 
@@ -32,11 +33,9 @@ public class Mutation<TArg, TResult>
 
     public Mutation(
         Func<TArg, Task<TResult>> mutationFn,
-        MutationOptions<TResult> options,
         MutationEndpointOptions<TResult>? endpointOptions = null)
     {
         _mutationFn = mutationFn;
-        _options = options;
         _endpointOptions = endpointOptions;
     }
 
@@ -61,7 +60,7 @@ public class Mutation<TArg, TResult>
                 Data = newData;
                 Error = null;
                 _endpointOptions?.OnSuccess?.Invoke(newData);
-                _options?.OnSuccess?.Invoke(newData);
+                Succeeded?.Invoke(newData);
                 StateChanged?.Invoke();
             }
             return newData;
@@ -74,7 +73,7 @@ public class Mutation<TArg, TResult>
                 Error = ex;
                 Status = QueryStatus.Error;
                 _endpointOptions?.OnFailure?.Invoke(ex);
-                _options?.OnFailure?.Invoke(ex);
+                Failed?.Invoke(ex);
                 StateChanged?.Invoke();
             }
 
