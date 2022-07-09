@@ -2,7 +2,7 @@
 
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
-using Phetch;
+using Phetch.Core;
 
 public class CoinbaseApi
 {

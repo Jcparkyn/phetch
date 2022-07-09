@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Phetch\Phetch.csproj" />
+    <ProjectReference Include="..\Phetch.Core\Phetch.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

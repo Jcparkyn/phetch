@@ -5,7 +5,7 @@ VisualStudioVersion = 17.2.32210.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhetchBlazorDemo", "samples\PhetchBlazorDemo\PhetchBlazorDemo.csproj", "{D02BE3B4-5217-4D30-853D-D0BCBC2694F0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phetch", "src\Phetch\Phetch.csproj", "{01365911-83BF-4206-8956-CF5B84FFDE44}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phetch.Core", "src\Phetch.Core\Phetch.Core.csproj", "{01365911-83BF-4206-8956-CF5B84FFDE44}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8D6D6C9A-40AF-4BDA-AC76-A146E7F117D6}"
 	ProjectSection(SolutionItems) = preProject

@@ -1,8 +1,8 @@
 ﻿namespace Phetch.Blazor;
 
 using System;
-using Phetch;
 using Microsoft.AspNetCore.Components;
+using Phetch.Core;
 
 public sealed partial class UseMutationEndpoint<TArg, TResult> : IDisposable
 {

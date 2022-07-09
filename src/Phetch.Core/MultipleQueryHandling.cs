@@ -1,4 +1,4 @@
-﻿namespace Phetch;
+﻿namespace Phetch.Core;
 
 /// <summary>
 /// Controls what happens when a new query is triggered while an existing query is in progress.

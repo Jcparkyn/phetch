@@ -1,4 +1,4 @@
-﻿namespace Phetch;
+﻿namespace Phetch.Core;
 
 public readonly struct Unit
 {

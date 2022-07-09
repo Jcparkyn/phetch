@@ -1,7 +1,7 @@
 ﻿namespace PhetchBlazorDemo.Shared;
 
 using System.Net.Http.Json;
-using Phetch;
+using Phetch.Core;
 
 public class IsEvenApi
 {

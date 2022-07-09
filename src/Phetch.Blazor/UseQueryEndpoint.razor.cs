@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Phetch.Core;
 
 public sealed partial class UseQueryEndpoint<TArg, TResult>
 {
