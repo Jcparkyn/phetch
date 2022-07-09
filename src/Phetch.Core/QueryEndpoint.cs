@@ -3,10 +3,26 @@
 using System;
 using System.Threading.Tasks;
 
+/// <summary>
+/// Defines an "endpoint" that represents a single query function, usually for a specific HTTP endpoint.
+/// </summary>
+/// <typeparam name="TArg">
+/// The type of the argument passed to the query function. To use query functions with multiple
+/// arguments, wrap them in a tuple.
+/// </typeparam>
+/// <typeparam name="TResult">The return type from the query function</typeparam>
+/// <remarks>
+/// This is the recommended way to use queries in most cases, and serves as a convenient way to create <see
+/// cref="Query{TArg, TResult}"/> instances that share the same cache.
+/// </remarks>
 public class QueryEndpoint<TArg, TResult>
 {
     protected readonly QueryCache<TArg, TResult> Cache;
 
+    /// <summary>
+    /// Creates a new query endpoint with a given query function. In most cases, the query function
+    /// will be a call to an HTTP endpoint, but it can be any async function.
+    /// </summary>
     public QueryEndpoint(
         Func<TArg, Task<TResult>> queryFn,
         QueryEndpointOptions<TResult>? options = null)
@@ -15,23 +31,52 @@ public class QueryEndpoint<TArg, TResult>
         Cache = new(queryFn, options);
     }
 
+    /// <inheritdoc cref="Use()"/>
+    /// <param name="options">Additional options to use when querying</param>
     public Query<TArg, TResult> Use(QueryOptions<TResult> options)
     {
         return new Query<TArg, TResult>(Cache, options);
     }
 
+    /// <summary>
+    /// Creates a new <see cref="Query{TArg, TResult}"/> object, which can be used to make queries
+    /// to this endpoint.
+    /// </summary>
+    /// <returns>A new <see cref="Query{TArg, TResult}"/> object which shares the same cache as other queries from this endpoint.</returns>
     public Query<TArg, TResult> Use() => Use(new());
 
+    /// <summary>
+    /// Invalidates all cached return values from this endpoint. Any components using them will
+    /// automatically re-fetch their data.
+    /// </summary>
     public void InvalidateAll()
     {
         Cache.InvalidateAll();
     }
 
+    /// <summary>
+    /// Invalidates a specific value in the cache, based on its query argument.
+    /// </summary>
+    /// <param name="arg">The query argument to invalidate</param>
+    /// <remarks>
+    /// <para/>
+    /// This should be preferred over <see cref="InvalidateWhere"/>, because it is more efficient.
+    /// <para/>
+    /// If no queries are using the provided query argument, this does nothing.
+    /// </remarks>
     public void Invalidate(TArg arg)
     {
         Cache.Invalidate(arg);
     }
 
+    /// <summary>
+    /// Invalidates all cache entries that match the given predicate.
+    /// </summary>
+    /// <param name="predicate">
+    /// The function to use when deciding which entries to invalidate. The arguments to this
+    /// function are the query arg, and the query object itself. This should return <c>true</c> for
+    /// entries that should be invalidated, or false otherwise.
+    /// </param>
     public void InvalidateWhere(Func<TArg, FixedQuery<TResult>, bool> predicate)
     {
         Cache.InvalidateWhere(predicate);
@@ -51,6 +96,9 @@ public class QueryEndpoint<TArg, TResult>
     }
 }
 
+/// <summary>
+/// An alternate version of <see cref="QueryEndpoint{TArg, TResult}"/> for queries that have no parameters.
+/// </summary>
 public class QueryEndpoint<TResult> : QueryEndpoint<Unit, TResult>
 {
     public QueryEndpoint(
