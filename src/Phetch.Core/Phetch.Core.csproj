@@ -1,18 +1,19 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>10.0</LangVersion>
-    <VersionPrefix>0.0.2</VersionPrefix>
+    <VersionPrefix>0.0.3</VersionPrefix>
     <Authors>Jcparkyn</Authors>
     <RepositoryUrl>https://github.com/Jcparkyn/Phetch</RepositoryUrl>
     <PackageTags>blazor;fetch;query;swr</PackageTags>
-    <Description>A small Blazor library for handling async query state, in the style of React Query</Description>
+    <Description>The core logic for Phetch.Blazor</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <EnableNETAnalyzers>False</EnableNETAnalyzers>
     <AnalysisLevel>6.0-recommended</AnalysisLevel>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,6 +21,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Include="..\..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

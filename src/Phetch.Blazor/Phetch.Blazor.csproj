@@ -1,11 +1,24 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <VersionPrefix>0.0.3</VersionPrefix>
+    <Authors>Jcparkyn</Authors>
+    <RepositoryUrl>https://github.com/Jcparkyn/Phetch</RepositoryUrl>
+    <PackageTags>blazor;fetch;query;swr</PackageTags>
+    <Description>A small Blazor library for handling async query state, in the style of React Query</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <EnableNETAnalyzers>False</EnableNETAnalyzers>
+    <AnalysisLevel>6.0-recommended</AnalysisLevel>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <NoWarn>1701;1702;1591</NoWarn>
+  </PropertyGroup>
 
   <ItemGroup>
     <SupportedPlatform Include="browser" />
@@ -17,6 +30,17 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Phetch.Core\Phetch.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

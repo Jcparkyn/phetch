@@ -89,7 +89,7 @@ If you want to try out Phetch in the meantime, I would recommend downloading the
 You can install Phetch via the .NET CLI with the following command:
 
 ```sh
-dotnet add package Phetch
+dotnet add package Phetch.Blazor
 ```
 
 If you're using Visual Studio, you can also install via the built in NuGet package manager.
