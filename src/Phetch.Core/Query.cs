@@ -191,6 +191,16 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
         _currentQuery = null;
     }
 
+    /// <summary>
+    /// Runs the original query function once, completely bypassing caching and other extra behaviour
+    /// </summary>
+    /// <param name="arg">The argument passed to the query function</param>
+    /// <returns>The value returned by the query function</returns>
+    public Task<TResult> Invoke(TArg arg)
+    {
+        return _cache.QueryFn.Invoke(arg);
+    }
+
     void IQueryObserver<TResult>.OnQueryUpdate(QueryEvent e, TResult? result, Exception? exception)
     {
         switch (e)

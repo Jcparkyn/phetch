@@ -12,13 +12,14 @@ public interface IQueryCache<TResult>
 
 public class QueryCache<TArg, TResult> : IQueryCache<TResult>
 {
+    internal Func<TArg, Task<TResult>> QueryFn { get; }
+
     private readonly Dictionary<TArg, FixedQuery<TResult>> _cachedResponses = new();
-    private readonly Func<TArg, Task<TResult>> _queryFn;
     private readonly QueryEndpointOptions<TResult> _options;
 
     public QueryCache(Func<TArg, Task<TResult>> queryFn, QueryEndpointOptions<TResult>? options)
     {
-        _queryFn = queryFn;
+        QueryFn = queryFn;
         _options = options ?? new();
     }
 
@@ -65,7 +66,7 @@ public class QueryCache<TArg, TResult> : IQueryCache<TResult>
 
     private FixedQuery<TResult> CreateQuery(TArg arg)
     {
-        return new FixedQuery<TResult>(this, () => _queryFn(arg), _options);
+        return new FixedQuery<TResult>(this, () => QueryFn(arg), _options);
     }
 
     /// <summary>

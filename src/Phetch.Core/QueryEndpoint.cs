@@ -39,6 +39,16 @@ public class QueryEndpoint<TArg, TResult>
 
     /// <inheritdoc cref="QueryCache{TArg, TResult}.UpdateQueryData(TArg, TResult)"/>
     public bool UpdateQueryData(TArg arg, TResult resultData) => Cache.UpdateQueryData(arg, resultData);
+
+    /// <summary>
+    /// Runs the original query function once, completely bypassing caching and other extra behaviour
+    /// </summary>
+    /// <param name="arg">The argument passed to the query function</param>
+    /// <returns>The value returned by the query function</returns>
+    public Task<TResult> Invoke(TArg arg)
+    {
+        return Cache.QueryFn.Invoke(arg);
+    }
 }
 
 public class QueryEndpoint<TResult> : QueryEndpoint<Unit, TResult>
