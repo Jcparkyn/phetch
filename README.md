@@ -5,7 +5,7 @@ Phetch is a small Blazor library for handling async query state, in the style of
 Currently, Phetch is only designed for use with Blazor WebAssembly. However, there are no dependencies on Blazor or ASP.NET Core, so in theory it can be used anywhere that supports .NET Standard 2.1.
 
 | :warning: Note: Phetch is in early development and likely to change. |
-|:----------------------------------------------------------------------|
+|:---------------------------------------------------------------------|
 
 ## Features
 - Automatically handles loading and error states, and updates your components whenever the state changes
@@ -93,3 +93,121 @@ dotnet add package Phetch.Blazor
 ```
 
 If you're using Visual Studio, you can also install via the built in NuGet package manager.
+
+
+## Usage
+
+There are a few different ways to define and use queries, depending on your use case.
+
+### Query Endpoints (Recommended)
+
+In most cases, the best way to define queries is to use the `QueryEndpoint` class.
+
+#### Defining Query Endpoints
+```cs
+// This defines an endpoint that takes an int and returns a bool.
+var isEvenEndpoint = new QueryEndpoint<int, bool>(
+    // Replace this part with your own async function:
+    async val =>
+    {
+        var response = await httpClient.GetFromJsonAsync<dynamic>($"https://api.isevenapi.xyz/api/iseven/{val}");
+        return response.IsEven;
+    }
+);
+```
+
+You can then share this instance of QueryEndpoint across your whole application and use it wherever you need it.
+In most cases, the best way to do this is with Blazor's built-in [dependency injection](https://docs.microsoft.com/en-us/aspnet/core/blazor/fundamentals/dependency-injection).
+You can view the [sample project](./samples/HackerNewsClient/Shared/HackerNewsApi.cs) for a full example of how to do this.
+
+#### Using Query Endpoints
+
+Once you've defined a query endpoint, the best way to use it (in most cases) is with the `<UseQueryEndpoint />` Blazor component. This will automatically request new data when the parameters change, and will handle re-rending the component when the data changes.
+
+```cshtml
+// This assumes you have created a class called MyApi containing your endpoints,
+// and registered it as a singleton or scoped service for dependency injection.
+@inject MyApi Api
+
+<UseQueryEndpoint Endpoint="@Api.GetThing" Param="ThingId" Context="query">
+    @if (query.HasData)
+    {
+        <p>Thing Name: @query.Data.Name</p>
+    }
+    else if (query.IsLoading)
+    {
+        <p>Loading...</p>
+    }
+    else if (query.IsError)
+    {
+        <p>Error: @query.Error.Message</p>
+    }
+</UseQueryEndpoint>
+
+@code {
+    [Parameter]
+    public int ThingId { get; set; }
+}
+```
+
+For a full working example, view the [sample project](./samples/HackerNewsClient/Pages/PostDetails.razor).
+
+### Multiple Parameters
+
+You will often need to define queries or mutations that accept multiple parameters (e.g., a search term and a page number). To do this, you can combine all the parameters into a [tuple](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/value-tuples), like so:
+
+```cs
+var queryEndpoint = new QueryEndpoint<(string searchTerm, int page), List<string>>(
+    args => GetThingsAsync(args.searchTerm, args.page)
+)
+```
+
+For cases with lots of parameters, it is recommended to combine them into a [record](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) instead. This will allow you do define default values and other functionality.
+
+## Mutations
+
+So far, the documentation has talked about queries, which are useful for _retrieving_ (querying) data.
+However, you will often need to _update_ (mutate) data on a server.
+While you can technically do this using queris, the default behaviour won't often be what you want.
+This is where mutations come in.
+The main differences between queries and mutations are:
+
+- Mutations are _not_ run automatically as soon as they are requested (e.g., via `<UseMutationEndpoint/>`). Instead, mutations have a `Trigger` method so that they can be called when needed.
+- Mutations do _not_ use a cache.
+- Mutations are generally used for methods with side effects (e.g. an HTTP POST endpoint).
+
+Aside from these points, the usage of mutations is generally very similar to that of queries, but with `MutationEndpoint` and `<UseMutationEndpoint/>` instead of `QueryEndpoint` and `<UseQueryEndpoint/>`.
+
+Often, it will be useful to invalidate or update the data from other queries when a mutation completes, like so:
+
+```cs
+public class ExampleApi
+{
+    // An endpoint to retrieve a thing based on its ID
+    public QueryEndpoint<int, Thing> GetThingEndpoint { get; }
+
+    // An endpoint with one parameter (the updated thing) and no return
+    public MutationEndpoint<Thing> UpdateThingEndpoint { get; }
+
+    public ExampleApi()
+    {
+        GetThingEndpoint = new(GetThingByIdAsync);
+
+        UpdateThingEndpoint = new(async thing => 
+        {
+            await UpdateThingAsync(thing);
+            GetThingEndpoint.Invalidate(thing.Id);
+        });
+    }
+
+    async Task UpdateThingAsync(Thing thing)
+    {
+        // TODO: Make an HTTP request to update thing
+    }
+
+    async Task<Thing> GetThingByIdAsync(int thingId)
+    {
+        // TODO: Make an HTTP request to get thing
+    }
+}
+```
