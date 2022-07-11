@@ -162,7 +162,7 @@ var queryEndpoint = new QueryEndpoint<(string searchTerm, int page), List<string
 )
 ```
 
-For cases with lots of parameters, it is recommended to combine them into a [record](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) instead. This will allow you do define default values and other functionality.
+For cases with lots of parameters, it is recommended to combine them into a [record](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) instead. This will allow you define default values and other functionality.
 
 ## Mutations
 
