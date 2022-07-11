@@ -71,7 +71,7 @@ else
 
 Phetch will also come with some useful extension methods to do things like this:
 
-```html
+```cshtml
 <p>
     This number is: @isEvenQuery.Match(
         fetching: () => @<text>...</text>,
@@ -118,7 +118,41 @@ var isEvenEndpoint = new QueryEndpoint<int, bool>(
 
 You can then share this instance of QueryEndpoint across your whole application and use it wherever you need it.
 In most cases, the best way to do this is with Blazor's built-in [dependency injection](https://docs.microsoft.com/en-us/aspnet/core/blazor/fundamentals/dependency-injection).
-You can view the [sample project](./samples/HackerNewsClient/Shared/HackerNewsApi.cs) for a full example of how to do this.
+You can view the [sample project](./samples/HackerNewsClient/Shared/HackerNewsApi.cs) for a full example of how to do this, or follow the steps below:
+
+<details>
+<summary>Setting up dependency injection (DI)</summary>
+
+1. Create a class containing an instance of `QueryEndpoint`. You can have as many or few endpoints in a class as you want.
+```cs
+public class MyApi
+{
+    // An endpoint to retrieve a thing based on its ID
+    public QueryEndpoint<int, Thing> GetThingEndpoint { get; }
+
+    // If your code has dependencies on other services (e.g., HttpClient),
+    // you can add them as constructor parameters.
+    public MyApi(HttpClient httpClient)
+    {
+        GetThingEndpoint = new(
+            // TODO: Put your query function here.
+        );
+    }
+}
+```
+
+2. In `Program.cs`, add the following line (this might vary depending on the template you used):
+
+```cs
+builder.Services.AddScoped<MyApi>();
+```
+
+3. To use the service, inject it in a component with the `[Inject]` attribute:
+```cshtml
+@inject MyApi Api
+```
+
+</details>
 
 #### Using Query Endpoints
 
@@ -162,13 +196,13 @@ var queryEndpoint = new QueryEndpoint<(string searchTerm, int page), List<string
 )
 ```
 
-For cases with lots of parameters, it is recommended to combine them into a [record](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) instead. This will allow you define default values and other functionality.
+For cases with lots of parameters, it is recommended to combine them into a [record](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) instead. This will allow you to define default values and other functionality.
 
 ## Mutations
 
 So far, the documentation has talked about queries, which are useful for _retrieving_ (querying) data.
 However, you will often need to _update_ (mutate) data on a server.
-While you can technically do this using queris, the default behaviour won't often be what you want.
+While you can technically do this using queries, the default behaviour won't often be what you want.
 This is where mutations come in.
 The main differences between queries and mutations are:
 
