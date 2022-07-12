@@ -5,22 +5,22 @@ using System.Threading.Tasks;
 
 public class MutationEndpoint<TArg, TResult>
 {
-    private readonly Func<TArg, Task<TResult>> _queryFn;
-    private readonly MutationEndpointOptions<TResult>? _options;
+    protected readonly Func<TArg, Task<TResult>> QueryFn;
+    protected readonly MutationEndpointOptions<TResult>? Options;
 
     public MutationEndpoint(
         Func<TArg, Task<TResult>> queryFn,
         MutationEndpointOptions<TResult>? options = null)
     {
-        _queryFn = queryFn;
-        _options = options;
+        QueryFn = queryFn;
+        Options = options;
     }
 
     public Mutation<TArg, TResult> Use()
     {
         return new Mutation<TArg, TResult>(
-            _queryFn,
-            endpointOptions: _options);
+            QueryFn,
+            endpointOptions: Options);
     }
 }
 
@@ -38,4 +38,6 @@ public class MutationEndpoint<TArg> : MutationEndpoint<TArg, Unit>
         options
     )
     { }
+
+    public new Mutation<TArg> Use() => new(QueryFn, Options);
 }

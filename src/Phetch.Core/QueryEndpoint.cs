@@ -31,19 +31,16 @@ public class QueryEndpoint<TArg, TResult>
         Cache = new(queryFn, options);
     }
 
-    /// <inheritdoc cref="Use()"/>
-    /// <param name="options">Additional options to use when querying</param>
-    public Query<TArg, TResult> Use(QueryOptions<TResult> options)
-    {
-        return new Query<TArg, TResult>(Cache, options);
-    }
-
     /// <summary>
     /// Creates a new <see cref="Query{TArg, TResult}"/> object, which can be used to make queries
     /// to this endpoint.
     /// </summary>
     /// <returns>A new <see cref="Query{TArg, TResult}"/> object which shares the same cache as other queries from this endpoint.</returns>
-    public Query<TArg, TResult> Use() => Use(new());
+    /// <param name="options">Additional options to use when querying</param>
+    public Query<TArg, TResult> Use(QueryOptions<TResult>? options = null)
+    {
+        return new Query<TArg, TResult>(Cache, options);
+    }
 
     /// <summary>
     /// Invalidates all cached return values from this endpoint. Any components using them will
@@ -108,7 +105,7 @@ public class QueryEndpoint<TResult> : QueryEndpoint<Unit, TResult>
     {
     }
 
-    public new Query<TResult> Use(QueryOptions<TResult> options)
+    public new Query<TResult> Use(QueryOptions<TResult>? options = null)
     {
         return new Query<TResult>(Cache, options);
     }

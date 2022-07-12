@@ -38,6 +38,8 @@
             );
 
             query.Status.Should().Be(QueryStatus.Idle);
+            query.IsUninitialized.Should().BeTrue();
+            query.HasData.Should().BeFalse();
 
             // Fetch once
             var refetchTask = query.SetParamAsync(default);
@@ -53,6 +55,7 @@
             query.IsSuccess.Should().BeTrue();
             query.IsLoading.Should().BeFalse();
             query.IsFetching.Should().BeFalse();
+            query.HasData.Should().BeTrue();
 
             tcs = new();
             // Fetch again
@@ -106,12 +109,12 @@
 
             query.Status.Should().Be(QueryStatus.Idle);
 
-            _ = query.SetParamAsync(default);
+            query.SetParam(default);
 
             query.IsLoading.Should().BeTrue();
             query.IsFetching.Should().BeTrue();
 
-            _ = query.RefetchAsync();
+            query.Refetch();
 
             sources[0].SetResult("test0");
             await Task.Delay(1);
@@ -147,12 +150,12 @@
 
             query.Status.Should().Be(QueryStatus.Idle);
 
-            _ = query.SetParamAsync(default);
+            query.SetParam(default);
 
             query.IsLoading.Should().BeTrue();
             query.IsFetching.Should().BeTrue();
 
-            _ = query.RefetchAsync();
+            query.Refetch();
 
             sources[1].SetResult("test1");
             await Task.Delay(1);
