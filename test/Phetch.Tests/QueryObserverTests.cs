@@ -1,6 +1,8 @@
 ﻿namespace Phetch.Tests
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using FluentAssertions;
     using Phetch.Core;
@@ -43,7 +45,7 @@
             query.IsLoading.Should().BeTrue();
             query.IsFetching.Should().BeTrue();
 
-            await Task.Delay(100);
+            await Task.Delay(1);
             tcs.SetResult("test");
             await refetchTask;
 
@@ -86,6 +88,107 @@
             query.IsError.Should().BeTrue();
             query.IsSuccess.Should().BeFalse();
             query.IsLoading.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task Should_always_keep_most_recent_data()
+        {
+            // Timing:
+            // t0 -------- [keep]
+            // t1     --------- [keep]
+            //        ^ refetch
+
+            var (queryFn, sources) = MakeCustomQueryFn(2);
+            var query = new Query<string>(
+                queryFn,
+                runAutomatically: false
+            );
+
+            query.Status.Should().Be(QueryStatus.Idle);
+
+            _ = query.SetParamAsync(default);
+
+            query.IsLoading.Should().BeTrue();
+            query.IsFetching.Should().BeTrue();
+
+            _ = query.RefetchAsync();
+
+            sources[0].SetResult("test0");
+            await Task.Delay(1);
+
+            query.Status.Should().Be(QueryStatus.Success);
+            query.IsSuccess.Should().BeTrue();
+            query.IsLoading.Should().BeFalse();
+            query.IsFetching.Should().BeTrue();
+            query.Data.Should().Be("test0");
+
+            sources[1].SetResult("test1");
+            await Task.Delay(1);
+
+            query.Status.Should().Be(QueryStatus.Success);
+            query.IsLoading.Should().BeFalse();
+            query.IsFetching.Should().BeFalse();
+            query.Data.Should().Be("test1");
+        }
+
+        [Fact]
+        public async Task Should_ignore_outdated_data()
+        {
+            // Timing:
+            // t0 ------------------- [ignore]
+            // t1     --------- [keep]
+            //        ^ refetch
+
+            var (queryFn, sources) = MakeCustomQueryFn(2);
+            var query = new Query<string>(
+                queryFn,
+                runAutomatically: false
+            );
+
+            query.Status.Should().Be(QueryStatus.Idle);
+
+            _ = query.SetParamAsync(default);
+
+            query.IsLoading.Should().BeTrue();
+            query.IsFetching.Should().BeTrue();
+
+            _ = query.RefetchAsync();
+
+            sources[1].SetResult("test1");
+            await Task.Delay(1);
+
+            query.Status.Should().Be(QueryStatus.Success);
+            query.IsSuccess.Should().BeTrue();
+            query.IsLoading.Should().BeFalse();
+            query.IsFetching.Should().BeFalse();
+            query.Data.Should().Be("test1");
+
+            sources[0].SetResult("test0");
+            await Task.Delay(1);
+
+            query.Status.Should().Be(QueryStatus.Success);
+            query.IsLoading.Should().BeFalse();
+            query.IsFetching.Should().BeFalse();
+            query.Data.Should().Be("test1");
+        }
+
+        // Makes a query function that can be called multiple times, using a different TaskCompletionSource each time.
+        private static (Func<Task<string>> queryFn, List<TaskCompletionSource<string>> sources) MakeCustomQueryFn(int numSources)
+        {
+            var sources = Enumerable.Range(0, numSources)
+                .Select(_ => new TaskCompletionSource<string>())
+                .ToList();
+
+            var queryCount = 0;
+            var queryFn = async () =>
+            {
+                if (queryCount > numSources)
+                    throw new Exception("Query function called too many times");
+                var resultTask = sources[queryCount].Task;
+                queryCount++;
+                return await resultTask;
+            };
+            return (queryFn, sources);
         }
     }
 }

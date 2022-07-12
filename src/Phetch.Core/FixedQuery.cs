@@ -16,6 +16,7 @@ public class FixedQuery<TResult>
     private bool _isInvalidated = false;
     private Timer? _gcTimer;
     private DateTime? _dataUpdatedAt;
+    private DateTime? _lastCompletedTaskStartTime;
 
     public QueryStatus Status { get; private set; } = QueryStatus.Idle;
 
@@ -73,7 +74,7 @@ public class FixedQuery<TResult>
             Status = QueryStatus.Loading;
         }
 
-        //NotifyStateChange(); // TODO: Avoid unnecessary re-renders
+        var startTime = DateTime.UtcNow;
 
         Task<TResult>? thisActionCall = null;
         try
@@ -81,20 +82,20 @@ public class FixedQuery<TResult>
             thisActionCall = _queryFn();
             _lastActionCall = thisActionCall;
             var newData = await thisActionCall;
-            // Only update if no new calls have been started since this one started.
-            if (thisActionCall == _lastActionCall)
+            // Only update if no more recent tasks have finished.
+            if (IsMostRecent(startTime))
             {
-                SetSuccessState(newData);
+                SetSuccessState(newData, startTime);
             }
             return newData;
         }
         catch (Exception ex)
         {
-            // Only update if no new calls have been started since this one started.
-            if (thisActionCall == _lastActionCall)
+            if (IsMostRecent(startTime))
             {
                 Error = ex;
                 Status = QueryStatus.Error;
+                _lastCompletedTaskStartTime = startTime;
                 foreach (var observer in _observers)
                 {
                     observer.OnQueryUpdate(QueryEvent.Error, default, ex);
@@ -119,10 +120,16 @@ public class FixedQuery<TResult>
             ScheduleGc();
     }
 
-    private void SetSuccessState(TResult? newData)
+    // We only want to use the "most recent" data, based on the time that the request was made.
+    // This avoids race conditions when queries return in a different order than they were made.
+    private bool IsMostRecent(DateTime startTime) =>
+        _lastCompletedTaskStartTime == null || startTime > _lastCompletedTaskStartTime;
+
+    private void SetSuccessState(TResult? newData, DateTime startTime)
     {
         _isInvalidated = false;
         _dataUpdatedAt = DateTime.Now;
+        _lastCompletedTaskStartTime = startTime;
         Status = QueryStatus.Success;
         Data = newData;
         Error = null;
