@@ -143,7 +143,13 @@ public class FixedQuery<TResult>
     {
         _gcTimer?.Dispose();
         if (_cacheTime > TimeSpan.Zero)
+        {
             _gcTimer = new Timer(GcTimerCallback, null, _cacheTime, Timeout.InfiniteTimeSpan);
+        }
+        else if (_cacheTime == TimeSpan.Zero)
+        {
+            Cleanup();
+        }
     }
 
     private void UnscheduleGc()
