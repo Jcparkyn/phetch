@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 public class MutationEndpoint<TArg, TResult>
 {
-    protected readonly Func<TArg, CancellationToken, Task<TResult>> QueryFn;
+    protected readonly QueryCache<TArg, TResult> Cache;
     protected readonly MutationEndpointOptions<TResult>? Options;
 
     /// <summary>
@@ -17,8 +17,8 @@ public class MutationEndpoint<TArg, TResult>
         Func<TArg, CancellationToken, Task<TResult>> queryFn,
         MutationEndpointOptions<TResult>? options = null)
     {
-        QueryFn = queryFn;
-        Options = options;
+        // TODO: Handle cancellation
+        Cache = new(arg => queryFn(arg, default), (options ?? new()).CacheTime);
     }
 
     /// <inheritdoc cref="MutationEndpoint{TArg, TResult}.MutationEndpoint(Func{TArg, CancellationToken, Task{TResult}}, MutationEndpointOptions{TResult}?)"/>
@@ -28,11 +28,9 @@ public class MutationEndpoint<TArg, TResult>
         : this((arg, _) => queryFn(arg), options)
     { }
 
-    public Mutation<TArg, TResult> Use()
+    public Mutation<TArg, TResult> Use(QueryOptions<TResult>? options = null)
     {
-        return new Mutation<TArg, TResult>(
-            QueryFn,
-            endpointOptions: Options);
+        return new Mutation<TArg, TResult>(Cache, options);
     }
 }
 
@@ -64,5 +62,5 @@ public class MutationEndpoint<TArg> : MutationEndpoint<TArg, Unit>
     )
     { }
 
-    public new Mutation<TArg> Use() => new(QueryFn, Options);
+    public new Mutation<TArg> Use(QueryOptions<Unit>? options = null) => new(Cache, options);
 }

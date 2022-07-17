@@ -13,7 +13,7 @@
         {
             var tcs = new TaskCompletionSource<int>();
             var mut = new Mutation<int, int>(
-                (val, _) => tcs.Task
+                val => tcs.Task
             );
 
             mut.Status.Should().Be(QueryStatus.Idle);
@@ -24,6 +24,7 @@
             var triggerTask1 = mut.TriggerAsync(10);
 
             mut.IsLoading.Should().BeTrue();
+            mut.IsFetching.Should().BeTrue();
 
             await Task.Delay(1);
             tcs.SetResult(11);
@@ -42,6 +43,7 @@
 
             mut.Status.Should().Be(QueryStatus.Loading);
             mut.IsLoading.Should().BeTrue();
+            mut.IsFetching.Should().BeTrue();
 
             tcs.SetResult(21);
             var result2 = await triggerTask2;

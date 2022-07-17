@@ -44,8 +44,9 @@ public sealed partial class UseMutationEndpoint<TArg, TResult> : IDisposable
     {
         var newMutation = endpoint.Use();
         newMutation.StateChanged += StateHasChanged;
-        newMutation.Succeeded += SuccessCallback;
-        newMutation.Failed += FailureCallback;
+        // TODO
+        //newMutation.Succeeded += SuccessCallback;
+        //newMutation.Failed += FailureCallback;
         return newMutation;
     }
 
@@ -54,8 +55,9 @@ public sealed partial class UseMutationEndpoint<TArg, TResult> : IDisposable
         if (mutation is not null)
         {
             mutation.StateChanged -= StateHasChanged;
-            mutation.Succeeded -= SuccessCallback;
-            mutation.Failed -= FailureCallback;
+            // TODO
+            //mutation.Succeeded -= SuccessCallback;
+            //mutation.Failed -= FailureCallback;
         }
     }
 

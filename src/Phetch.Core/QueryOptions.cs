@@ -26,6 +26,7 @@ public class QueryOptions<TResult>
 
 public class MutationEndpointOptions<TResult>
 {
+    public TimeSpan CacheTime { get; init; } = TimeSpan.FromMinutes(5);
     public Action<TResult>? OnSuccess { get; init; }
     public Action<Exception>? OnFailure { get; init; }
 }

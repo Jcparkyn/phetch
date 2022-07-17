@@ -27,8 +27,7 @@ public class QueryEndpoint<TArg, TResult>
         Func<TArg, Task<TResult>> queryFn,
         QueryEndpointOptions<TResult>? options = null)
     {
-        options ??= new();
-        Cache = new(queryFn, options);
+        Cache = new(queryFn, (options ?? new()).CacheTime);
     }
 
     /// <summary>

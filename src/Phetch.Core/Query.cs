@@ -121,7 +121,7 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
     public Query(
         Func<TArg, Task<TResult>> queryFn,
         QueryOptions<TResult>? options = null
-    ) : this(new QueryCache<TArg, TResult>(queryFn, null), options) { }
+    ) : this(new QueryCache<TArg, TResult>(queryFn, TimeSpan.FromMinutes(5)), options) { }
 
     /// <summary>
     /// Run the query using the most recent parameters.
@@ -139,7 +139,7 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
     /// </summary>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public Task<TResult?> RefetchAsync()
+    public Task<TResult> RefetchAsync()
     {
         if (_currentQuery is null)
             throw new InvalidOperationException("Cannot refetch an unititialized query");

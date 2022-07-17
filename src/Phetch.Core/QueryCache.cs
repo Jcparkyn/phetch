@@ -15,12 +15,13 @@ public class QueryCache<TArg, TResult> : IQueryCache<TResult>
     internal Func<TArg, Task<TResult>> QueryFn { get; }
 
     private readonly Dictionary<TArg, FixedQuery<TResult>> _cachedResponses = new();
-    private readonly QueryEndpointOptions<TResult> _options;
+    private readonly Dictionary<TArg, List<FixedQuery<TResult>>> _uncachedResponses = new();
+    private readonly TimeSpan _cacheTime;
 
-    public QueryCache(Func<TArg, Task<TResult>> queryFn, QueryEndpointOptions<TResult>? options)
+    public QueryCache(Func<TArg, Task<TResult>> queryFn, TimeSpan cacheTime)
     {
         QueryFn = queryFn;
-        _options = options ?? new();
+        _cacheTime = cacheTime;
     }
 
     public void InvalidateAll()
@@ -64,9 +65,25 @@ public class QueryCache<TArg, TResult> : IQueryCache<TResult>
         return newQuery;
     }
 
+    public FixedQuery<TResult> AddUncached(TArg arg)
+    {
+        var newQuery = new FixedQuery<TResult>(this, () => QueryFn(arg), TimeSpan.Zero);
+
+        if (_uncachedResponses.TryGetValue(arg, out var queries))
+        {
+            queries.Add(newQuery);
+        }
+        else
+        {
+            _uncachedResponses.Add(arg, new() { newQuery });
+        }
+
+        return newQuery;
+    }
+
     private FixedQuery<TResult> CreateQuery(TArg arg)
     {
-        return new FixedQuery<TResult>(this, () => QueryFn(arg), _options);
+        return new FixedQuery<TResult>(this, () => QueryFn(arg), _cacheTime);
     }
 
     /// <summary>
@@ -77,18 +94,28 @@ public class QueryCache<TArg, TResult> : IQueryCache<TResult>
     /// <returns><c>true</c> if the query existed, otherwise <c>false</c>.</returns>
     public bool UpdateQueryData(TArg arg, TResult resultData)
     {
+        var exists = false;
         if (_cachedResponses.TryGetValue(arg, out var result))
         {
             result.UpdateQueryData(resultData);
-            return true;
+            exists = true;
         }
-        return false;
+        if (_uncachedResponses.TryGetValue(arg, out var queries))
+        {
+            foreach (var query in queries)
+            {
+                query.UpdateQueryData(resultData);
+            }
+            exists = true;
+        }
+        return exists;
     }
 
     public void Remove(FixedQuery<TResult> query)
     {
         // TODO: Use key to remove
-        var item = _cachedResponses.First(kvp => kvp.Value == query);
-        _cachedResponses.Remove(item.Key);
+        var item = _cachedResponses.FirstOrDefault(kvp => kvp.Value == query);
+        if (item.Value is not null)
+            _cachedResponses.Remove(item.Key);
     }
 }

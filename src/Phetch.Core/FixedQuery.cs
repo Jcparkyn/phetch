@@ -29,11 +29,11 @@ public class FixedQuery<TResult>
     public FixedQuery(
         IQueryCache<TResult> queryCache,
         Func<Task<TResult>> queryFn,
-        QueryEndpointOptions<TResult> options)
+        TimeSpan cacheTime)
     {
         _queryCache = queryCache;
         _queryFn = queryFn;
-        _cacheTime = options.CacheTime;
+        _cacheTime = cacheTime;
     }
 
     public void UpdateQueryData(TResult? resultData)
@@ -67,7 +67,7 @@ public class FixedQuery<TResult>
 
     public void Refetch() => _ = RefetchAsync();
 
-    public async Task<TResult?> RefetchAsync()
+    public async Task<TResult> RefetchAsync()
     {
         if (Status != QueryStatus.Success)
         {
