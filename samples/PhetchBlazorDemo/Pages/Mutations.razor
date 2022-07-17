@@ -33,7 +33,7 @@ else if (mutation.IsSuccess)
     {
         base.OnInitialized();
         mutation = new(
-            async val =>
+            async (val, _) =>
             {
                 await Task.Delay(500); // Artificial delay
                 await LocalStorage.SetItemAsync("counterVal", val);

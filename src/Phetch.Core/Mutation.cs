@@ -2,14 +2,16 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 
 public class Mutation<TArg, TResult>
 {
-    private readonly Func<TArg, Task<TResult>> _mutationFn;
+    private readonly Func<TArg, CancellationToken, Task<TResult>> _mutationFn;
     private readonly MutationEndpointOptions<TResult>? _endpointOptions;
 
     private Task<TResult>? _lastActionCall;
+    private CancellationTokenSource _cts = new();
 
     public event Action? StateChanged = delegate { };
     public event Action<TResult>? Succeeded = delegate { };
@@ -48,11 +50,20 @@ public class Mutation<TArg, TResult>
     public bool IsUninitialized => Status == QueryStatus.Idle;
 
     public Mutation(
-        Func<TArg, Task<TResult>> mutationFn,
+        Func<TArg, CancellationToken, Task<TResult>> mutationFn,
         MutationEndpointOptions<TResult>? endpointOptions = null)
     {
         _mutationFn = mutationFn;
         _endpointOptions = endpointOptions;
+    }
+
+    public void Cancel()
+    {
+        if (_lastActionCall is not null && !_lastActionCall.IsCompleted)
+        {
+            _cts.Cancel();
+            _cts = new();
+        }
     }
 
     public void Trigger(TArg arg) => _ = TriggerAsync(arg);
@@ -64,7 +75,7 @@ public class Mutation<TArg, TResult>
 
         StateChanged?.Invoke();
 
-        var thisActionCall = _mutationFn(arg);
+        var thisActionCall = _mutationFn(arg, _cts.Token);
         _lastActionCall = thisActionCall;
         try
         {
@@ -80,6 +91,15 @@ public class Mutation<TArg, TResult>
                 StateChanged?.Invoke();
             }
             return newData;
+        }
+        catch (TaskCanceledException)
+        {
+            if (Status == QueryStatus.Loading)
+            {
+                Status = QueryStatus.Idle;
+            }
+            StateChanged?.Invoke();
+            throw;
         }
         catch (Exception ex)
         {
@@ -101,12 +121,12 @@ public class Mutation<TArg, TResult>
 public class Mutation<TArg> : Mutation<TArg, Unit>
 {
     public Mutation(
-        Func<TArg, Task> mutationFn,
+        Func<TArg, CancellationToken, Task> mutationFn,
         MutationEndpointOptions<Unit>? endpointOptions = null
     ) : base(
-        async arg =>
+        async (arg, token) =>
         {
-            await mutationFn(arg);
+            await mutationFn(arg, token);
             return new Unit();
         },
         endpointOptions)

@@ -1,8 +1,6 @@
 ﻿namespace Phetch.Tests
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
     using FluentAssertions;
     using Phetch.Core;
@@ -15,7 +13,7 @@
         {
             var tcs = new TaskCompletionSource<int>();
             var mut = new Mutation<int, int>(
-                val => tcs.Task
+                (val, _) => tcs.Task
             );
 
             mut.Status.Should().Be(QueryStatus.Idle);
@@ -57,7 +55,7 @@
         {
             var error = new IndexOutOfRangeException("message");
             var query = new Mutation<string>(
-                _ => Task.FromException(error)
+                (_, _) => Task.FromException(error)
             );
 
             await query.Invoking(x => x.TriggerAsync("test"))
@@ -68,6 +66,27 @@
             query.Error.Should().Be(error);
 
             query.IsError.Should().BeTrue();
+            query.IsSuccess.Should().BeFalse();
+            query.IsLoading.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task Should_reset_state_after_cancel()
+        {
+            var query = new Mutation<string>(
+                (val, ct) => Task.Delay(1000, ct)
+            );
+
+            var task = query.Invoking(x => x.TriggerAsync("test"))
+                .Should().ThrowExactlyAsync<TaskCanceledException>();
+            query.Cancel();
+
+            await task;
+
+            query.Status.Should().Be(QueryStatus.Idle);
+            query.Error.Should().Be(null);
+            query.HasData.Should().BeFalse();
+            query.IsError.Should().BeFalse();
             query.IsSuccess.Should().BeFalse();
             query.IsLoading.Should().BeFalse();
         }
