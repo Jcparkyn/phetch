@@ -109,9 +109,13 @@ internal class QueryCache<TArg, TResult>
 
     public void Remove(FixedQuery<TArg, TResult> query)
     {
-        // TODO: Use key to remove
-        var item = _cachedResponses.FirstOrDefault(kvp => kvp.Value == query);
-        if (item.Value is not null)
-            _cachedResponses.Remove(item.Key);
+        if (_cachedResponses.TryGetValue(query.Arg, out var cachedQuery) && cachedQuery == query)
+        {
+            _cachedResponses.Remove(query.Arg);
+        }
+        if (_uncachedResponses.TryGetValue(query.Arg, out var uncachedQueries))
+        {
+            uncachedQueries.RemoveAll(x => x == query);
+        }
     }
 }
