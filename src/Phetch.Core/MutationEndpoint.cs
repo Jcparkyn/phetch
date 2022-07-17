@@ -17,8 +17,7 @@ public class MutationEndpoint<TArg, TResult>
         Func<TArg, CancellationToken, Task<TResult>> queryFn,
         MutationEndpointOptions<TResult>? options = null)
     {
-        // TODO: Handle cancellation
-        Cache = new(arg => queryFn(arg, default), (options ?? new()).CacheTime);
+        Cache = new(queryFn, (options ?? new()).CacheTime);
     }
 
     /// <inheritdoc cref="MutationEndpoint{TArg, TResult}.MutationEndpoint(Func{TArg, CancellationToken, Task{TResult}}, MutationEndpointOptions{TResult}?)"/>

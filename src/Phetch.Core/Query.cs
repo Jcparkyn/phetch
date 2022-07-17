@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 
 internal interface IQueryObserver<TResult>
@@ -14,6 +15,7 @@ internal enum QueryEvent
     Other,
     Success,
     Error,
+    Cancelled,
 }
 
 /// <summary>
@@ -119,7 +121,7 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
     }
 
     public Query(
-        Func<TArg, Task<TResult>> queryFn,
+        Func<TArg, CancellationToken, Task<TResult>> queryFn,
         QueryOptions<TResult>? options = null
     ) : this(new QueryCache<TArg, TResult>(queryFn, TimeSpan.FromMinutes(5)), options) { }
 
@@ -195,10 +197,11 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
     /// Runs the original query function once, completely bypassing caching and other extra behaviour
     /// </summary>
     /// <param name="arg">The argument passed to the query function</param>
+    /// <param name="ct">An optional cancellation token</param>
     /// <returns>The value returned by the query function</returns>
-    public Task<TResult> Invoke(TArg arg)
+    public Task<TResult> Invoke(TArg arg, CancellationToken ct = default)
     {
-        return _cache.QueryFn.Invoke(arg);
+        return _cache.QueryFn.Invoke(arg, ct);
     }
 
     void IQueryObserver<TResult>.OnQueryUpdate(QueryEvent e, TResult? result, Exception? exception)
@@ -220,10 +223,10 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
 public class Query<TResult> : Query<Unit, TResult>
 {
     public Query(
-        Func<Task<TResult>> queryFn,
+        Func<CancellationToken, Task<TResult>> queryFn,
         QueryOptions<TResult>? options = null,
         bool runAutomatically = true
-    ) : base(_ => queryFn(), options)
+    ) : base((_, ct) => queryFn(ct), options)
     {
         if (runAutomatically)
         {

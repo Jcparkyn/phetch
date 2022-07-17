@@ -40,7 +40,7 @@ else
     {
         base.OnInitialized();
         forecastsQuery = new(
-            () => Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json")!
+            ct => Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json", ct)!
         );
     }
 

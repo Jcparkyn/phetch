@@ -39,8 +39,9 @@
     {
         base.OnInitialized();
         isEvenQuery = new(
-            async val => (await Http.GetFromJsonAsync<IsEvenResponse>(
-                $"https://api.isevenapi.xyz/api/iseven/{val}"
+            async (val, ct) => (await Http.GetFromJsonAsync<IsEvenResponse>(
+                $"https://api.isevenapi.xyz/api/iseven/{val}",
+                ct
             ))!.IsEven
         );
     }

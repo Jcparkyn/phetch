@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 public class FixedQuery<TResult>
 {
     private readonly IQueryCache<TResult> _queryCache;
-    private readonly Func<Task<TResult>> _queryFn;
+    private readonly Func<CancellationToken, Task<TResult>> _queryFn;
     private readonly List<IQueryObserver<TResult>> _observers = new();
     private readonly TimeSpan _cacheTime;
 
@@ -17,6 +17,7 @@ public class FixedQuery<TResult>
     private Timer? _gcTimer;
     private DateTime? _dataUpdatedAt;
     private DateTime? _lastCompletedTaskStartTime;
+    private CancellationTokenSource _cts = new();
 
     public QueryStatus Status { get; private set; } = QueryStatus.Idle;
 
@@ -28,7 +29,7 @@ public class FixedQuery<TResult>
 
     public FixedQuery(
         IQueryCache<TResult> queryCache,
-        Func<Task<TResult>> queryFn,
+        Func<CancellationToken, Task<TResult>> queryFn,
         TimeSpan cacheTime)
     {
         _queryCache = queryCache;
@@ -65,6 +66,15 @@ public class FixedQuery<TResult>
         }
     }
 
+    public void Cancel()
+    {
+        if (_lastActionCall is not null && !_lastActionCall.IsCompleted)
+        {
+            _cts.Cancel();
+            _cts = new();
+        }
+    }
+
     public void Refetch() => _ = RefetchAsync();
 
     public async Task<TResult> RefetchAsync()
@@ -79,7 +89,7 @@ public class FixedQuery<TResult>
         Task<TResult>? thisActionCall = null;
         try
         {
-            thisActionCall = _queryFn();
+            thisActionCall = _queryFn(_cts.Token);
             _lastActionCall = thisActionCall;
             var newData = await thisActionCall;
             // Only update if no more recent tasks have finished.
@@ -88,6 +98,18 @@ public class FixedQuery<TResult>
                 SetSuccessState(newData, startTime);
             }
             return newData;
+        }
+        catch (TaskCanceledException ex) when (ex.CancellationToken == _cts.Token)
+        {
+            if (IsMostRecent(startTime) && Status == QueryStatus.Loading)
+            {
+                Status = QueryStatus.Idle;
+                foreach (var observer in _observers)
+                {
+                    observer.OnQueryUpdate(QueryEvent.Cancelled, default, null);
+                }
+            }
+            throw;
         }
         catch (Exception ex)
         {

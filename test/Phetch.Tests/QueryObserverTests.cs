@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using FluentAssertions;
     using Phetch.Core;
@@ -14,7 +15,7 @@
         public async Task Should_work_with_basic_query()
         {
             var query = new Query<string>(
-                () => Task.FromResult("test"),
+                _ => Task.FromResult("test"),
                 runAutomatically: false
             );
             await query.SetParamAsync(default);
@@ -33,7 +34,7 @@
         {
             var tcs = new TaskCompletionSource<string>();
             var query = new Query<string>(
-                () => tcs.Task,
+                _ => tcs.Task,
                 runAutomatically: false
             );
 
@@ -77,7 +78,7 @@
         {
             var error = new IndexOutOfRangeException("message");
             var query = new Query<string>(
-                () => Task.FromException<string>(error),
+                _ => Task.FromException<string>(error),
                 runAutomatically: false
             );
 
@@ -176,14 +177,14 @@
         }
 
         // Makes a query function that can be called multiple times, using a different TaskCompletionSource each time.
-        private static (Func<Task<string>> queryFn, List<TaskCompletionSource<string>> sources) MakeCustomQueryFn(int numSources)
+        private static (Func<CancellationToken, Task<string>> queryFn, List<TaskCompletionSource<string>> sources) MakeCustomQueryFn(int numSources)
         {
             var sources = Enumerable.Range(0, numSources)
                 .Select(_ => new TaskCompletionSource<string>())
                 .ToList();
 
             var queryCount = 0;
-            var queryFn = async () =>
+            var queryFn = async (CancellationToken _) =>
             {
                 if (queryCount > numSources)
                     throw new Exception("Query function called too many times");

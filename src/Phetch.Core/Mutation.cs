@@ -98,7 +98,7 @@ public class Mutation<TArg, TResult> : IQueryObserver<TResult>
     }
 
     public Mutation(
-        Func<TArg, Task<TResult>> queryFn,
+        Func<TArg, CancellationToken, Task<TResult>> queryFn,
         QueryOptions<TResult>? options = null
     ) : this(new QueryCache<TArg, TResult>(queryFn, TimeSpan.Zero), options) { }
 
@@ -128,13 +128,14 @@ public class Mutation<TArg, TResult> : IQueryObserver<TResult>
     /// Runs the original query function once, completely bypassing caching and other extra behaviour
     /// </summary>
     /// <param name="arg">The argument passed to the query function</param>
+    /// <param name="ct">An optional cancellation token</param>
     /// <returns>The value returned by the query function</returns>
-    public Task<TResult> Invoke(TArg arg)
+    public Task<TResult> Invoke(TArg arg, CancellationToken ct = default)
     {
-        return _cache.QueryFn.Invoke(arg);
+        return _cache.QueryFn.Invoke(arg, ct);
     }
 
-    public void Cancel() => throw new NotImplementedException();
+    public void Cancel() => _currentQuery?.Cancel();
 
     void IQueryObserver<TResult>.OnQueryUpdate(QueryEvent e, TResult? result, Exception? exception)
     {
@@ -158,9 +159,9 @@ public class Mutation<TArg> : Mutation<TArg, Unit>
         Func<TArg, CancellationToken, Task> mutationFn,
         QueryOptions<Unit>? endpointOptions = null
     ) : base(
-        async (arg) =>
+        async (arg, ct) =>
         {
-            await mutationFn(arg, default);
+            await mutationFn(arg, ct);
             return new Unit();
         },
         endpointOptions)

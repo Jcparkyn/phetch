@@ -9,8 +9,9 @@ public class CoinbaseApi
     public CoinbaseApi(HttpClient httpClient)
     {
         GetTopAssets = new(
-            pageNum => httpClient.GetFromJsonAsync<ApiResponse>(
-                $"https://www.coinbase.com/api/v2/assets/search?filter=all&include_prices=true&limit=10&order=asc&page={pageNum}&query=&resolution=day&sort=rank"
+            (pageNum, ct) => httpClient.GetFromJsonAsync<ApiResponse>(
+                $"https://www.coinbase.com/api/v2/assets/search?filter=all&include_prices=true&limit=10&order=asc&page={pageNum}&query=&resolution=day&sort=rank",
+                ct
             )
         );
     }

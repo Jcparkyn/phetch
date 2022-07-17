@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 public interface IQueryCache<TResult>
@@ -12,13 +13,13 @@ public interface IQueryCache<TResult>
 
 public class QueryCache<TArg, TResult> : IQueryCache<TResult>
 {
-    internal Func<TArg, Task<TResult>> QueryFn { get; }
+    internal Func<TArg, CancellationToken, Task<TResult>> QueryFn { get; }
 
     private readonly Dictionary<TArg, FixedQuery<TResult>> _cachedResponses = new();
     private readonly Dictionary<TArg, List<FixedQuery<TResult>>> _uncachedResponses = new();
     private readonly TimeSpan _cacheTime;
 
-    public QueryCache(Func<TArg, Task<TResult>> queryFn, TimeSpan cacheTime)
+    public QueryCache(Func<TArg, CancellationToken, Task<TResult>> queryFn, TimeSpan cacheTime)
     {
         QueryFn = queryFn;
         _cacheTime = cacheTime;
@@ -58,7 +59,7 @@ public class QueryCache<TArg, TResult> : IQueryCache<TResult>
             return value;
         }
 
-        var newQuery = CreateQuery(arg);
+        var newQuery = CreateQuery(arg, _cacheTime);
 
         _cachedResponses.Add(arg, newQuery);
 
@@ -67,7 +68,7 @@ public class QueryCache<TArg, TResult> : IQueryCache<TResult>
 
     public FixedQuery<TResult> AddUncached(TArg arg)
     {
-        var newQuery = new FixedQuery<TResult>(this, () => QueryFn(arg), TimeSpan.Zero);
+        var newQuery = CreateQuery(arg, TimeSpan.Zero);
 
         if (_uncachedResponses.TryGetValue(arg, out var queries))
         {
@@ -81,9 +82,9 @@ public class QueryCache<TArg, TResult> : IQueryCache<TResult>
         return newQuery;
     }
 
-    private FixedQuery<TResult> CreateQuery(TArg arg)
+    private FixedQuery<TResult> CreateQuery(TArg arg, TimeSpan cacheTime)
     {
-        return new FixedQuery<TResult>(this, () => QueryFn(arg), _cacheTime);
+        return new FixedQuery<TResult>(this, (ct) => QueryFn(arg, ct), cacheTime);
     }
 
     /// <summary>

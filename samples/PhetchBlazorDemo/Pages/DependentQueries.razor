@@ -78,9 +78,9 @@
         base.OnInitialized();
         var random = new Random();
         query1 = new(
-            async () =>
+            async ct =>
             {
-                await Task.Delay(500);
+                await Task.Delay(500, ct);
                 return random.Next() % 10000;
             },
             // Note: you could also do this by conditionally calling query2.SetParam before each render.
@@ -88,9 +88,9 @@
         );
 
         query2 = new(
-            async val =>
+            async (val, ct) =>
             {
-                await Task.Delay(500);
+                await Task.Delay(500, ct);
                 return val + 1;
             }
         );

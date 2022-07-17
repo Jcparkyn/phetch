@@ -9,14 +9,16 @@ public class HackerNewsApi
     public HackerNewsApi(HttpClient httpClient)
     {
         GetItem = new(
-            async (itemId) => (await httpClient.GetFromJsonAsync<HnItemDetails>(
-                $"https://hn.algolia.com/api/v1/items/{itemId}"
+            async (itemId, ct) => (await httpClient.GetFromJsonAsync<HnItemDetails>(
+                $"https://hn.algolia.com/api/v1/items/{itemId}",
+                ct
             ))!
         );
 
         GetTopStories = new(
-            async () => (await httpClient.GetFromJsonAsync<SearchResponse<HnItem>>(
-                $"https://hn.algolia.com/api/v1/search?tags=front_page"
+            async ct => (await httpClient.GetFromJsonAsync<SearchResponse<HnItem>>(
+                $"https://hn.algolia.com/api/v1/search?tags=front_page",
+                ct
             ))!
         );
     }

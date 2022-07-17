@@ -1,6 +1,7 @@
 ﻿namespace Phetch.Core;
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 /// <summary>
@@ -24,7 +25,7 @@ public class QueryEndpoint<TArg, TResult>
     /// will be a call to an HTTP endpoint, but it can be any async function.
     /// </summary>
     public QueryEndpoint(
-        Func<TArg, Task<TResult>> queryFn,
+        Func<TArg, CancellationToken, Task<TResult>> queryFn,
         QueryEndpointOptions<TResult>? options = null)
     {
         Cache = new(queryFn, (options ?? new()).CacheTime);
@@ -88,7 +89,8 @@ public class QueryEndpoint<TArg, TResult>
     /// <returns>The value returned by the query function</returns>
     public Task<TResult> Invoke(TArg arg)
     {
-        return Cache.QueryFn.Invoke(arg);
+        // TODO: Cancellation
+        return Cache.QueryFn.Invoke(arg, default);
     }
 }
 
@@ -98,11 +100,10 @@ public class QueryEndpoint<TArg, TResult>
 public class QueryEndpoint<TResult> : QueryEndpoint<Unit, TResult>
 {
     public QueryEndpoint(
-        Func<Task<TResult>> queryFn,
+        Func<CancellationToken, Task<TResult>> queryFn,
         QueryEndpointOptions<TResult>? options = null
-    ) : base(_ => queryFn(), options)
-    {
-    }
+    ) : base((_, ct) => queryFn(ct), options)
+    { }
 
     public new Query<TResult> Use(QueryOptions<TResult>? options = null)
     {

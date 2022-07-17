@@ -8,8 +8,9 @@ public class IsEvenApi
     public IsEvenApi(HttpClient httpClient)
     {
         IsEven = new(
-            async val => (await httpClient.GetFromJsonAsync<IsEvenResponse>(
-                $"https://api.isevenapi.xyz/api/iseven/{val}"
+            async (val, ct) => (await httpClient.GetFromJsonAsync<IsEvenResponse>(
+                $"https://api.isevenapi.xyz/api/iseven/{val}",
+                ct
             ))!.IsEven
         );
     }

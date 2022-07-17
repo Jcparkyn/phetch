@@ -13,7 +13,7 @@
         {
             var tcs = new TaskCompletionSource<int>();
             var mut = new Mutation<int, int>(
-                val => tcs.Task
+                (val, _) => tcs.Task
             );
 
             mut.Status.Should().Be(QueryStatus.Idle);
