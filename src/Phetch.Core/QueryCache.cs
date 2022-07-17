@@ -6,12 +6,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-public interface IQueryCache<TResult>
+internal interface IQueryCache<TResult>
 {
     void Remove(FixedQuery<TResult> query);
 }
 
-public class QueryCache<TArg, TResult> : IQueryCache<TResult>
+internal class QueryCache<TArg, TResult> : IQueryCache<TResult>
 {
     internal Func<TArg, CancellationToken, Task<TResult>> QueryFn { get; }
 

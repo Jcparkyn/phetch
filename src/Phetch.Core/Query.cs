@@ -37,7 +37,7 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
 
     public event Action StateChanged = delegate { };
 
-    public Query(
+    internal Query(
         QueryCache<TArg, TResult> cache,
         QueryOptions<TResult>? options = null)
     {
@@ -287,7 +287,7 @@ public class Query<TResult> : Query<Unit, TResult>
         }
     }
 
-    public Query(
+    internal Query(
         QueryCache<Unit, TResult> cache,
         QueryOptions<TResult>? options = null,
         bool runAutomatically = true
@@ -319,7 +319,7 @@ public class Mutation<TArg> : Query<TArg, Unit>
     {
     }
 
-    public Mutation(
+    internal Mutation(
         QueryCache<TArg, Unit> cache,
         QueryOptions<Unit>? options = null
     ) : base(cache, options)

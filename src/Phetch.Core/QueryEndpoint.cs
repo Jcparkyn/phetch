@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 /// </remarks>
 public class QueryEndpoint<TArg, TResult>
 {
-    protected readonly QueryCache<TArg, TResult> Cache;
+    internal QueryCache<TArg, TResult> Cache { get; }
 
     /// <summary>
     /// Creates a new query endpoint with a given query function. In most cases, the query function

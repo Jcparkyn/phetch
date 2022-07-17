@@ -27,7 +27,7 @@ public class FixedQuery<TResult>
 
     public bool IsFetching => _lastActionCall is not null && !_lastActionCall.IsCompleted;
 
-    public FixedQuery(
+    internal FixedQuery(
         IQueryCache<TResult> queryCache,
         Func<CancellationToken, Task<TResult>> queryFn,
         TimeSpan cacheTime)
@@ -37,7 +37,7 @@ public class FixedQuery<TResult>
         _cacheTime = cacheTime;
     }
 
-    public void UpdateQueryData(TResult? resultData)
+    internal void UpdateQueryData(TResult? resultData)
     {
         Data = resultData;
         _dataUpdatedAt = DateTime.Now;
@@ -54,7 +54,7 @@ public class FixedQuery<TResult>
             || _dataUpdatedAt + staleTime < now;
     }
 
-    public void Invalidate()
+    internal void Invalidate()
     {
         if (_observers.Count > 0)
         {
@@ -66,7 +66,7 @@ public class FixedQuery<TResult>
         }
     }
 
-    public void Cancel()
+    internal void Cancel()
     {
         if (_lastActionCall is not null && !_lastActionCall.IsCompleted)
         {
@@ -75,9 +75,9 @@ public class FixedQuery<TResult>
         }
     }
 
-    public void Refetch() => _ = RefetchAsync();
+    internal void Refetch() => _ = RefetchAsync();
 
-    public async Task<TResult> RefetchAsync()
+    internal async Task<TResult> RefetchAsync()
     {
         if (Status != QueryStatus.Success)
         {
