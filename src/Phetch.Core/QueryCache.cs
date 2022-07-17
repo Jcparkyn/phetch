@@ -6,17 +6,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-internal interface IQueryCache<TResult>
-{
-    void Remove(FixedQuery<TResult> query);
-}
-
-internal class QueryCache<TArg, TResult> : IQueryCache<TResult>
+internal class QueryCache<TArg, TResult>
 {
     internal Func<TArg, CancellationToken, Task<TResult>> QueryFn { get; }
 
-    private readonly Dictionary<TArg, FixedQuery<TResult>> _cachedResponses = new();
-    private readonly Dictionary<TArg, List<FixedQuery<TResult>>> _uncachedResponses = new();
+    private readonly Dictionary<TArg, FixedQuery<TArg, TResult>> _cachedResponses = new();
+    private readonly Dictionary<TArg, List<FixedQuery<TArg, TResult>>> _uncachedResponses = new();
     private readonly TimeSpan _cacheTime;
 
     public QueryCache(Func<TArg, CancellationToken, Task<TResult>> queryFn, TimeSpan cacheTime)
@@ -41,7 +36,7 @@ internal class QueryCache<TArg, TResult> : IQueryCache<TResult>
         }
     }
 
-    internal void InvalidateWhere(Func<TArg, FixedQuery<TResult>, bool> predicate)
+    internal void InvalidateWhere(Func<TArg, FixedQuery<TArg, TResult>, bool> predicate)
     {
         foreach (var (arg, query) in _cachedResponses)
         {
@@ -52,7 +47,7 @@ internal class QueryCache<TArg, TResult> : IQueryCache<TResult>
         }
     }
 
-    public FixedQuery<TResult> GetOrAdd(TArg arg)
+    public FixedQuery<TArg, TResult> GetOrAdd(TArg arg)
     {
         if (_cachedResponses.TryGetValue(arg, out var value))
         {
@@ -66,7 +61,7 @@ internal class QueryCache<TArg, TResult> : IQueryCache<TResult>
         return newQuery;
     }
 
-    public FixedQuery<TResult> AddUncached(TArg arg)
+    public FixedQuery<TArg, TResult> AddUncached(TArg arg)
     {
         var newQuery = CreateQuery(arg, TimeSpan.Zero);
 
@@ -82,9 +77,9 @@ internal class QueryCache<TArg, TResult> : IQueryCache<TResult>
         return newQuery;
     }
 
-    private FixedQuery<TResult> CreateQuery(TArg arg, TimeSpan cacheTime)
+    private FixedQuery<TArg, TResult> CreateQuery(TArg arg, TimeSpan cacheTime)
     {
-        return new FixedQuery<TResult>(this, (ct) => QueryFn(arg, ct), cacheTime);
+        return new FixedQuery<TArg, TResult>(this, QueryFn, arg, cacheTime);
     }
 
     /// <summary>
@@ -112,7 +107,7 @@ internal class QueryCache<TArg, TResult> : IQueryCache<TResult>
         return exists;
     }
 
-    public void Remove(FixedQuery<TResult> query)
+    public void Remove(FixedQuery<TArg, TResult> query)
     {
         // TODO: Use key to remove
         var item = _cachedResponses.FirstOrDefault(kvp => kvp.Value == query);

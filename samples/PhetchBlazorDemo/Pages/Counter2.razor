@@ -35,10 +35,10 @@
 
 @code {
     private int currentCount = 0;
-    private readonly QueryOptions<bool> queryOptions = new()
-        {
-            StaleTime = TimeSpan.FromSeconds(5),
-        };
+    private readonly QueryOptions<int, bool> queryOptions = new()
+    {
+        StaleTime = TimeSpan.FromSeconds(5),
+    };
 
     private void IncrementCount() => currentCount++;
     private void DecrementCount() => currentCount--;

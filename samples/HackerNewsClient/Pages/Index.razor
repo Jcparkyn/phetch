@@ -29,7 +29,7 @@
 </UseQueryEndpoint>
 
 @code {
-    private QueryOptions<SearchResponse<HnItem>> queryOptions = new()
+    private QueryOptions<Unit, SearchResponse<HnItem>> queryOptions = new()
     {
         StaleTime = TimeSpan.FromSeconds(30),
     };

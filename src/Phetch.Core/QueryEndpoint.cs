@@ -37,7 +37,7 @@ public class QueryEndpoint<TArg, TResult>
     /// </summary>
     /// <returns>A new <see cref="Query{TArg, TResult}"/> object which shares the same cache as other queries from this endpoint.</returns>
     /// <param name="options">Additional options to use when querying</param>
-    public Query<TArg, TResult> Use(QueryOptions<TResult>? options = null)
+    public Query<TArg, TResult> Use(QueryOptions<TArg, TResult>? options = null)
     {
         return new Query<TArg, TResult>(Cache, options);
     }
@@ -74,7 +74,7 @@ public class QueryEndpoint<TArg, TResult>
     /// function are the query arg, and the query object itself. This should return <c>true</c> for
     /// entries that should be invalidated, or false otherwise.
     /// </param>
-    public void InvalidateWhere(Func<TArg, FixedQuery<TResult>, bool> predicate)
+    public void InvalidateWhere(Func<TArg, FixedQuery<TArg, TResult>, bool> predicate)
     {
         Cache.InvalidateWhere(predicate);
     }
@@ -105,7 +105,7 @@ public class QueryEndpoint<TResult> : QueryEndpoint<Unit, TResult>
     ) : base((_, ct) => queryFn(ct), options)
     { }
 
-    public new Query<TResult> Use(QueryOptions<TResult>? options = null) =>
+    public new Query<TResult> Use(QueryOptions<Unit, TResult>? options = null) =>
         new(Cache, options);
 }
 
@@ -127,6 +127,6 @@ public class MutationEndpoint<TArg> : QueryEndpoint<TArg, Unit>
     )
     { }
 
-    public new Mutation<TArg> Use(QueryOptions<Unit>? options = null) =>
+    public new Mutation<TArg> Use(QueryOptions<TArg, Unit>? options = null) =>
         new(Cache, options);
 }

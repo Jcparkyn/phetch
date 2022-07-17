@@ -84,7 +84,7 @@
                 return random.Next() % 10000;
             },
             // Note: you could also do this by conditionally calling query2.SetParam before each render.
-            new() { OnSuccess = val => query2.SetParam(val) }
+            new() { OnSuccess = c => query2.SetParam(c.Result) }
         );
 
         query2 = new(

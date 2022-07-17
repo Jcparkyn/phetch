@@ -5,19 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
-internal interface IQueryObserver<TResult>
-{
-    internal void OnQueryUpdate(QueryEvent e, TResult? result, Exception? exception);
-}
-
-internal enum QueryEvent
-{
-    Other,
-    Success,
-    Error,
-    Cancelled,
-}
-
 /// <summary>
 /// An asynchronous query taking one parameter of type <typeparamref name="TArg"/> and returning a
 /// result of type <typeparamref name="TResult"/>
@@ -28,26 +15,30 @@ internal enum QueryEvent
 /// <code>Query&lt;(int, string), string&gt;</code>
 /// </para>
 /// </remarks>
-public class Query<TArg, TResult> : IQueryObserver<TResult>
+public class Query<TArg, TResult>
 {
     private readonly QueryCache<TArg, TResult> _cache;
-    private readonly QueryOptions<TResult> _options;
-    private FixedQuery<TResult>? _lastSuccessfulQuery;
-    private FixedQuery<TResult>? _currentQuery;
+    private readonly QueryOptions<TArg, TResult> _options;
+    private FixedQuery<TArg, TResult>? _lastSuccessfulQuery;
+    private FixedQuery<TArg, TResult>? _currentQuery;
 
     public event Action StateChanged = delegate { };
+    public event Action<QuerySuccessContext<TArg, TResult>>? Succeeded;
+    public event Action<QueryFailureContext<TArg>>? Failed;
 
     internal Query(
         QueryCache<TArg, TResult> cache,
-        QueryOptions<TResult>? options = null)
+        QueryOptions<TArg, TResult>? options = null)
     {
         _cache = cache;
         _options = options ?? new();
+        Succeeded += options?.OnSuccess;
+        Failed += options?.OnFailure;
     }
 
     public Query(
         Func<TArg, CancellationToken, Task<TResult>> queryFn,
-        QueryOptions<TResult>? options = null
+        QueryOptions<TArg, TResult>? options = null
     ) : this(
         new QueryCache<TArg, TResult>(queryFn, TimeSpan.FromMinutes(5)),
         options)
@@ -253,18 +244,21 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
         return await query.RefetchAsync().ConfigureAwait(false);
     }
 
-    void IQueryObserver<TResult>.OnQueryUpdate(QueryEvent e, TResult? result, Exception? exception)
+    internal void OnQuerySuccess(TArg arg, TResult result)
     {
-        switch (e)
-        {
-            case QueryEvent.Success:
-                _lastSuccessfulQuery = _currentQuery;
-                _options.OnSuccess?.Invoke(result);
-                break;
-            case QueryEvent.Error:
-                _options.OnFailure?.Invoke(exception!);
-                break;
-        }
+        _lastSuccessfulQuery = _currentQuery;
+        Succeeded?.Invoke(new(arg, result));
+        StateChanged?.Invoke();
+    }
+
+    internal void OnQueryFailure(TArg arg, Exception exception)
+    {
+        Failed?.Invoke(new(arg, exception));
+        StateChanged?.Invoke();
+    }
+
+    internal void OnQueryUpdate()
+    {
         StateChanged?.Invoke();
     }
 }
@@ -277,7 +271,7 @@ public class Query<TResult> : Query<Unit, TResult>
 {
     public Query(
         Func<CancellationToken, Task<TResult>> queryFn,
-        QueryOptions<TResult>? options = null,
+        QueryOptions<Unit, TResult>? options = null,
         bool runAutomatically = true
     ) : base((_, ct) => queryFn(ct), options)
     {
@@ -289,7 +283,7 @@ public class Query<TResult> : Query<Unit, TResult>
 
     internal Query(
         QueryCache<Unit, TResult> cache,
-        QueryOptions<TResult>? options = null,
+        QueryOptions<Unit, TResult>? options = null,
         bool runAutomatically = true
     ) : base(cache, options)
     {
@@ -308,7 +302,7 @@ public class Mutation<TArg> : Query<TArg, Unit>
 {
     public Mutation(
         Func<TArg, CancellationToken, Task> mutationFn,
-        QueryOptions<Unit>? endpointOptions = null
+        QueryOptions<TArg, Unit>? endpointOptions = null
     ) : base(
         async (arg, ct) =>
         {
@@ -321,7 +315,7 @@ public class Mutation<TArg> : Query<TArg, Unit>
 
     internal Mutation(
         QueryCache<TArg, Unit> cache,
-        QueryOptions<Unit>? options = null
+        QueryOptions<TArg, Unit>? options = null
     ) : base(cache, options)
     {
     }

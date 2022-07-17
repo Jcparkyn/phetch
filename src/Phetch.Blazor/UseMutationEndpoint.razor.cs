@@ -30,10 +30,10 @@ public sealed partial class UseMutationEndpoint<TArg, TResult> : IDisposable
     public RenderFragment<Query<TArg, TResult>> ChildContent { get; set; } = null!;
 
     [Parameter]
-    public Action<TResult>? OnSuccess { get; set; }
+    public Action<QuerySuccessContext<TArg, TResult>>? OnSuccess { get; set; }
 
     [Parameter]
-    public Action<Exception>? OnFailure { get; set; }
+    public Action<QueryFailureContext<TArg>>? OnFailure { get; set; }
 
     void IDisposable.Dispose()
     {
@@ -44,9 +44,8 @@ public sealed partial class UseMutationEndpoint<TArg, TResult> : IDisposable
     {
         var newQuery = endpoint.Use();
         newQuery.StateChanged += StateHasChanged;
-        // TODO
-        //newQuery.Succeeded += SuccessCallback;
-        //newQuery.Failed += FailureCallback;
+        newQuery.Succeeded += SuccessCallback;
+        newQuery.Failed += FailureCallback;
         return newQuery;
     }
 
@@ -55,13 +54,12 @@ public sealed partial class UseMutationEndpoint<TArg, TResult> : IDisposable
         if (mutation is not null)
         {
             mutation.StateChanged -= StateHasChanged;
-            // TODO
-            //mutation.Succeeded -= SuccessCallback;
-            //mutation.Failed -= FailureCallback;
+            mutation.Succeeded -= SuccessCallback;
+            mutation.Failed -= FailureCallback;
         }
     }
 
-    private void SuccessCallback(TResult result) { OnSuccess?.Invoke(result); }
+    private void SuccessCallback(QuerySuccessContext<TArg, TResult> context) { OnSuccess?.Invoke(context); }
 
-    private void FailureCallback(Exception ex) { OnFailure?.Invoke(ex); }
+    private void FailureCallback(QueryFailureContext<TArg> context) { OnFailure?.Invoke(context); }
 }

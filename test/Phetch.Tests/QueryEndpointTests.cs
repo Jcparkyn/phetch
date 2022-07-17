@@ -32,7 +32,7 @@
                     return Task.FromResult(val.ToString());
                 }
             );
-            var options = new QueryOptions<string>()
+            var options = new QueryOptions<int, string>()
             {
                 StaleTime = TimeSpan.FromMinutes(100),
             };

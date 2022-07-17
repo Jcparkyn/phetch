@@ -53,9 +53,9 @@ public sealed partial class UseQueryEndpoint<TArg, TResult>
         }
     }
 
-    private QueryOptions<TResult>? _options;
+    private QueryOptions<TArg, TResult>? _options;
     [Parameter]
-    public QueryOptions<TResult>? Options
+    public QueryOptions<TArg, TResult>? Options
     {
         get => _options;
         set
@@ -77,7 +77,7 @@ public sealed partial class UseQueryEndpoint<TArg, TResult>
         TryUnsubscribe(_query);
     }
 
-    private Query<TArg, TResult> GetQuery(QueryEndpoint<TArg, TResult> endpoint, QueryOptions<TResult>? options)
+    private Query<TArg, TResult> GetQuery(QueryEndpoint<TArg, TResult> endpoint, QueryOptions<TArg, TResult>? options)
     {
         var newQuery = options is null ? endpoint.Use() : endpoint.Use(options);
         newQuery.StateChanged += StateHasChanged;

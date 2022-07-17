@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class FixedQuery<TResult>
+public class FixedQuery<TArg, TResult>
 {
-    private readonly IQueryCache<TResult> _queryCache;
-    private readonly Func<CancellationToken, Task<TResult>> _queryFn;
-    private readonly List<IQueryObserver<TResult>> _observers = new();
+    public TArg Arg { get; }
+
+    private readonly QueryCache<TArg, TResult> _queryCache;
+    private readonly Func<TArg, CancellationToken, Task<TResult>> _queryFn;
+    private readonly List<Query<TArg, TResult>> _observers = new();
     private readonly TimeSpan _cacheTime;
 
     private Task<TResult>? _lastActionCall;
@@ -28,13 +30,15 @@ public class FixedQuery<TResult>
     public bool IsFetching => _lastActionCall is not null && !_lastActionCall.IsCompleted;
 
     internal FixedQuery(
-        IQueryCache<TResult> queryCache,
-        Func<CancellationToken, Task<TResult>> queryFn,
+        QueryCache<TArg, TResult> queryCache,
+        Func<TArg, CancellationToken, Task<TResult>> queryFn,
+        TArg arg,
         TimeSpan cacheTime)
     {
         _queryCache = queryCache;
         _queryFn = queryFn;
         _cacheTime = cacheTime;
+        Arg = arg;
     }
 
     internal void UpdateQueryData(TResult? resultData)
@@ -43,7 +47,7 @@ public class FixedQuery<TResult>
         _dataUpdatedAt = DateTime.Now;
         foreach (var observer in _observers)
         {
-            observer.OnQueryUpdate(QueryEvent.Other, default, null);
+            observer.OnQueryUpdate();
         }
     }
 
@@ -89,13 +93,17 @@ public class FixedQuery<TResult>
         Task<TResult>? thisActionCall = null;
         try
         {
-            thisActionCall = _queryFn(_cts.Token);
+            thisActionCall = _queryFn(Arg, _cts.Token);
             _lastActionCall = thisActionCall;
             var newData = await thisActionCall;
             // Only update if no more recent tasks have finished.
             if (IsMostRecent(startTime))
             {
                 SetSuccessState(newData, startTime);
+                foreach (var observer in _observers)
+                {
+                    observer.OnQuerySuccess(Arg, newData);
+                }
             }
             return newData;
         }
@@ -106,7 +114,7 @@ public class FixedQuery<TResult>
                 Status = QueryStatus.Idle;
                 foreach (var observer in _observers)
                 {
-                    observer.OnQueryUpdate(QueryEvent.Cancelled, default, null);
+                    observer.OnQueryUpdate();
                 }
             }
             throw;
@@ -120,7 +128,7 @@ public class FixedQuery<TResult>
                 _lastCompletedTaskStartTime = startTime;
                 foreach (var observer in _observers)
                 {
-                    observer.OnQueryUpdate(QueryEvent.Error, default, ex);
+                    observer.OnQueryFailure(Arg, ex);
                 }
             }
 
@@ -128,13 +136,13 @@ public class FixedQuery<TResult>
         }
     }
 
-    internal void AddObserver(IQueryObserver<TResult> observer)
+    internal void AddObserver(Query<TArg, TResult> observer)
     {
         _observers.Add(observer);
         UnscheduleGc();
     }
 
-    internal void RemoveObserver(IQueryObserver<TResult> observer)
+    internal void RemoveObserver(Query<TArg, TResult> observer)
     {
         _observers.Remove(observer);
 
@@ -155,10 +163,6 @@ public class FixedQuery<TResult>
         Status = QueryStatus.Success;
         Data = newData;
         Error = null;
-        foreach (var observer in _observers)
-        {
-            observer.OnQueryUpdate(QueryEvent.Success, newData, null);
-        }
     }
 
     private void ScheduleGc()

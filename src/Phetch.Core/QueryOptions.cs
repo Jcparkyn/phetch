@@ -16,17 +16,18 @@ public class QueryEndpointOptions<TResult>
     public TimeSpan CacheTime { get; init; } = TimeSpan.FromMinutes(5);
 }
 
-public class QueryOptions<TResult>
+public class QueryOptions<TArg, TResult>
 {
-    //public TResult? PlaceholderData { get; init; }
     public TimeSpan StaleTime { get; init; } = TimeSpan.Zero;
-    public Action<TResult?>? OnSuccess { get; init; }
-    public Action<Exception>? OnFailure { get; init; }
+    public Action<QuerySuccessContext<TArg, TResult>>? OnSuccess { get; init; }
+    public Action<QueryFailureContext<TArg>>? OnFailure { get; init; }
 }
 
-public class MutationEndpointOptions<TResult>
-{
-    public TimeSpan CacheTime { get; init; } = TimeSpan.FromMinutes(5);
-    public Action<TResult>? OnSuccess { get; init; }
-    public Action<Exception>? OnFailure { get; init; }
-}
+public record QuerySuccessContext<TArg, TResult>(
+    TArg Arg,
+    TResult Result);
+
+public record QueryFailureContext<TArg>(
+    TArg Arg,
+    Exception Exception);
+
