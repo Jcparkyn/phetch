@@ -12,7 +12,7 @@
         public async Task Should_set_loading_states_correctly()
         {
             var tcs = new TaskCompletionSource<int>();
-            var mut = new Mutation<int, int>(
+            var mut = new Query<int, int>(
                 (val, _) => tcs.Task
             );
 

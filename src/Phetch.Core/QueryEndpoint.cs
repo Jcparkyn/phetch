@@ -110,3 +110,19 @@ public class QueryEndpoint<TResult> : QueryEndpoint<Unit, TResult>
         return new Query<TResult>(Cache, options);
     }
 }
+
+public class MutationEndpoint<TArg> : QueryEndpoint<TArg, Unit>
+{
+    public MutationEndpoint(
+        Func<TArg, CancellationToken, Task> queryFn,
+        QueryEndpointOptions<Unit>? options = null
+    ) : base(
+        async (arg, token) =>
+        {
+            await queryFn(arg, token);
+            return default;
+        },
+        options
+    )
+    { }
+}

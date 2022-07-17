@@ -37,6 +37,22 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
 
     public event Action StateChanged = delegate { };
 
+    public Query(
+        QueryCache<TArg, TResult> cache,
+        QueryOptions<TResult>? options = null)
+    {
+        _cache = cache;
+        _options = options ?? new();
+    }
+
+    public Query(
+        Func<TArg, CancellationToken, Task<TResult>> queryFn,
+        QueryOptions<TResult>? options = null
+    ) : this(
+        new QueryCache<TArg, TResult>(queryFn, TimeSpan.FromMinutes(5)),
+        options)
+    { }
+
     public QueryStatus Status => _currentQuery?.Status ?? QueryStatus.Idle;
 
     public TResult? Data => _currentQuery is not null
@@ -112,18 +128,28 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
     /// </remarks>
     public bool IsFetching => _currentQuery?.IsFetching ?? false;
 
-    public Query(
-        QueryCache<TArg, TResult> cache,
-        QueryOptions<TResult>? options = null)
+    /// <summary>
+    /// Stop listening to changes of the current query.
+    /// </summary>
+    public void Detach()
     {
-        _cache = cache;
-        _options = options ?? new();
+        // TODO: Consider redesign
+        _currentQuery?.RemoveObserver(this);
+        _currentQuery = null;
     }
 
-    public Query(
-        Func<TArg, CancellationToken, Task<TResult>> queryFn,
-        QueryOptions<TResult>? options = null
-    ) : this(new QueryCache<TArg, TResult>(queryFn, TimeSpan.FromMinutes(5)), options) { }
+    /// <summary>
+    /// Runs the original query function once, completely bypassing caching and other extra behaviour
+    /// </summary>
+    /// <param name="arg">The argument passed to the query function</param>
+    /// <param name="ct">An optional cancellation token</param>
+    /// <returns>The value returned by the query function</returns>
+    public Task<TResult> Invoke(TArg arg, CancellationToken ct = default)
+    {
+        return _cache.QueryFn.Invoke(arg, ct);
+    }
+
+    public void Cancel() => _currentQuery?.Cancel();
 
     /// <summary>
     /// Run the query using the most recent parameters.
@@ -183,25 +209,16 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
         }
     }
 
-    /// <summary>
-    /// Stop listening to changes of the current query.
-    /// </summary>
-    public void Detach()
-    {
-        // TODO: Consider redesign
-        _currentQuery?.RemoveObserver(this);
-        _currentQuery = null;
-    }
+    public void Trigger(TArg arg) => _ = TriggerAsync(arg);
 
-    /// <summary>
-    /// Runs the original query function once, completely bypassing caching and other extra behaviour
-    /// </summary>
-    /// <param name="arg">The argument passed to the query function</param>
-    /// <param name="ct">An optional cancellation token</param>
-    /// <returns>The value returned by the query function</returns>
-    public Task<TResult> Invoke(TArg arg, CancellationToken ct = default)
+    public async Task<TResult> TriggerAsync(TArg arg)
     {
-        return _cache.QueryFn.Invoke(arg, ct);
+        // TODO: Re-use when arguments unchanged?
+        var query = _cache.AddUncached(arg);
+        _currentQuery?.RemoveObserver(this);
+        query.AddObserver(this);
+        _currentQuery = query;
+        return await query.RefetchAsync().ConfigureAwait(false);
     }
 
     void IQueryObserver<TResult>.OnQueryUpdate(QueryEvent e, TResult? result, Exception? exception)
@@ -244,5 +261,28 @@ public class Query<TResult> : Query<Unit, TResult>
         {
             SetParam(default); // Trigger an initial query
         }
+    }
+}
+
+public class Mutation<TArg> : Query<TArg, Unit>
+{
+    public Mutation(
+        Func<TArg, CancellationToken, Task> mutationFn,
+        QueryOptions<Unit>? endpointOptions = null
+    ) : base(
+        async (arg, ct) =>
+        {
+            await mutationFn(arg, ct);
+            return new Unit();
+        },
+        endpointOptions)
+    {
+    }
+
+    public Mutation(
+        QueryCache<TArg, Unit> cache,
+        QueryOptions<Unit>? options = null
+    ) : base(cache, options)
+    {
     }
 }

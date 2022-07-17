@@ -6,11 +6,11 @@ using Phetch.Core;
 
 public sealed partial class UseMutationEndpoint<TArg, TResult> : IDisposable
 {
-    private Mutation<TArg, TResult>? _mutation;
-    private MutationEndpoint<TArg, TResult>? _endpoint;
+    private Query<TArg, TResult>? _mutation;
+    private QueryEndpoint<TArg, TResult>? _endpoint;
 
     [Parameter, EditorRequired]
-    public MutationEndpoint<TArg, TResult>? Endpoint
+    public QueryEndpoint<TArg, TResult>? Endpoint
     {
         get => _endpoint;
         set
@@ -20,14 +20,14 @@ public sealed partial class UseMutationEndpoint<TArg, TResult> : IDisposable
             TryUnsubscribe(_mutation);
             if (value is not null)
             {
-                _mutation = GetMutation(value);
+                _mutation = GetQuery(value);
                 _endpoint = value;
             }
         }
     }
 
     [Parameter, EditorRequired]
-    public RenderFragment<Mutation<TArg, TResult>> ChildContent { get; set; } = null!;
+    public RenderFragment<Query<TArg, TResult>> ChildContent { get; set; } = null!;
 
     [Parameter]
     public Action<TResult>? OnSuccess { get; set; }
@@ -40,17 +40,17 @@ public sealed partial class UseMutationEndpoint<TArg, TResult> : IDisposable
         TryUnsubscribe(_mutation);
     }
 
-    private Mutation<TArg, TResult> GetMutation(MutationEndpoint<TArg, TResult> endpoint)
+    private Query<TArg, TResult> GetQuery(QueryEndpoint<TArg, TResult> endpoint)
     {
-        var newMutation = endpoint.Use();
-        newMutation.StateChanged += StateHasChanged;
+        var newQuery = endpoint.Use();
+        newQuery.StateChanged += StateHasChanged;
         // TODO
-        //newMutation.Succeeded += SuccessCallback;
-        //newMutation.Failed += FailureCallback;
-        return newMutation;
+        //newQuery.Succeeded += SuccessCallback;
+        //newQuery.Failed += FailureCallback;
+        return newQuery;
     }
 
-    private void TryUnsubscribe(Mutation<TArg, TResult>? mutation)
+    private void TryUnsubscribe(Query<TArg, TResult>? mutation)
     {
         if (mutation is not null)
         {

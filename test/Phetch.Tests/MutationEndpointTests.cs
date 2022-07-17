@@ -12,7 +12,7 @@
         [Fact]
         public async Task Should_create_valid_mutation()
         {
-            var endpoint = new MutationEndpoint<int, string>(
+            var endpoint = new QueryEndpoint<int, string>(
                 (val, _) => Task.FromResult(val.ToString())
             );
             var mut = endpoint.Use();
@@ -32,7 +32,7 @@
         {
             var mutationArg = 0;
             var endpoint = new MutationEndpoint<int>(
-                async val =>
+                async (val, _) =>
                 {
                     mutationArg = val;
                     await Task.Yield();
