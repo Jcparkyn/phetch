@@ -86,11 +86,11 @@ public class QueryEndpoint<TArg, TResult>
     /// Runs the original query function once, completely bypassing caching and other extra behaviour
     /// </summary>
     /// <param name="arg">The argument passed to the query function</param>
+    /// <param name="ct">An optional cancellation token</param>
     /// <returns>The value returned by the query function</returns>
-    public Task<TResult> Invoke(TArg arg)
+    public Task<TResult> Invoke(TArg arg, CancellationToken ct = default)
     {
-        // TODO: Cancellation
-        return Cache.QueryFn.Invoke(arg, default);
+        return Cache.QueryFn.Invoke(arg, ct);
     }
 }
 
@@ -105,12 +105,13 @@ public class QueryEndpoint<TResult> : QueryEndpoint<Unit, TResult>
     ) : base((_, ct) => queryFn(ct), options)
     { }
 
-    public new Query<TResult> Use(QueryOptions<TResult>? options = null)
-    {
-        return new Query<TResult>(Cache, options);
-    }
+    public new Query<TResult> Use(QueryOptions<TResult>? options = null) =>
+        new(Cache, options);
 }
 
+/// <summary>
+/// An alternate version of <see cref="QueryEndpoint{TArg, TResult}"/> for queries that have no return value.
+/// </summary>
 public class MutationEndpoint<TArg> : QueryEndpoint<TArg, Unit>
 {
     public MutationEndpoint(
@@ -125,4 +126,7 @@ public class MutationEndpoint<TArg> : QueryEndpoint<TArg, Unit>
         options
     )
     { }
+
+    public new Mutation<TArg> Use(QueryOptions<Unit>? options = null) =>
+        new(Cache, options);
 }

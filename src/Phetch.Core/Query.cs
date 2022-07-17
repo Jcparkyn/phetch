@@ -53,8 +53,18 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
         options)
     { }
 
+    /// <summary>
+    /// The current status of this query.
+    /// </summary>
     public QueryStatus Status => _currentQuery?.Status ?? QueryStatus.Idle;
 
+    /// <summary>
+    /// The response data from the current query if it exists.
+    /// </summary>
+    /// <remarks>
+    /// To also keep data from previous args while a new query is loading, use <see
+    /// cref="LastData"/> instead.
+    /// </remarks>
     public TResult? Data => _currentQuery is not null
         ? _currentQuery.Data
         : default;
@@ -149,24 +159,28 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
         return _cache.QueryFn.Invoke(arg, ct);
     }
 
+    /// <summary>
+    /// Cancel the currently running query using the <see cref="CancellationToken"/> that was passed to it.
+    /// </summary>
     public void Cancel() => _currentQuery?.Cancel();
 
     /// <summary>
-    /// Run the query using the most recent parameters.
+    /// Re-runs the query using the most recent parameters, without waiting for the result.
     /// </summary>
     /// <remarks>
     /// To also return the result of the query, use <see cref="RefetchAsync"/>.
     /// </remarks>
+    /// <inheritdoc cref="RefetchAsync" path="/exception"/>
     public void Refetch()
     {
         _currentQuery?.Refetch();
     }
 
     /// <summary>
-    /// Re-run the query using the most recent parameters and return the result asynchronously.
+    /// Re-runs the query using the most recent parameters and returns the result asynchronously.
     /// </summary>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <returns>The value returned by the query function</returns>
+    /// <exception cref="InvalidOperationException">Thrown if no parameters have been provided to the query</exception>
     public Task<TResult> RefetchAsync()
     {
         if (_currentQuery is null)
@@ -179,7 +193,7 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
     /// Update the parameters of this query, and re-run the query if the parameters have changed.
     /// </summary>
     /// <remarks>
-    /// If you need to <c>await</c> the completion of the query, use <see cref="SetParamAsync(TArg)"/> instead.
+    /// If you need to <c>await</c> the completion of the query, use <see cref="SetParamAsync"/> instead.
     /// </remarks>
     public void SetParam(TArg arg) => _ = SetParamAsync(arg);
 
@@ -187,7 +201,7 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
     /// Update the parameters of this query, and re-run the query if the parameters have changed.
     /// </summary>
     /// <remarks>
-    /// If you do not need to <c>await</c> the completion of the query, use <see cref="SetParam(TArg)"/> instead.
+    /// If you do not need to <c>await</c> the completion of the query, use <see cref="SetParam"/> instead.
     /// </remarks>
     /// <returns>
     /// A <see cref="Task"/> which completes when the query returns, or immediately if the
@@ -209,8 +223,26 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
         }
     }
 
+    /// <inheritdoc cref="TriggerAsync"/>
     public void Trigger(TArg arg) => _ = TriggerAsync(arg);
 
+    /// <summary>
+    /// Run the query function without sharing state or cache with other queries.
+    /// </summary>
+    /// <remarks>
+    /// This is typically used for "mutations", which are queries that have side effects (e.g., POST
+    /// requests). This has the following differences from <see cref="SetParamAsync(TArg)"/>:
+    /// <list type="bullet">
+    /// <item>
+    /// This will always run the query function, even if it was previously run with the same query argument.
+    /// </item>
+    /// <item>
+    /// The state of this query (including the cached return value) will not be shared with other
+    /// queries that use the same query argument.
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <param name="arg">The argument to pass to the query function</param>
     public async Task<TResult> TriggerAsync(TArg arg)
     {
         // TODO: Re-use when arguments unchanged?
@@ -237,6 +269,10 @@ public class Query<TArg, TResult> : IQueryObserver<TResult>
     }
 }
 
+/// <summary>
+/// An alternate version of <see cref="Query{TArg, TResult}"/> for queries with no parameters.
+/// </summary>
+/// <remarks>Aside from having no parameters, this functions identically to a normal Query</remarks>
 public class Query<TResult> : Query<Unit, TResult>
 {
     public Query(
@@ -264,6 +300,10 @@ public class Query<TResult> : Query<Unit, TResult>
     }
 }
 
+/// <summary>
+/// An alternate version of <see cref="Query{TArg, TResult}"/> for queries with no return value.
+/// </summary>
+/// <remarks>Aside from having no return value, this functions identically to a normal Query</remarks>
 public class Mutation<TArg> : Query<TArg, Unit>
 {
     public Mutation(
