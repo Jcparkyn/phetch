@@ -271,27 +271,18 @@ public class Query<TResult> : Query<Unit, TResult>
 {
     public Query(
         Func<CancellationToken, Task<TResult>> queryFn,
-        QueryOptions<Unit, TResult>? options = null,
-        bool runAutomatically = true
+        QueryOptions<Unit, TResult>? options = null
     ) : base((_, ct) => queryFn(ct), options)
-    {
-        if (runAutomatically)
-        {
-            SetParam(default); // Trigger an initial query
-        }
-    }
+    { }
 
     internal Query(
         QueryCache<Unit, TResult> cache,
-        QueryOptions<Unit, TResult>? options = null,
-        bool runAutomatically = true
+        QueryOptions<Unit, TResult>? options = null
     ) : base(cache, options)
-    {
-        if (runAutomatically)
-        {
-            SetParam(default); // Trigger an initial query
-        }
-    }
+    { }
+
+    public void Fetch() => SetParam(default);
+    public Task FetchAsync() => SetParamAsync(default);
 }
 
 /// <summary>

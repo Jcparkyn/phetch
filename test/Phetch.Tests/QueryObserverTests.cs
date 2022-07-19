@@ -15,8 +15,7 @@
         public async Task Should_work_with_basic_query()
         {
             var query = new Query<string>(
-                _ => Task.FromResult("test"),
-                runAutomatically: false
+                _ => Task.FromResult("test")
             );
             await query.SetParamAsync(default);
 
@@ -34,8 +33,7 @@
         {
             var tcs = new TaskCompletionSource<string>();
             var query = new Query<string>(
-                _ => tcs.Task,
-                runAutomatically: false
+                _ => tcs.Task
             );
 
             query.Status.Should().Be(QueryStatus.Idle);
@@ -78,8 +76,7 @@
         {
             var error = new IndexOutOfRangeException("message");
             var query = new Query<string>(
-                _ => Task.FromException<string>(error),
-                runAutomatically: false
+                _ => Task.FromException<string>(error)
             );
 
             await query.Invoking(x => x.SetParamAsync(default))
@@ -104,8 +101,7 @@
 
             var (queryFn, sources) = MakeCustomQueryFn(2);
             var query = new Query<string>(
-                queryFn,
-                runAutomatically: false
+                queryFn
             );
 
             query.Status.Should().Be(QueryStatus.Idle);
@@ -145,8 +141,7 @@
 
             var (queryFn, sources) = MakeCustomQueryFn(2);
             var query = new Query<string>(
-                queryFn,
-                runAutomatically: false
+                queryFn
             );
 
             query.Status.Should().Be(QueryStatus.Idle);
