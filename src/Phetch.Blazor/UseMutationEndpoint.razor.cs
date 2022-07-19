@@ -7,10 +7,10 @@ using Phetch.Core;
 public sealed partial class UseMutationEndpoint<TArg, TResult> : IDisposable
 {
     private Query<TArg, TResult>? _mutation;
-    private QueryEndpoint<TArg, TResult>? _endpoint;
+    private Endpoint<TArg, TResult>? _endpoint;
 
     [Parameter, EditorRequired]
-    public QueryEndpoint<TArg, TResult>? Endpoint
+    public Endpoint<TArg, TResult>? Endpoint
     {
         get => _endpoint;
         set
@@ -40,7 +40,7 @@ public sealed partial class UseMutationEndpoint<TArg, TResult> : IDisposable
         TryUnsubscribe(_mutation);
     }
 
-    private Query<TArg, TResult> GetQuery(QueryEndpoint<TArg, TResult> endpoint)
+    private Query<TArg, TResult> GetQuery(Endpoint<TArg, TResult> endpoint)
     {
         var newQuery = endpoint.Use();
         newQuery.StateChanged += StateHasChanged;

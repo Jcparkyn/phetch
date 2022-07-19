@@ -15,7 +15,7 @@ public class IsEvenApi
         );
     }
 
-    public QueryEndpoint<int, bool> IsEven { get; }
+    public Endpoint<int, bool> IsEven { get; }
 }
 
 public record IsEvenResponse(bool IsEven);

@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 /// This is the recommended way to use queries in most cases, and serves as a convenient way to create <see
 /// cref="Query{TArg, TResult}"/> instances that share the same cache.
 /// </remarks>
-public class QueryEndpoint<TArg, TResult>
+public class Endpoint<TArg, TResult>
 {
     internal QueryCache<TArg, TResult> Cache { get; }
 
@@ -24,7 +24,7 @@ public class QueryEndpoint<TArg, TResult>
     /// Creates a new query endpoint with a given query function. In most cases, the query function
     /// will be a call to an HTTP endpoint, but it can be any async function.
     /// </summary>
-    public QueryEndpoint(
+    public Endpoint(
         Func<TArg, CancellationToken, Task<TResult>> queryFn,
         QueryEndpointOptions<TResult>? options = null)
     {
@@ -95,11 +95,11 @@ public class QueryEndpoint<TArg, TResult>
 }
 
 /// <summary>
-/// An alternate version of <see cref="QueryEndpoint{TArg, TResult}"/> for queries that have no parameters.
+/// An alternate version of <see cref="Endpoint{TArg, TResult}"/> for queries that have no parameters.
 /// </summary>
-public class QueryEndpoint<TResult> : QueryEndpoint<Unit, TResult>
+public class ParameterlessEndpoint<TResult> : Endpoint<Unit, TResult>
 {
-    public QueryEndpoint(
+    public ParameterlessEndpoint(
         Func<CancellationToken, Task<TResult>> queryFn,
         QueryEndpointOptions<TResult>? options = null
     ) : base((_, ct) => queryFn(ct), options)
@@ -110,9 +110,9 @@ public class QueryEndpoint<TResult> : QueryEndpoint<Unit, TResult>
 }
 
 /// <summary>
-/// An alternate version of <see cref="QueryEndpoint{TArg, TResult}"/> for queries that have no return value.
+/// An alternate version of <see cref="Endpoint{TArg, TResult}"/> for queries that have no return value.
 /// </summary>
-public class MutationEndpoint<TArg> : QueryEndpoint<TArg, Unit>
+public class MutationEndpoint<TArg> : Endpoint<TArg, Unit>
 {
     public MutationEndpoint(
         Func<TArg, CancellationToken, Task> queryFn,

@@ -12,7 +12,7 @@
         [Fact]
         public async Task Should_create_valid_mutation()
         {
-            var endpoint = new QueryEndpoint<int, string>(
+            var endpoint = new Endpoint<int, string>(
                 (val, _) => Task.FromResult(val.ToString())
             );
             var mut = endpoint.Use();

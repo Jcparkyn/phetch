@@ -16,7 +16,7 @@ public class CoinbaseApi
         );
     }
 
-    public QueryEndpoint<int, ApiResponse?> GetTopAssets { get; }
+    public Endpoint<int, ApiResponse?> GetTopAssets { get; }
 
     public record ApiResponse(
         PaginationData Pagination,

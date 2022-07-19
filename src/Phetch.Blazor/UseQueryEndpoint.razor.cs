@@ -7,10 +7,10 @@ using Phetch.Core;
 public sealed partial class UseQueryEndpoint<TArg, TResult>
 {
     private Query<TArg, TResult>? _query;
-    private QueryEndpoint<TArg, TResult>? _endpoint;
+    private Endpoint<TArg, TResult>? _endpoint;
 
     [Parameter, EditorRequired]
-    public QueryEndpoint<TArg, TResult>? Endpoint
+    public Endpoint<TArg, TResult>? Endpoint
     {
         get => _endpoint;
         set
@@ -77,7 +77,7 @@ public sealed partial class UseQueryEndpoint<TArg, TResult>
         TryUnsubscribe(_query);
     }
 
-    private Query<TArg, TResult> GetQuery(QueryEndpoint<TArg, TResult> endpoint, QueryOptions<TArg, TResult>? options)
+    private Query<TArg, TResult> GetQuery(Endpoint<TArg, TResult> endpoint, QueryOptions<TArg, TResult>? options)
     {
         var newQuery = options is null ? endpoint.Use() : endpoint.Use(options);
         newQuery.StateChanged += StateHasChanged;

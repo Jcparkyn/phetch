@@ -23,9 +23,9 @@ public class HackerNewsApi
         );
     }
 
-    public QueryEndpoint<SearchResponse<HnItem>> GetTopStories { get; }
+    public ParameterlessEndpoint<SearchResponse<HnItem>> GetTopStories { get; }
 
-    public QueryEndpoint<int, HnItemDetails> GetItem { get; }
+    public Endpoint<int, HnItemDetails> GetItem { get; }
 }
 
 public enum HnItemType

@@ -13,7 +13,7 @@
         [Fact]
         public async Task Should_create_valid_query()
         {
-            var endpoint = new QueryEndpoint<int, string>(
+            var endpoint = new Endpoint<int, string>(
                 (val, _) => Task.FromResult(val.ToString())
             );
             var query = endpoint.Use();
@@ -25,7 +25,7 @@
         public async Task Should_share_cache_between_queries()
         {
             var numQueryFnCalls = 0;
-            var endpoint = new QueryEndpoint<int, string>(
+            var endpoint = new Endpoint<int, string>(
                 (val, _) =>
                 {
                     numQueryFnCalls++;
@@ -51,7 +51,7 @@
         public async Task Invalidate_should_rerun_query()
         {
             var numQueryFnCalls = 0;
-            var endpoint = new QueryEndpoint<int, string>(
+            var endpoint = new Endpoint<int, string>(
                 async (val, ct) =>
                 {
                     numQueryFnCalls++;
@@ -82,7 +82,7 @@
         [Fact]
         public async Task Invoke_should_work()
         {
-            var endpoint = new QueryEndpoint<int, string>(
+            var endpoint = new Endpoint<int, string>(
                 (val, _) => Task.FromResult(val.ToString())
             );
             var result = await endpoint.Invoke(2);
@@ -92,7 +92,7 @@
         [Fact]
         public async Task UpdateQueryData_should_work()
         {
-            var endpoint = new QueryEndpoint<int, string>(
+            var endpoint = new Endpoint<int, string>(
                 (val, _) => Task.FromResult(val.ToString())
             );
             var query1 = endpoint.Use();
