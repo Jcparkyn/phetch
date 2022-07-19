@@ -1,7 +1,7 @@
 ﻿@page "/post/{postId:int}"
 @inject HackerNewsApi Api
 
-<UseQueryEndpoint Endpoint="@Api.GetItem" Param="PostId" Context="query">
+<UseEndpoint Endpoint="@Api.GetItem" Param="PostId" Context="query">
     @if (query.HasData)
     {
         <MudText Typo="Typo.h4" GutterBottom="true">@query.Data.Title</MudText>
@@ -19,7 +19,7 @@
             <p>@query.Error.Message</p>
         </MudAlert>
     }
-</UseQueryEndpoint>
+</UseEndpoint>
 
 @code {
     [Parameter]

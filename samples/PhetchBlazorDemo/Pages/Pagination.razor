@@ -7,7 +7,7 @@
 
 <MudText Class="mb-8">This component demonstrates fetching paginated data from the server.</MudText>
 
-<UseQueryEndpoint Endpoint="Api.GetTopAssets" Param="currentPage" Context="query">
+<UseEndpoint Endpoint="Api.GetTopAssets" Param="currentPage" Context="query">
     <MudButton @onclick="query.Refetch">Refresh</MudButton>
 
     <MudPagination Color="Color.Primary"
@@ -37,7 +37,7 @@
             </RowTemplate>
         </MudTable>
     }
-</UseQueryEndpoint>
+</UseEndpoint>
 
 @code {
     private int currentPage = 1;

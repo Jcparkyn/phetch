@@ -156,14 +156,14 @@ builder.Services.AddScoped<MyApi>();
 
 #### Using Query Endpoints
 
-Once you've defined a query endpoint, the best way to use it (in most cases) is with the `<UseQueryEndpoint />` Blazor component. This will automatically request new data when the parameters change, and will handle re-rending the component when the data changes.
+Once you've defined a query endpoint, the best way to use it (in most cases) is with the `<UseEndpoint />` Blazor component. This will automatically request new data when the parameters change, and will handle re-rending the component when the data changes.
 
 ```cshtml
 // This assumes you have created a class called MyApi containing your endpoints,
 // and registered it as a singleton or scoped service for dependency injection.
 @inject MyApi Api
 
-<UseQueryEndpoint Endpoint="@Api.GetThing" Param="ThingId" Context="query">
+<UseEndpoint Endpoint="@Api.GetThing" Param="ThingId" Context="query">
     @if (query.HasData)
     {
         <p>Thing Name: @query.Data.Name</p>
@@ -176,7 +176,7 @@ Once you've defined a query endpoint, the best way to use it (in most cases) is 
     {
         <p>Error: @query.Error.Message</p>
     }
-</UseQueryEndpoint>
+</UseEndpoint>
 
 @code {
     [Parameter]
@@ -210,7 +210,7 @@ The main differences between queries and mutations are:
 - Mutations do _not_ use a cache.
 - Mutations are generally used for methods with side effects (e.g. an HTTP POST endpoint).
 
-Aside from these points, the usage of mutations is generally very similar to that of queries, but with `MutationEndpoint` and `<UseMutationEndpoint/>` instead of `QueryEndpoint` and `<UseQueryEndpoint/>`.
+Aside from these points, the usage of mutations is generally very similar to that of queries, but with `MutationEndpoint` and `<UseMutationEndpoint/>` instead of `QueryEndpoint` and `<UseEndpoint/>`.
 
 Often, it will be useful to invalidate or update the data from other queries when a mutation completes, like so:
 

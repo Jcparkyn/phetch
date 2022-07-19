@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Phetch.Core;
 
-public sealed partial class UseQueryEndpoint<TArg, TResult>
+public sealed partial class UseEndpoint<TArg, TResult>
 {
     private Query<TArg, TResult>? _query;
     private Endpoint<TArg, TResult>? _endpoint;
