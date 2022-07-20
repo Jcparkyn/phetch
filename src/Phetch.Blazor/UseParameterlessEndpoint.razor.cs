@@ -75,6 +75,8 @@ public sealed partial class UseParameterlessEndpoint<TResult>
     {
         var newQuery = endpoint.Use(options);
         newQuery.StateChanged += StateHasChanged;
+        newQuery.Succeeded += SuccessCallback;
+        newQuery.Failed += FailureCallback;
         if (AutoFetch)
             newQuery.Fetch();
         return newQuery;
@@ -85,7 +87,13 @@ public sealed partial class UseParameterlessEndpoint<TResult>
         if (query is not null)
         {
             query.StateChanged -= StateHasChanged;
+            query.Succeeded -= SuccessCallback;
+            query.Failed -= FailureCallback;
             query.Detach();
         }
     }
+
+    private void SuccessCallback(QuerySuccessContext<Unit, TResult> context) { OnSuccess?.Invoke(context); }
+
+    private void FailureCallback(QueryFailureContext<Unit> context) { OnFailure?.Invoke(context); }
 }
