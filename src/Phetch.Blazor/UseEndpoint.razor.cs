@@ -8,6 +8,7 @@ public sealed partial class UseEndpoint<TArg, TResult>
 {
     private Query<TArg, TResult>? _query;
     private Endpoint<TArg, TResult>? _endpoint;
+    private bool _isInitialized;
 
     /// <summary>
     /// The endpoint to use.
@@ -20,12 +21,8 @@ public sealed partial class UseEndpoint<TArg, TResult>
         {
             if (ReferenceEquals(_endpoint, value))
                 return;
-            TryUnsubscribe(_query);
-            if (value is not null)
-            {
-                _query = GetQuery(value, _options);
-                _endpoint = value;
-            }
+            _endpoint = value;
+            UpdateQuery();
         }
     }
 
@@ -52,7 +49,8 @@ public sealed partial class UseEndpoint<TArg, TResult>
         {
             _arg = value;
             _hasSetArg = true;
-            _query?.SetArg(value);
+            if (_isInitialized)
+                _query?.SetArg(value);
         }
     }
 
@@ -67,13 +65,8 @@ public sealed partial class UseEndpoint<TArg, TResult>
         {
             if (_options == value)
                 return;
-            TryUnsubscribe(_query);
-            if (_endpoint is not null)
-            {
-                _query = GetQuery(_endpoint, value);
-            }
-
             _options = value;
+            UpdateQuery();
         }
     }
 
@@ -85,6 +78,21 @@ public sealed partial class UseEndpoint<TArg, TResult>
     [Parameter]
     public Action<QueryFailureContext<TArg>>? OnFailure { get; set; }
 
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _isInitialized = true;
+        UpdateQuery();
+    }
+
+    private void UpdateQuery()
+    {
+        if (!_isInitialized)
+            return;
+        TryUnsubscribe(_query);
+        _query = GetQuery(_endpoint!, _options);
+    }
+
     void IDisposable.Dispose()
     {
         TryUnsubscribe(_query);
@@ -93,11 +101,11 @@ public sealed partial class UseEndpoint<TArg, TResult>
     private Query<TArg, TResult> GetQuery(Endpoint<TArg, TResult> endpoint, QueryOptions<TArg, TResult>? options)
     {
         var newQuery = endpoint.Use(options);
+        if (_hasSetArg)
+            newQuery.SetArg(_arg);
         newQuery.StateChanged += StateHasChanged;
         newQuery.Succeeded += SuccessCallback;
         newQuery.Failed += FailureCallback;
-        if (_hasSetArg)
-            newQuery.SetArg(_arg);
         return newQuery;
     }
 

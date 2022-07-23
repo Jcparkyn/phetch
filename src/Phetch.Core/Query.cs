@@ -206,8 +206,9 @@ public class Query<TArg, TResult>
             _currentQuery?.RemoveObserver(this);
             newQuery.AddObserver(this);
             _currentQuery = newQuery;
+            // TODO: Is this the best behaviour?
 
-            if (newQuery.IsStaleByTime(_options.StaleTime, DateTime.Now))
+            if (!newQuery.IsFetching && newQuery.IsStaleByTime(_options.StaleTime, DateTime.Now))
             {
                 await newQuery.RefetchAsync().ConfigureAwait(false);
             }

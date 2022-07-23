@@ -8,6 +8,7 @@ public sealed partial class UseParameterlessEndpoint<TResult>
 {
     private Query<TResult>? _query;
     private ParameterlessEndpoint<TResult>? _endpoint;
+    private bool _isInitialized;
 
     [Parameter, EditorRequired]
     public ParameterlessEndpoint<TResult>? Endpoint
@@ -17,12 +18,8 @@ public sealed partial class UseParameterlessEndpoint<TResult>
         {
             if (ReferenceEquals(_endpoint, value))
                 return;
-            TryUnsubscribe(_query);
-            if (value is not null)
-            {
-                _query = GetQuery(value, _options);
-                _endpoint = value;
-            }
+            _endpoint = value;
+            UpdateQuery();
         }
     }
 
@@ -48,13 +45,8 @@ public sealed partial class UseParameterlessEndpoint<TResult>
         {
             if (_options == value)
                 return;
-            TryUnsubscribe(_query);
-            if (_endpoint is not null)
-            {
-                _query = GetQuery(_endpoint, value);
-            }
-
             _options = value;
+            UpdateQuery();
         }
     }
 
@@ -66,6 +58,21 @@ public sealed partial class UseParameterlessEndpoint<TResult>
     [Parameter]
     public Action<QueryFailureContext<Unit>>? OnFailure { get; set; }
 
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _isInitialized = true;
+        UpdateQuery();
+    }
+
+    private void UpdateQuery()
+    {
+        if (!_isInitialized)
+            return;
+        TryUnsubscribe(_query);
+        _query = GetQuery(_endpoint!, _options);
+    }
+
     void IDisposable.Dispose()
     {
         TryUnsubscribe(_query);
@@ -74,11 +81,11 @@ public sealed partial class UseParameterlessEndpoint<TResult>
     private Query<TResult> GetQuery(ParameterlessEndpoint<TResult> endpoint, QueryOptions<Unit, TResult>? options)
     {
         var newQuery = endpoint.Use(options);
+        if (AutoFetch)
+            newQuery.Fetch();
         newQuery.StateChanged += StateHasChanged;
         newQuery.Succeeded += SuccessCallback;
         newQuery.Failed += FailureCallback;
-        if (AutoFetch)
-            newQuery.Fetch();
         return newQuery;
     }
 
