@@ -66,8 +66,8 @@ public class Query<TArg, TResult>
     /// </summary>
     /// <remarks>
     /// This is useful for pagination, if you want to keep the data of the previous page visible
-    /// while the next page loads. May return data from a different set of parameters if the
-    /// parameters have changed.
+    /// while the next page loads. May return data from a different query argument if the argument
+    /// has changed.
     /// </remarks>
     public TResult? LastData => IsSuccess
         ? _currentQuery.Data
@@ -81,7 +81,7 @@ public class Query<TArg, TResult>
     public Exception? Error => _currentQuery?.Error;
 
     /// <summary>
-    /// True if the query is currently loading and has not previously succeeded with the same parameters.
+    /// True if the query is currently loading and has not previously succeeded with the same argument.
     /// </summary>
     /// <remarks>
     /// This will return <c>false</c> if the query is currently re-fetching due to the current data
@@ -116,7 +116,7 @@ public class Query<TArg, TResult>
     public bool HasData => IsSuccess && Data is not null;
 
     /// <summary>
-    /// True if no parameters have been provided to this query yet.
+    /// True if no arguments have been provided to this query yet.
     /// </summary>
     public bool IsUninitialized => Status == QueryStatus.Idle;
 
@@ -156,7 +156,7 @@ public class Query<TArg, TResult>
     public void Cancel() => _currentQuery?.Cancel();
 
     /// <summary>
-    /// Re-runs the query using the most recent parameters, without waiting for the result.
+    /// Re-runs the query using the most recent argument, without waiting for the result.
     /// </summary>
     /// <remarks>
     /// To also return the result of the query, use <see cref="RefetchAsync"/>.
@@ -168,10 +168,10 @@ public class Query<TArg, TResult>
     }
 
     /// <summary>
-    /// Re-runs the query using the most recent parameters and returns the result asynchronously.
+    /// Re-runs the query using the most recent argument and returns the result asynchronously.
     /// </summary>
     /// <returns>The value returned by the query function</returns>
-    /// <exception cref="InvalidOperationException">Thrown if no parameters have been provided to the query</exception>
+    /// <exception cref="InvalidOperationException">Thrown if no argument has been provided to the query</exception>
     public Task<TResult> RefetchAsync()
     {
         if (_currentQuery is null)
@@ -181,24 +181,24 @@ public class Query<TArg, TResult>
     }
 
     /// <summary>
-    /// Update the parameters of this query, and re-run the query if the parameters have changed.
+    /// Updates the argument for this query, and re-run the query if the argument has changed.
     /// </summary>
     /// <remarks>
-    /// If you need to <c>await</c> the completion of the query, use <see cref="SetParamAsync"/> instead.
+    /// If you need to <c>await</c> the completion of the query, use <see cref="SetArgAsync"/> instead.
     /// </remarks>
-    public void SetParam(TArg arg) => _ = SetParamAsync(arg);
+    public void SetArg(TArg arg) => _ = SetArgAsync(arg);
 
     /// <summary>
-    /// Update the parameters of this query, and re-run the query if the parameters have changed.
+    /// Updates the argument for this query, and re-run the query if the argument has changed.
     /// </summary>
     /// <remarks>
-    /// If you do not need to <c>await</c> the completion of the query, use <see cref="SetParam"/> instead.
+    /// If you do not need to <c>await</c> the completion of the query, use <see cref="SetArg"/> instead.
     /// </remarks>
     /// <returns>
-    /// A <see cref="Task"/> which completes when the query returns, or immediately if the
-    /// parameters have not changed.
+    /// A <see cref="Task"/> which completes when the query returns, or immediately if there is a
+    /// non-stale cached value for this argument.
     /// </returns>
-    public async Task SetParamAsync(TArg arg)
+    public async Task SetArgAsync(TArg arg)
     {
         var newQuery = _cache.GetOrAdd(arg);
         if (newQuery != _currentQuery)
@@ -222,7 +222,7 @@ public class Query<TArg, TResult>
     /// </summary>
     /// <remarks>
     /// This is typically used for "mutations", which are queries that have side effects (e.g., POST
-    /// requests). This has the following differences from <see cref="SetParamAsync(TArg)"/>:
+    /// requests). This has the following differences from <see cref="SetArgAsync(TArg)"/>:
     /// <list type="bullet">
     /// <item>
     /// This will always run the query function, even if it was previously run with the same query argument.
@@ -281,8 +281,8 @@ public class Query<TResult> : Query<Unit, TResult>
     ) : base(cache, options)
     { }
 
-    public void Fetch() => SetParam(default);
-    public Task FetchAsync() => SetParamAsync(default);
+    public void Fetch() => SetArg(default);
+    public Task FetchAsync() => SetArgAsync(default);
 }
 
 /// <summary>

@@ -17,7 +17,7 @@
                 (val, _) => Task.FromResult(val.ToString())
             );
             var query = endpoint.Use();
-            await query.SetParamAsync(10);
+            await query.SetArgAsync(10);
             query.Data.Should().Be("10");
         }
 
@@ -38,8 +38,8 @@
             };
             var query1 = endpoint.Use(options);
             var query2 = endpoint.Use(options);
-            await query1.SetParamAsync(10);
-            await query2.SetParamAsync(10);
+            await query1.SetArgAsync(10);
+            await query2.SetArgAsync(10);
 
             query1.Data.Should().Be("10");
             query2.Data.Should().Be("10");
@@ -62,8 +62,8 @@
             var query1 = endpoint.Use();
             var query2 = endpoint.Use();
 
-            await query1.SetParamAsync(1);
-            await query2.SetParamAsync(2);
+            await query1.SetArgAsync(1);
+            await query2.SetArgAsync(2);
 
             numQueryFnCalls.Should().Be(2);
 
@@ -98,8 +98,8 @@
             var query1 = endpoint.Use();
             var query2 = endpoint.Use();
 
-            await query1.SetParamAsync(1);
-            await query2.SetParamAsync(2);
+            await query1.SetArgAsync(1);
+            await query2.SetArgAsync(2);
 
             query1.Data.Should().Be("1");
             query2.Data.Should().Be("2");

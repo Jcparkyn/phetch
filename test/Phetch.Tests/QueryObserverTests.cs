@@ -17,7 +17,7 @@
             var query = new Query<string>(
                 _ => Task.FromResult("test")
             );
-            await query.SetParamAsync(default);
+            await query.SetArgAsync(default);
 
             query.Data.Should().Be("test");
             query.Status.Should().Be(QueryStatus.Success);
@@ -41,7 +41,7 @@
             query.HasData.Should().BeFalse();
 
             // Fetch once
-            var refetchTask = query.SetParamAsync(default);
+            var refetchTask = query.SetArgAsync(default);
 
             query.IsLoading.Should().BeTrue();
             query.IsFetching.Should().BeTrue();
@@ -79,7 +79,7 @@
                 _ => Task.FromException<string>(error)
             );
 
-            await query.Invoking(x => x.SetParamAsync(default))
+            await query.Invoking(x => x.SetArgAsync(default))
                 .Should().ThrowExactlyAsync<IndexOutOfRangeException>();
 
             query.Data.Should().BeNull();
@@ -106,7 +106,7 @@
 
             query.Status.Should().Be(QueryStatus.Idle);
 
-            query.SetParam(default);
+            query.SetArg(default);
 
             query.IsLoading.Should().BeTrue();
             query.IsFetching.Should().BeTrue();
@@ -146,7 +146,7 @@
 
             query.Status.Should().Be(QueryStatus.Idle);
 
-            query.SetParam(default);
+            query.SetArg(default);
 
             query.IsLoading.Should().BeTrue();
             query.IsFetching.Should().BeTrue();

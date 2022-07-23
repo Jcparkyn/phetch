@@ -83,8 +83,8 @@
                 await Task.Delay(500, ct);
                 return random.Next() % 10000;
             },
-            // Note: you could also do this by conditionally calling query2.SetParam before each render.
-            new() { OnSuccess = c => query2.SetParam(c.Result) }
+            // Note: you could also do this by conditionally calling query2.SetArg before each render.
+            new() { OnSuccess = c => query2.SetArg(c.Result) }
         );
 
         query2 = new(

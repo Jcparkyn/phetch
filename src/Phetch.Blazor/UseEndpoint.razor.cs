@@ -36,23 +36,23 @@ public sealed partial class UseEndpoint<TArg, TResult>
     [Parameter]
     public bool UseErrorBoundary { get; set; } = false;
 
-    // Other parameters can be set before Param is set, so don't use Param until it has been set. A
+    // Other parameters can be set before Arg is set, so don't use Arg until it has been set. A
     // nullable here would not work for queries where null is a valid argument.
-    private bool _hasSetParam = false;
-    private TArg _param = default!;
+    private bool _hasSetArg = false;
+    private TArg _arg = default!;
 
     /// <summary>
     /// The argument to supply to the query. If not supplied, the query will not be run automatically.
     /// </summary>
     [Parameter]
-    public TArg Param
+    public TArg Arg
     {
-        get => _param;
+        get => _arg;
         set
         {
-            _param = value;
-            _hasSetParam = true;
-            _query?.SetParam(value);
+            _arg = value;
+            _hasSetArg = true;
+            _query?.SetArg(value);
         }
     }
 
@@ -96,8 +96,8 @@ public sealed partial class UseEndpoint<TArg, TResult>
         newQuery.StateChanged += StateHasChanged;
         newQuery.Succeeded += SuccessCallback;
         newQuery.Failed += FailureCallback;
-        if (_hasSetParam)
-            newQuery.SetParam(_param);
+        if (_hasSetArg)
+            newQuery.SetArg(_arg);
         return newQuery;
     }
 

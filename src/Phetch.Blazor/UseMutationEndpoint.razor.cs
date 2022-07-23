@@ -35,21 +35,21 @@ public sealed partial class UseMutationEndpoint<TArg>
     [Parameter]
     public bool UseErrorBoundary { get; set; } = false;
 
-    // Other parameters can be set before Param is set, so don't use Param until it has been set. A
+    // Other parameters can be set before Arg is set, so don't use Arg until it has been set. A
     // nullable here would not work for queries where null is a valid argument.
-    private bool _hasSetParam = false;
-    private TArg _param = default!;
+    private bool _hasSetArg = false;
+    private TArg _arg = default!;
 
-    /// <inheritdoc cref="UseEndpoint{TArg, TResult}.Param"/>
+    /// <inheritdoc cref="UseEndpoint{TArg, TResult}.Arg"/>
     [Parameter]
-    public TArg Param
+    public TArg Arg
     {
-        get => _param;
+        get => _arg;
         set
         {
-            _param = value;
-            _hasSetParam = true;
-            _query?.SetParam(value);
+            _arg = value;
+            _hasSetArg = true;
+            _query?.SetArg(value);
         }
     }
 
@@ -93,8 +93,8 @@ public sealed partial class UseMutationEndpoint<TArg>
         newQuery.StateChanged += StateHasChanged;
         newQuery.Succeeded += SuccessCallback;
         newQuery.Failed += FailureCallback;
-        if (_hasSetParam)
-            newQuery.SetParam(_param);
+        if (_hasSetArg)
+            newQuery.SetArg(_arg);
         return newQuery;
     }
 
