@@ -1,8 +1,8 @@
 # Phetch
 
-Phetch is a small Blazor library for handling async query state, in the style of [React Query](https://github.com/tannerlinsley/react-query) or [SWR](https://github.com/vercel/swr).
+Phetch is a small Blazor library for handling async query state, in the style of [React Query](https://github.com/tannerlinsley/react-query), [SWR](https://github.com/vercel/swr), or [RTK Query](https://redux-toolkit.js.org/rtk-query/overview).
 
-Currently, Phetch is only designed for use with Blazor WebAssembly. However, there are no dependencies on Blazor or ASP.NET Core, so in theory it can be used anywhere that supports .NET Standard 2.1.
+Currently, Phetch is only designed for use with Blazor WebAssembly. However, the core package (Phetch.Core) has no dependencies on Blazor or ASP.NET Core, so in theory it can be used anywhere that supports .NET Standard 2.1.
 
 | :warning: Note: Phetch is in early development and likely to change. |
 |:---------------------------------------------------------------------|
@@ -11,7 +11,6 @@ Currently, Phetch is only designed for use with Blazor WebAssembly. However, the
 - Automatically handles loading and error states, and updates your components whenever the state changes
 - Use any async method as a query or mutation (not restricted just to HTTP requests)
 - Built-in support for CancellationTokens
-- Built-in debouncing, to (optionally) limit the rate of queries being sent
 - Supports mutations, dependent queries, and pagination
 - 100% strongly typed, with nullability annotations
 - Super lightweight and easy to mix-and-match with other state management methods
@@ -23,13 +22,11 @@ You're probably familiar with the "normal" way of performing async actions in cl
 You start a request in `OnInitializedAsync`, and then update a field when it returns.
 
 But then you need to add error  handling, so you add another variable to keep track of whether there was an error.
-Then once your component gets more complicated, you need to add another variable to explicitly track whether the query is loading.
 Then you realise that your query depends on values from your parameters, so you need to add custom logic in `OnParametersSetAsync` to manually re-start the query, but only when the parameters change.
-Then you need to be able to cancel queries after they've started, so you add a `CancellationTokenSource` and all the corresponding logic.
-If you've been paying attention, you might notice that your queries sometimes return in the wrong order because your server doesn't always take the same amount of time.
+You might also notice that everything breaks if your queries return in a different order than they were made.
 And then you get to the next component and do it all over again.
 
-Phetch aims to solve all of these problems.
+Phetch aims to solve all of these problems, and many more.
 
 ## Show me some code!
 
@@ -38,8 +35,10 @@ Phetch aims to solve all of these problems.
 Below is the code for a super-basic component that runs a query when the component is first loaded.
 Phetch can do a whole lot more than that though, so make sure to check out the samples project and full documentation!
 
-```csharp
+```cshtml
 @inject HttpClient Http
+
+<ObserveQuery Target="forecastsQuery" OnChanged="StateHasChanged">
 
 @if (forecastsQuery.IsError)
 {
@@ -59,10 +58,8 @@ else
 
     protected override void OnInitialized()
     {
-        base.OnInitialized();
         forecastsQuery = new(
-            _ => Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json")!,
-            onStateChanged: StateHasChanged
+            _ => Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json")!
         );
     }
 }
@@ -99,14 +96,14 @@ If you're using Visual Studio, you can also install via the built in NuGet packa
 
 There are a few different ways to define and use queries, depending on your use case.
 
-### Query Endpoints (Recommended)
+### Defining Query Endpoints (Recommended)
 
-In most cases, the best way to define queries is to use the `QueryEndpoint` class.
+In most cases, the best way to define queries is to use the `Endpoint` class.
+All components that use the same endpoint will share the same cache automatically.
 
-#### Defining Query Endpoints
 ```cs
 // This defines an endpoint that takes an int and returns a bool.
-var isEvenEndpoint = new QueryEndpoint<int, bool>(
+var isEvenEndpoint = new Endpoint<int, bool>(
     // Replace this part with your own async function:
     async val =>
     {
@@ -116,14 +113,14 @@ var isEvenEndpoint = new QueryEndpoint<int, bool>(
 );
 ```
 
-You can then share this instance of QueryEndpoint across your whole application and use it wherever you need it.
+You can then share this instance of Endpoint across your whole application and use it wherever you need it.
 In most cases, the best way to do this is with Blazor's built-in [dependency injection](https://docs.microsoft.com/en-us/aspnet/core/blazor/fundamentals/dependency-injection).
 You can view the [sample project](./samples/HackerNewsClient/Shared/HackerNewsApi.cs) for a full example of how to do this, or follow the steps below:
 
 <details>
 <summary>Setting up dependency injection (DI)</summary>
 
-1. Create a class containing an instance of `QueryEndpoint`. You can have as many or few endpoints in a class as you want.
+1. Create a class containing an instance of `Endpoint`. You can have as many or few endpoints in a class as you want.
 ```cs
 public class MyApi
 {
@@ -154,16 +151,30 @@ builder.Services.AddScoped<MyApi>();
 
 </details>
 
-#### Using Query Endpoints
+### Creating Queries without Endpoints
 
-Once you've defined a query endpoint, the best way to use it (in most cases) is with the `<UseEndpoint />` Blazor component. This will automatically request new data when the parameters change, and will handle re-rending the component when the data changes.
+If you just need to run a query in a single component and don't want to create an `Endpoint`, another option is to create a `Query` object directly.
+
+```cs
+var query = new Query<string, int>(id => ...);
+```
+
+> :warning: Unlike with Endpoints, you generally shouldn't share a single instance of `Query` across multiple components.
+
+### Using Query Endpoints with `<UseEndpoint/>`
+
+Once you've defined a query endpoint, the best way to use it (in most cases) is with the `<UseEndpoint />` Blazor component. This will handle re-rending the component automatically when the data changes.
+
+If you provide the `Arg` parameter, this will also automatically request new data when the argument changes.
+
+> :information_source: With `<UseParameterlessEndpoint/>`, use the  `AutoFetch` parameter instead of passing an `Arg`.
 
 ```cshtml
 // This assumes you have created a class called MyApi containing your endpoints,
 // and registered it as a singleton or scoped service for dependency injection.
 @inject MyApi Api
 
-<UseEndpoint Endpoint="@Api.GetThing" Param="ThingId" Context="query">
+<UseEndpoint Endpoint="@Api.GetThing" Arg="ThingId" Context="query">
     @if (query.HasData)
     {
         <p>Thing Name: @query.Data.Name</p>
@@ -179,12 +190,43 @@ Once you've defined a query endpoint, the best way to use it (in most cases) is 
 </UseEndpoint>
 
 @code {
-    [Parameter]
-    public int ThingId { get; set; }
+    [Parameter] public int ThingId { get; set; }
 }
 ```
 
 For a full working example, view the [sample project](./samples/HackerNewsClient/Pages/PostDetails.razor).
+
+### Using Query objects directly
+
+In cases where the `<UseEndpoint/>` component doesn't provide enough control, you can also use Query objects directly in your code.
+This is also useful when using endpoints or queries inside DI services.
+
+`Phetch.Blazor` includes the `<ObserveQuery/>` component for this purpose, so that components can automatically be re-rendered when the query state changes.
+This automatically un-subscribes from query events when the component is unmounted (in `Dispose()`), so you don't have to worry about memory leaks.
+
+> :information_source: Alternatively, you can manually subscribe and un-subscribe to a query using the `StateChanged` event.
+
+```cshtml
+@inject MyApi Api
+
+@{ query.SetArg(ThingId) }
+<ObserveQuery Target="query" OnChanged="StateHasChanged">
+
+@if (query.HasData)
+{
+    // etc...
+}
+
+@code {
+    private Query<int, Thing> query = null!;
+    [Parameter] public int ThingId { get; set; }
+
+    protected override void OnInitialized()
+    {
+        query = Api.GetThing.Use();
+    }
+}
+```
 
 ### Multiple Parameters
 
@@ -198,27 +240,44 @@ var queryEndpoint = new QueryEndpoint<(string searchTerm, int page), List<string
 
 For cases with lots of parameters, it is recommended to combine them into a [record](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) instead. This will allow you to define default values and other functionality.
 
-## Mutations
+### Mutations and Parameterless Queries
 
-So far, the documentation has talked about queries, which are useful for _retrieving_ (querying) data.
-However, you will often need to _update_ (mutate) data on a server.
-While you can technically do this using queries, the default behaviour won't often be what you want.
-This is where mutations come in.
-The main differences between queries and mutations are:
+Sometimes you will need to use query functions that either have no parameters, or no return value.
+In the case of queries without a return value, these are called **Mutations**.
+There is also a corresponding class called `MutationEndpoint` (as opposed to the normal `Endpoint`), and a `<UseMutationEndpoint/>` component (as opposed to `<UseEndpoint/>`), which are all designed to work with mutations.
 
-- Mutations are _not_ run automatically as soon as they are requested (e.g., via `<UseMutationEndpoint/>`). Instead, mutations have a `Trigger` method so that they can be called when needed.
-- Mutations do _not_ use a cache.
-- Mutations are generally used for methods with side effects (e.g. an HTTP POST endpoint).
+> :information_source: Unlike some other libraries (e.g., React Query and RTK Query), mutations in Phetch behave exactly the same as queries (except for having no return value).
 
-Aside from these points, the usage of mutations is generally very similar to that of queries, but with `MutationEndpoint` and `<UseMutationEndpoint/>` instead of `QueryEndpoint` and `<UseEndpoint/>`.
+Equivalently, you can use the `ParameterlessEndpoint` class for query functions with no parameters.
 
-Often, it will be useful to invalidate or update the data from other queries when a mutation completes, like so:
+### Invoking queries manually
+
+When you use `<UseEndpoint/>` or `<UseMutationEndpoint/>` endpoint and provide an `Arg`, the query will be fetched automatically, using data from the cache if available (see [documentation](#using-query-endpoints-with-useendpoint)).
+
+However, you will sometimes need to control exactly when a query is run. A common use case for this is making requests that modify data on the server (e.g., PUT/POST requests).
+
+The `Query` class contains four different methods for manually invoking queries, depending on your needs:
+
+1. **`SetArg`**: This updates the query argument, and automatically re-fetches the query if the argument has changed. If the same argument is passed multiple times in a row, the query will not be re-fetched.
+1. **`Refetch`**: This re-fetches the query using the last query argument passed via `SetArg`.
+1. **`Trigger`**: This always runs the query using the passed argument, regardless of whether cached data is available. Importantly, this will **not** share cached data with other components. This is the recommended way to run mutations in most cases.
+1. **`Invoke`**: This simply calls the original query function, completely ignoring all Phetch functionality (caching and state management).
+
+### Invalidation and Pessimistic Updates
+
+Often, it will be useful to invalidate or update the data from other queries when a query or mutation completes.
+
+To invalidate query data, you can use the `Invalidate()` methods on an `Endpoint`.
+This will cause the affected queries to be automatically re-fetched if they are currently being used.
+If they aren't being used, the cached data will be marked as invalidated, and then it will automatically re-fetch if it ever gets used.
+
+Instead of invalidating data, you can also update the cached data directly using `Endpoint.UpdateQueryData()`.
 
 ```cs
 public class ExampleApi
 {
     // An endpoint to retrieve a thing based on its ID
-    public QueryEndpoint<int, Thing> GetThingEndpoint { get; }
+    public Endpoint<int, Thing> GetThingEndpoint { get; }
 
     // An endpoint with one parameter (the updated thing) and no return
     public MutationEndpoint<Thing> UpdateThingEndpoint { get; }
