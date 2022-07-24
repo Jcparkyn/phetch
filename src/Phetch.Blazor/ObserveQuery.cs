@@ -1,8 +1,10 @@
-﻿@implements IDisposable
-@typeparam TArg
-@typeparam TResult
+﻿namespace Phetch.Blazor;
 
-@code {
+using Microsoft.AspNetCore.Components;
+using Phetch.Core;
+
+public sealed class ObserveQuery<TArg, TResult> : ComponentBase, IDisposable
+{
     private Query<TArg, TResult>? _target;
     [Parameter, EditorRequired]
     public Query<TArg, TResult>? Target
