@@ -1,4 +1,5 @@
 ﻿@typeparam TResult
+@inherits UseEndpointBase<Unit, TResult>
 
 @if (_query is not null)
 {
@@ -6,5 +7,5 @@
     {
         throw _query.Error;
     }
-    @ChildContent(_query)
+    @ChildContent((Query<TResult>)_query)
 }
