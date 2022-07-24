@@ -9,9 +9,9 @@ public partial class UseMutationEndpoint<TArg> : UseEndpointWithArg<TArg, Unit>
     /// The endpoint to use.
     /// </summary>
     [Parameter, EditorRequired]
-    public MutationEndpoint<TArg>? Endpoint
+    public MutationEndpoint<TArg> Endpoint
     {
-        get => (MutationEndpoint<TArg>?)_endpoint;
+        get => (MutationEndpoint<TArg>)_endpoint!;
         set
         {
             if (ReferenceEquals(_endpoint, value))

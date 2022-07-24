@@ -9,9 +9,9 @@ public partial class UseEndpoint<TArg, TResult> : UseEndpointWithArg<TArg, TResu
     /// The endpoint to use.
     /// </summary>
     [Parameter, EditorRequired]
-    public Endpoint<TArg, TResult>? Endpoint
+    public Endpoint<TArg, TResult> Endpoint
     {
-        get => _endpoint;
+        get => _endpoint!;
         set
         {
             if (ReferenceEquals(_endpoint, value))

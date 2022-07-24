@@ -6,9 +6,9 @@ using Phetch.Core;
 public sealed partial class UseParameterlessEndpoint<TResult> : UseEndpointBase<Unit, TResult>
 {
     [Parameter, EditorRequired]
-    public ParameterlessEndpoint<TResult>? Endpoint
+    public ParameterlessEndpoint<TResult> Endpoint
     {
-        get => (ParameterlessEndpoint<TResult>?)_endpoint;
+        get => (ParameterlessEndpoint<TResult>)_endpoint!;
         set
         {
             if (ReferenceEquals(_endpoint, value))
