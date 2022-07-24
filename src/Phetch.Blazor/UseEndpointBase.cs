@@ -30,14 +30,6 @@ public abstract class UseEndpointBase<TArg, TResult>
         }
     }
 
-    /// <inheritdoc/>
-    [Parameter]
-    public Action<QuerySuccessContext<TArg, TResult>>? OnSuccess { get; set; }
-
-    /// <inheritdoc/>
-    [Parameter]
-    public Action<QueryFailureContext<TArg>>? OnFailure { get; set; }
-
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -63,8 +55,6 @@ public abstract class UseEndpointBase<TArg, TResult>
     {
         var newQuery = CreateQuery(endpoint);
         newQuery.StateChanged += StateHasChanged;
-        newQuery.Succeeded += SuccessCallback;
-        newQuery.Failed += FailureCallback;
         return newQuery;
     }
 
@@ -73,15 +63,9 @@ public abstract class UseEndpointBase<TArg, TResult>
         if (query is not null)
         {
             query.StateChanged -= StateHasChanged;
-            query.Succeeded -= SuccessCallback;
-            query.Failed -= FailureCallback;
             query.Detach();
         }
     }
-
-    private void SuccessCallback(QuerySuccessContext<TArg, TResult> context) { OnSuccess?.Invoke(context); }
-
-    private void FailureCallback(QueryFailureContext<TArg> context) { OnFailure?.Invoke(context); }
 
     protected abstract Query<TArg, TResult> CreateQuery(Endpoint<TArg, TResult> endpoint);
 }
