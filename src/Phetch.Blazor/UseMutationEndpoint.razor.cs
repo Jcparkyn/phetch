@@ -27,7 +27,7 @@ public partial class UseMutationEndpoint<TArg> : UseEndpointWithArg<TArg, Unit>
     protected override Query<TArg, Unit> CreateQuery(Endpoint<TArg, Unit> endpoint)
     {
         var query = ((MutationEndpoint<TArg>)endpoint).Use(Options);
-        if (_hasSetArg)
+        if (_hasSetArg && !Skip)
         {
             query.SetArg(_arg);
         }

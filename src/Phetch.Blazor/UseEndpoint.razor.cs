@@ -27,7 +27,7 @@ public partial class UseEndpoint<TArg, TResult> : UseEndpointWithArg<TArg, TResu
     protected override Query<TArg, TResult> CreateQuery(Endpoint<TArg, TResult> endpoint)
     {
         var query = endpoint.Use(Options);
-        if (_hasSetArg)
+        if (_hasSetArg && !Skip)
         {
             query.SetArg(_arg);
         }

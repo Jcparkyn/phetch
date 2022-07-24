@@ -80,6 +80,7 @@ public abstract class UseEndpointWithArg<TArg, TResult> : UseEndpointBase<TArg, 
 {
     protected bool _hasSetArg = false;
     protected TArg _arg = default!;
+    private bool _skip;
 
     /// <summary>
     /// The argument to supply to the query. If not supplied, the query will not be run automatically.
@@ -92,8 +93,28 @@ public abstract class UseEndpointWithArg<TArg, TResult> : UseEndpointBase<TArg, 
         {
             _arg = value;
             _hasSetArg = true;
-            if (_isInitialized)
+            if (_isInitialized && !Skip)
                 _query?.SetArg(value);
+        }
+    }
+
+    /// <summary>
+    /// If true, the query will not be run automatically.
+    /// This does not affect manual query invokations using methods on the Query object.
+    /// </summary>
+    /// <remarks>
+    /// This is useful for delaying queries until the data they depend on is available.
+    /// If no value for <see cref="Arg"/> is provided, this has no effect.
+    /// </remarks>
+    [Parameter]
+    public bool Skip
+    {
+        get => _skip;
+        set
+        {
+            _skip = value;
+            if (_isInitialized && _hasSetArg && !value)
+                _query?.SetArg(_arg);
         }
     }
 }
