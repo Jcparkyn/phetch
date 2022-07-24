@@ -31,7 +31,7 @@ public class Query<TArg, TResult>
         QueryOptions<TArg, TResult>? options = null)
     {
         _cache = cache;
-        _options = options ?? new();
+        _options = options ?? QueryOptions<TArg, TResult>.Default;
         Succeeded += options?.OnSuccess;
         Failed += options?.OnFailure;
     }
