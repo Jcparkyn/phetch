@@ -1,22 +1,28 @@
 ﻿namespace Phetch.Blazor;
 
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Phetch.Core;
 
 public abstract class UseEndpointBase<TArg, TResult>
-    : ComponentBase, IDisposable, IUseEndpoint<TArg, TResult>
+    : ComponentBase, IDisposable
 {
     protected Query<TArg, TResult>? _query;
     protected Endpoint<TArg, TResult>? _endpoint;
     protected bool _isInitialized;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// If set to true, any exceptions from the query will be re-thrown during rendering. This
+    /// allows them to be caught by an <see cref="ErrorBoundary"/> further up the component hierarchy.
+    /// </summary>
     [Parameter]
     public bool UseErrorBoundary { get; set; } = false;
 
     private QueryOptions<TArg, TResult>? _options;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Additional options to use for this query.
+    /// </summary>
     [Parameter]
     public QueryOptions<TArg, TResult>? Options
     {
