@@ -7,7 +7,7 @@ using System;
 /// </summary>
 public record EndpointOptions<TArg, TResult>
 {
-    public static EndpointOptions<TArg, TResult> Default { get; } = new();
+    internal static EndpointOptions<TArg, TResult> Default { get; } = new();
 
     /// <summary>
     /// The amount of time to store query results in the cache after they stop being used.
@@ -43,7 +43,7 @@ public record EndpointOptions<TArg, TResult>
 /// </summary>
 public record QueryOptions<TArg, TResult>
 {
-    public static QueryOptions<TArg, TResult> Default { get; } = new();
+    internal static QueryOptions<TArg, TResult> Default { get; } = new();
 
     /// <summary>
     /// The amount of time until this query is considered "stale". This defaults to zero, so queries are

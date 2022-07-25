@@ -99,12 +99,16 @@ public class Endpoint<TArg, TResult>
 /// </summary>
 public class ParameterlessEndpoint<TResult> : Endpoint<Unit, TResult>
 {
+    /// <summary>
+    /// Creates a new Endpoint from a query function with no parameters.
+    /// </summary>
     public ParameterlessEndpoint(
         Func<CancellationToken, Task<TResult>> queryFn,
         EndpointOptions<Unit, TResult>? options = null
     ) : base((_, ct) => queryFn(ct), options)
     { }
 
+    /// <inheritdoc cref="Endpoint{TArg, TResult}.Use"/>
     public new Query<TResult> Use(QueryOptions<Unit, TResult>? options = null) =>
         new(Cache, options);
 }
@@ -114,6 +118,9 @@ public class ParameterlessEndpoint<TResult> : Endpoint<Unit, TResult>
 /// </summary>
 public class MutationEndpoint<TArg> : Endpoint<TArg, Unit>
 {
+    /// <summary>
+    /// Creates a new Endpoint from a query function with no return value.
+    /// </summary>
     public MutationEndpoint(
         Func<TArg, CancellationToken, Task> queryFn,
         EndpointOptions<TArg, Unit>? options = null
@@ -127,6 +134,7 @@ public class MutationEndpoint<TArg> : Endpoint<TArg, Unit>
     )
     { }
 
+    /// <inheritdoc cref="Endpoint{TArg, TResult}.Use"/>
     public new Mutation<TArg> Use(QueryOptions<TArg, Unit>? options = null) =>
         new(Cache, options);
 }

@@ -5,8 +5,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+/// <summary>
+/// A class representing a query with a single (fixed) query argument.
+/// </summary>
 public class FixedQuery<TArg, TResult>
 {
+    /// <summary>
+    /// The argument that was passed to this query.
+    /// </summary>
     public TArg Arg { get; }
 
     private readonly QueryCache<TArg, TResult> _queryCache;
@@ -21,12 +27,25 @@ public class FixedQuery<TArg, TResult>
     private DateTime? _lastCompletedTaskStartTime;
     private CancellationTokenSource _cts = new();
 
+    /// <summary>
+    /// The current status of this query.
+    /// </summary>
     public QueryStatus Status { get; private set; } = QueryStatus.Idle;
 
+    /// <summary>
+    /// The data value returned from this query, or <c>default</c> it hasn't returned yet.
+    /// </summary>
     public TResult? Data { get; private set; }
 
+    /// <summary>
+    /// The exception thrown the last time this query failed, or <c>null</c> it has never failed.
+    /// </summary>
     public Exception? Error { get; private set; }
 
+    /// <summary>
+    /// True if the query is currently running, either for the initial load or for subsequent
+    /// fetches once the data is stale.
+    /// </summary>
     public bool IsFetching => _lastActionCall is not null && !_lastActionCall.IsCompleted;
 
     internal FixedQuery(

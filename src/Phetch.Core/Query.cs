@@ -22,8 +22,19 @@ public class Query<TArg, TResult>
     private FixedQuery<TArg, TResult>? _lastSuccessfulQuery;
     private FixedQuery<TArg, TResult>? _currentQuery;
 
+    /// <summary>
+    /// An event that fires whenever the state of this query changes.
+    /// </summary>
     public event Action StateChanged = delegate { };
+
+    /// <summary>
+    /// An event that fires whenever this query succeeds.
+    /// </summary>
     public event Action<QuerySuccessContext<TArg, TResult>>? Succeeded;
+
+    /// <summary>
+    /// An event that fires whenever this query fails.
+    /// </summary>
     public event Action<QueryFailureContext<TArg>>? Failed;
 
     internal Query(
@@ -36,6 +47,9 @@ public class Query<TArg, TResult>
         Failed += options?.OnFailure;
     }
 
+    /// <summary>
+    /// Creates a new Query from a query function.
+    /// </summary>
     public Query(
         Func<TArg, CancellationToken, Task<TResult>> queryFn,
         QueryOptions<TArg, TResult>? options = null
@@ -270,6 +284,9 @@ public class Query<TArg, TResult>
 /// <remarks>Aside from having no parameters, this functions identically to a normal Query</remarks>
 public class Query<TResult> : Query<Unit, TResult>
 {
+    /// <summary>
+    /// Creates a new Query from a query function with no parameters.
+    /// </summary>
     public Query(
         Func<CancellationToken, Task<TResult>> queryFn,
         QueryOptions<Unit, TResult>? options = null
@@ -282,7 +299,15 @@ public class Query<TResult> : Query<Unit, TResult>
     ) : base(cache, options)
     { }
 
-    public void Fetch() => SetArg(default);
+    /// <summary>
+    /// Causes this query to fetch if it has not already.
+    /// </summary>
+    /// <remarks>
+    /// This is equivalent to <see cref="Query{TArg, TResult}.SetArg(TArg)"/>, but for paramterless queries.
+    /// </remarks>
+    public void Fetch() => _ = SetArgAsync(default);
+
+    /// <inheritdoc cref="Fetch"/>
     public Task FetchAsync() => SetArgAsync(default);
 }
 
@@ -292,6 +317,9 @@ public class Query<TResult> : Query<Unit, TResult>
 /// <remarks>Aside from having no return value, this functions identically to a normal Query</remarks>
 public class Mutation<TArg> : Query<TArg, Unit>
 {
+    /// <summary>
+    /// Creates a new Mutation from a query function with no return value.
+    /// </summary>
     public Mutation(
         Func<TArg, CancellationToken, Task> mutationFn,
         QueryOptions<TArg, Unit>? endpointOptions = null
