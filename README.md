@@ -38,7 +38,7 @@ Phetch can do a whole lot more than that though, so make sure to check out the s
 ```cshtml
 @inject HttpClient Http
 
-<ObserveQuery Target="forecastsQuery" OnChanged="StateHasChanged">
+<ObserveQuery Query="forecastsQuery" OnChanged="StateHasChanged">
 
 @if (forecastsQuery.IsError)
 {
@@ -210,7 +210,7 @@ This automatically un-subscribes from query events when the component is unmount
 @inject MyApi Api
 
 @{ query.SetArg(ThingId) }
-<ObserveQuery Target="query" OnChanged="StateHasChanged">
+<ObserveQuery Query="query" OnChanged="StateHasChanged">
 
 @if (query.HasData)
 {
