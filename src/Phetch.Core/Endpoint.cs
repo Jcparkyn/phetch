@@ -26,9 +26,9 @@ public class Endpoint<TArg, TResult>
     /// </summary>
     public Endpoint(
         Func<TArg, CancellationToken, Task<TResult>> queryFn,
-        QueryEndpointOptions<TResult>? options = null)
+        EndpointOptions<TArg, TResult>? options = null)
     {
-        Cache = new(queryFn, (options ?? QueryEndpointOptions<TResult>.Default).CacheTime);
+        Cache = new(queryFn, options ?? EndpointOptions<TArg, TResult>.Default);
     }
 
     /// <summary>
@@ -101,7 +101,7 @@ public class ParameterlessEndpoint<TResult> : Endpoint<Unit, TResult>
 {
     public ParameterlessEndpoint(
         Func<CancellationToken, Task<TResult>> queryFn,
-        QueryEndpointOptions<TResult>? options = null
+        EndpointOptions<Unit, TResult>? options = null
     ) : base((_, ct) => queryFn(ct), options)
     { }
 
@@ -116,7 +116,7 @@ public class MutationEndpoint<TArg> : Endpoint<TArg, Unit>
 {
     public MutationEndpoint(
         Func<TArg, CancellationToken, Task> queryFn,
-        QueryEndpointOptions<Unit>? options = null
+        EndpointOptions<TArg, Unit>? options = null
     ) : base(
         async (arg, token) =>
         {

@@ -2,9 +2,9 @@
 
 using System;
 
-public record QueryEndpointOptions<TResult>
+public record EndpointOptions<TArg, TResult>
 {
-    public static QueryEndpointOptions<TResult> Default { get; } = new();
+    public static EndpointOptions<TArg, TResult> Default { get; } = new();
 
     /// <summary>
     /// The amount of time to store query results in the cache after they stop being used.
@@ -16,6 +16,16 @@ public record QueryEndpointOptions<TResult>
     /// When set to a negative value, queries will never be removed from the cache.
     /// </remarks>
     public TimeSpan CacheTime { get; init; } = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// A function that gets run whenever this query succeeds.
+    /// </summary>
+    public Action<QuerySuccessContext<TArg, TResult>>? OnSuccess { get; init; } = null;
+
+    /// <summary>
+    /// A function that gets run whenever this query fails.
+    /// </summary>
+    public Action<QueryFailureContext<TArg>>? OnFailure { get; init; } = null;
 }
 
 /// <summary>

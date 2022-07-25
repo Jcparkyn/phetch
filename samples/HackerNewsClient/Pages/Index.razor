@@ -8,7 +8,6 @@
 <UseParameterlessEndpoint Endpoint="Api.GetTopStories" Context="topPostsQuery" Options="queryOptions">
     @if (topPostsQuery.HasData)
     {
-        Console.WriteLine("Rendering endpoint with data " + topPostsQuery.Data.Hits.Count);
         <MudList>
             <Virtualize ItemSize="144" Items="topPostsQuery.Data.Hits" Context="post" OverscanCount="5">
                 <MudListItem>

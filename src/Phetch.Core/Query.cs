@@ -40,7 +40,7 @@ public class Query<TArg, TResult>
         Func<TArg, CancellationToken, Task<TResult>> queryFn,
         QueryOptions<TArg, TResult>? options = null
     ) : this(
-        new QueryCache<TArg, TResult>(queryFn, TimeSpan.FromMinutes(5)),
+        new QueryCache<TArg, TResult>(queryFn, EndpointOptions<TArg, TResult>.Default),
         options)
     { }
 
@@ -245,16 +245,16 @@ public class Query<TArg, TResult>
         return await query.RefetchAsync().ConfigureAwait(false);
     }
 
-    internal void OnQuerySuccess(TArg arg, TResult result)
+    internal void OnQuerySuccess(QuerySuccessContext<TArg, TResult> context)
     {
         _lastSuccessfulQuery = _currentQuery;
-        Succeeded?.Invoke(new(arg, result));
+        Succeeded?.Invoke(context);
         StateChanged?.Invoke();
     }
 
-    internal void OnQueryFailure(TArg arg, Exception exception)
+    internal void OnQueryFailure(QueryFailureContext<TArg> context)
     {
-        Failed?.Invoke(new(arg, exception));
+        Failed?.Invoke(context);
         StateChanged?.Invoke();
     }
 

@@ -11,8 +11,8 @@ public class FixedQuery<TArg, TResult>
 
     private readonly QueryCache<TArg, TResult> _queryCache;
     private readonly Func<TArg, CancellationToken, Task<TResult>> _queryFn;
+    private readonly EndpointOptions<TArg, TResult> _endpointOptions;
     private readonly List<Query<TArg, TResult>> _observers = new();
-    private readonly TimeSpan _cacheTime;
 
     private Task<TResult>? _lastActionCall;
     private bool _isInvalidated = false;
@@ -33,12 +33,12 @@ public class FixedQuery<TArg, TResult>
         QueryCache<TArg, TResult> queryCache,
         Func<TArg, CancellationToken, Task<TResult>> queryFn,
         TArg arg,
-        TimeSpan cacheTime)
+        EndpointOptions<TArg, TResult> endpointOptions)
     {
         _queryCache = queryCache;
         _queryFn = queryFn;
-        _cacheTime = cacheTime;
         Arg = arg;
+        _endpointOptions = endpointOptions;
     }
 
     internal void UpdateQueryData(TResult? resultData)
@@ -100,9 +100,11 @@ public class FixedQuery<TArg, TResult>
             if (IsMostRecent(startTime))
             {
                 SetSuccessState(newData, startTime);
+                var context = new QuerySuccessContext<TArg, TResult>(Arg, newData);
+                _endpointOptions.OnSuccess?.Invoke(context);
                 foreach (var observer in _observers)
                 {
-                    observer.OnQuerySuccess(Arg, newData);
+                    observer.OnQuerySuccess(context);
                 }
             }
             return newData;
@@ -126,9 +128,11 @@ public class FixedQuery<TArg, TResult>
                 Error = ex;
                 Status = QueryStatus.Error;
                 _lastCompletedTaskStartTime = startTime;
+                var context = new QueryFailureContext<TArg>(Arg, ex);
+                _endpointOptions.OnFailure?.Invoke(context);
                 foreach (var observer in _observers)
                 {
-                    observer.OnQueryFailure(Arg, ex);
+                    observer.OnQueryFailure(context);
                 }
             }
 
@@ -167,12 +171,13 @@ public class FixedQuery<TArg, TResult>
 
     private void ScheduleGc()
     {
+        var cacheTime = _endpointOptions.CacheTime;
         _gcTimer?.Dispose();
-        if (_cacheTime > TimeSpan.Zero)
+        if (cacheTime > TimeSpan.Zero)
         {
-            _gcTimer = new Timer(GcTimerCallback, null, _cacheTime, Timeout.InfiniteTimeSpan);
+            _gcTimer = new Timer(GcTimerCallback, null, cacheTime, Timeout.InfiniteTimeSpan);
         }
-        else if (_cacheTime == TimeSpan.Zero)
+        else if (cacheTime == TimeSpan.Zero)
         {
             Cleanup();
         }

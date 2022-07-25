@@ -12,12 +12,12 @@ internal class QueryCache<TArg, TResult>
 
     private readonly Dictionary<TArg, FixedQuery<TArg, TResult>> _cachedResponses = new();
     private readonly Dictionary<TArg, List<FixedQuery<TArg, TResult>>> _uncachedResponses = new();
-    private readonly TimeSpan _cacheTime;
+    private readonly EndpointOptions<TArg, TResult> _endpointOptions;
 
-    public QueryCache(Func<TArg, CancellationToken, Task<TResult>> queryFn, TimeSpan cacheTime)
+    public QueryCache(Func<TArg, CancellationToken, Task<TResult>> queryFn, EndpointOptions<TArg, TResult> endpointOptions)
     {
         QueryFn = queryFn;
-        _cacheTime = cacheTime;
+        _endpointOptions = endpointOptions;
     }
 
     public void InvalidateAll()
@@ -54,7 +54,7 @@ internal class QueryCache<TArg, TResult>
             return value;
         }
 
-        var newQuery = CreateQuery(arg, _cacheTime);
+        var newQuery = CreateQuery(arg, _endpointOptions);
 
         _cachedResponses.Add(arg, newQuery);
 
@@ -63,7 +63,7 @@ internal class QueryCache<TArg, TResult>
 
     public FixedQuery<TArg, TResult> AddUncached(TArg arg)
     {
-        var newQuery = CreateQuery(arg, TimeSpan.Zero);
+        var newQuery = CreateQuery(arg, _endpointOptions with { CacheTime = TimeSpan.Zero });
 
         if (_uncachedResponses.TryGetValue(arg, out var queries))
         {
@@ -77,9 +77,9 @@ internal class QueryCache<TArg, TResult>
         return newQuery;
     }
 
-    private FixedQuery<TArg, TResult> CreateQuery(TArg arg, TimeSpan cacheTime)
+    private FixedQuery<TArg, TResult> CreateQuery(TArg arg, EndpointOptions<TArg, TResult> endpointOptions)
     {
-        return new FixedQuery<TArg, TResult>(this, QueryFn, arg, cacheTime);
+        return new FixedQuery<TArg, TResult>(this, QueryFn, arg, endpointOptions);
     }
 
     /// <summary>

@@ -48,7 +48,7 @@ public abstract class UseEndpointBase<TArg, TResult>
         if (_isInitialized)
         {
             TryUnsubscribe(_query);
-            _query = GetQuery(_endpoint!, _options);
+            _query = GetQuery(_endpoint!);
         }
     }
 
@@ -57,7 +57,7 @@ public abstract class UseEndpointBase<TArg, TResult>
         TryUnsubscribe(_query);
     }
 
-    private Query<TArg, TResult> GetQuery(Endpoint<TArg, TResult> endpoint, QueryOptions<TArg, TResult>? options)
+    private Query<TArg, TResult> GetQuery(Endpoint<TArg, TResult> endpoint)
     {
         var newQuery = CreateQuery(endpoint);
         newQuery.StateChanged += StateHasChanged;
