@@ -51,7 +51,7 @@ public class FixedQuery<TArg, TResult>
         }
     }
 
-    public bool IsStaleByTime(TimeSpan staleTime, DateTime now)
+    internal bool IsStaleByTime(TimeSpan staleTime, DateTime now)
     {
         return _isInvalidated
             || _dataUpdatedAt is null
