@@ -17,18 +17,6 @@ Currently, Phetch is only designed for use with Blazor WebAssembly. However, the
 - Super lightweight and easy to mix-and-match with other state management methods
 - No Javascript whatsoever!
 
-## But why?
-
-You're probably familiar with the "normal" way of performing async actions in client-side Blazor.
-You start a request in `OnInitializedAsync`, and then update a field when it returns.
-
-But then you need to add error  handling, so you add another variable to keep track of whether there was an error.
-Then you realise that your query depends on values from your parameters, so you need to add custom logic in `OnParametersSetAsync` to manually re-start the query, but only when the parameters change.
-You might also notice that everything breaks if your queries return in a different order than they were made.
-And then you get to the next component and do it all over again.
-
-Phetch aims to solve all of these problems, and many more.
-
 ## Show me some code!
 
 [Click here to view the source code for the sample project, with more detailed examples.](https://github.com/Jcparkyn/Phetch/tree/main/samples/PhetchBlazorDemo)
@@ -70,18 +58,6 @@ Some notes on the example above:
 - Normally, you would share endpoints around your application using dependency injection (see [Defining Query Endpoints](#Defining-Query-Endpoints-(Recommended))).
 - If you need to access the query state inside the `@code` block of a component, you can replace `<UseEndpoint/>` with the pattern described in [Using Query Endpoints Directly](#using-query-endpoints-directly).
 
-Phetch will also come with some useful extension methods to do things like this:
-
-```cshtml
-<p>
-    This number is: @isEvenQuery.Match(
-        fetching: () => @<text>...</text>,
-        error: ex => @<em>Something went wrong!</em>,
-        success: isEven => @<b>@(isEven ? "even" : "odd")</b>
-    )
-</p>
-```
-
 ## Installing
 
 You can install Phetch via the .NET CLI with the following command:
@@ -91,6 +67,13 @@ dotnet add package Phetch.Blazor
 ```
 
 If you're using Visual Studio, you can also install via the built-in NuGet package manager.
+
+## Comparison with other libraries
+
+- **[Fluxor](https://github.com/mrpmorris/Fluxor), [Blazor-State](https://github.com/TimeWarpEngineering/blazor-state) or [Cortex.Net](https://github.com/jspuij/Cortex.Net):** These are general-purpose state management libraries, so:
+  - They will give you more control over exactly how your state is updated, and will work for managing non-query state.
+  - However, for managing query state, you will need **much** more code to achieve the same things that Phetch can do in just a couple of lines. This becomes particularly important if you need to cache data or share queries across components.
+- **[Fusion](https://github.com/servicetitan/Stl.Fusion)**: This is a **much** larger library, focused on real-time updates. Fusion is a game-changer if your app has lots of real-time functionality, but for most applications it will probably be overkill compared to Phetch.
 
 ## Usage
 
