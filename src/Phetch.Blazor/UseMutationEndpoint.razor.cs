@@ -11,12 +11,12 @@ public partial class UseMutationEndpoint<TArg> : UseEndpointWithArg<TArg, Unit>
     [Parameter, EditorRequired]
     public MutationEndpoint<TArg> Endpoint
     {
-        get => (MutationEndpoint<TArg>)_endpoint!;
+        get => (MutationEndpoint<TArg>)base.EndpointInternal!;
         set
         {
-            if (ReferenceEquals(_endpoint, value))
+            if (ReferenceEquals(base.EndpointInternal, value))
                 return;
-            _endpoint = value;
+            base.EndpointInternal = value;
             UpdateQuery();
         }
     }
@@ -27,9 +27,9 @@ public partial class UseMutationEndpoint<TArg> : UseEndpointWithArg<TArg, Unit>
     protected override Query<TArg, Unit> CreateQuery(Endpoint<TArg, Unit> endpoint)
     {
         var query = ((MutationEndpoint<TArg>)endpoint).Use(Options);
-        if (_hasSetArg && !Skip)
+        if (HasSetArg && !Skip)
         {
-            query.SetArg(_arg);
+            query.SetArg(Arg);
         }
         return query;
     }

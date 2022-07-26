@@ -7,9 +7,9 @@ using Phetch.Core;
 public abstract class UseEndpointBase<TArg, TResult>
     : ComponentBase, IDisposable
 {
-    protected Query<TArg, TResult>? _query;
-    protected Endpoint<TArg, TResult>? _endpoint;
-    protected bool _isInitialized;
+    protected Query<TArg, TResult>? CurrentQuery { get; private set; }
+    protected Endpoint<TArg, TResult>? EndpointInternal { get; set; }
+    protected bool IsInitialized { get; private set; }
 
     /// <summary>
     /// If set to true, any exceptions from the query will be re-thrown during rendering. This
@@ -39,22 +39,17 @@ public abstract class UseEndpointBase<TArg, TResult>
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        _isInitialized = true;
+        IsInitialized = true;
         UpdateQuery();
     }
 
     protected void UpdateQuery()
     {
-        if (_isInitialized)
+        if (IsInitialized)
         {
-            TryUnsubscribe(_query);
-            _query = GetQuery(_endpoint!);
+            TryUnsubscribe(CurrentQuery);
+            CurrentQuery = GetQuery(EndpointInternal!);
         }
-    }
-
-    void IDisposable.Dispose()
-    {
-        TryUnsubscribe(_query);
     }
 
     private Query<TArg, TResult> GetQuery(Endpoint<TArg, TResult> endpoint)
@@ -74,12 +69,29 @@ public abstract class UseEndpointBase<TArg, TResult>
     }
 
     protected abstract Query<TArg, TResult> CreateQuery(Endpoint<TArg, TResult> endpoint);
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            TryUnsubscribe(CurrentQuery);
+        }
+
+        CurrentQuery = null;
+    }
+
+    void IDisposable.Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
 }
 
 public abstract class UseEndpointWithArg<TArg, TResult> : UseEndpointBase<TArg, TResult>
 {
-    protected bool _hasSetArg = false;
-    protected TArg _arg = default!;
+    protected bool HasSetArg { get; private set; }
+    private TArg? _arg;
     private bool _skip;
 
     /// <summary>
@@ -88,13 +100,13 @@ public abstract class UseEndpointWithArg<TArg, TResult> : UseEndpointBase<TArg, 
     [Parameter]
     public TArg Arg
     {
-        get => _arg;
+        get => _arg!;
         set
         {
             _arg = value;
-            _hasSetArg = true;
-            if (_isInitialized && !Skip)
-                _query?.SetArg(value);
+            HasSetArg = true;
+            if (IsInitialized && !Skip)
+                CurrentQuery?.SetArg(value);
         }
     }
 
@@ -113,8 +125,8 @@ public abstract class UseEndpointWithArg<TArg, TResult> : UseEndpointBase<TArg, 
         set
         {
             _skip = value;
-            if (_isInitialized && _hasSetArg && !value)
-                _query?.SetArg(_arg);
+            if (IsInitialized && HasSetArg && !value)
+                CurrentQuery?.SetArg(_arg!);
         }
     }
 }

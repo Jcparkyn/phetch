@@ -8,12 +8,12 @@ public sealed partial class UseParameterlessEndpoint<TResult> : UseEndpointBase<
     [Parameter, EditorRequired]
     public ParameterlessEndpoint<TResult> Endpoint
     {
-        get => (ParameterlessEndpoint<TResult>)_endpoint!;
+        get => (ParameterlessEndpoint<TResult>)base.EndpointInternal!;
         set
         {
-            if (ReferenceEquals(_endpoint, value))
+            if (ReferenceEquals(base.EndpointInternal, value))
                 return;
-            _endpoint = value;
+            base.EndpointInternal = value;
             UpdateQuery();
         }
     }

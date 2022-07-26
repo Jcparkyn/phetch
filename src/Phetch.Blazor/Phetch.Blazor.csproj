@@ -10,7 +10,7 @@
     <PackageTags>blazor;fetch;query;swr</PackageTags>
     <Description>A small Blazor library for handling async query state, in the style of React Query</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <EnableNETAnalyzers>False</EnableNETAnalyzers>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
     <AnalysisLevel>6.0-recommended</AnalysisLevel>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>

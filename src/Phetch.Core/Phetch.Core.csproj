@@ -10,7 +10,7 @@
     <PackageTags>blazor;fetch;query;swr</PackageTags>
     <Description>The core logic for Phetch.Blazor</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <EnableNETAnalyzers>False</EnableNETAnalyzers>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
     <AnalysisLevel>6.0-recommended</AnalysisLevel>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>

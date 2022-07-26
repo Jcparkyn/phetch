@@ -26,7 +26,7 @@ public record EndpointOptions<TArg, TResult>
     /// To avoid a race condition when multiple queries return in a different order than they were
     /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
     /// </summary>
-    public Action<QuerySuccessContext<TArg, TResult>>? OnSuccess { get; init; } = null;
+    public Action<QuerySuccessContext<TArg, TResult>>? OnSuccess { get; init; }
 
     /// <summary>
     /// A function that gets run whenever this query fails.
@@ -34,7 +34,7 @@ public record EndpointOptions<TArg, TResult>
     /// To avoid a race condition when multiple queries return in a different order than they were
     /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
     /// </summary>
-    public Action<QueryFailureContext<TArg>>? OnFailure { get; init; } = null;
+    public Action<QueryFailureContext<TArg>>? OnFailure { get; init; }
 }
 
 /// <summary>
@@ -61,7 +61,7 @@ public record QueryOptions<TArg, TResult>
     /// To avoid a race condition when multiple queries return in a different order than they were
     /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
     /// </summary>
-    public Action<QuerySuccessContext<TArg, TResult>>? OnSuccess { get; init; } = null;
+    public Action<QuerySuccessContext<TArg, TResult>>? OnSuccess { get; init; }
 
     /// <summary>
     /// A function that gets run whenever this query fails.
@@ -69,7 +69,7 @@ public record QueryOptions<TArg, TResult>
     /// To avoid a race condition when multiple queries return in a different order than they were
     /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
     /// </summary>
-    public Action<QueryFailureContext<TArg>>? OnFailure { get; init; } = null;
+    public Action<QueryFailureContext<TArg>>? OnFailure { get; init; }
 }
 
 /// <summary>

@@ -1,11 +1,11 @@
 ﻿@typeparam TArg
 @inherits UseEndpointWithArg<TArg, Unit>
 
-@if (_query is not null)
+@if (CurrentQuery is not null)
 {
-    if (UseErrorBoundary && _query.IsError && _query.Error is not null)
+    if (UseErrorBoundary && CurrentQuery.IsError && CurrentQuery.Error is not null)
     {
-        throw _query.Error;
+        throw CurrentQuery.Error;
     }
-    @ChildContent((Mutation<TArg>)_query)
+    @ChildContent((Mutation<TArg>)CurrentQuery)
 }

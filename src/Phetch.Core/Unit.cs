@@ -6,6 +6,7 @@
 /// <remarks>
 /// This is used for implementing queries with no parameter and/or no return value.
 /// </remarks>
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter")]
 public readonly struct Unit
 {
     /// <inheritdoc />
@@ -17,5 +18,9 @@ public readonly struct Unit
     /// <inheritdoc />
     public override string ToString() => "()";
 
-    internal bool Equals(Unit _) => true;
+    ///
+    public static bool operator ==(Unit left, Unit right) => true;
+
+    ///
+    public static bool operator !=(Unit left, Unit right) => false;
 }

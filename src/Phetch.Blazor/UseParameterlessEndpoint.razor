@@ -1,11 +1,11 @@
 ﻿@typeparam TResult
 @inherits UseEndpointBase<Unit, TResult>
 
-@if (_query is not null)
+@if (CurrentQuery is not null)
 {
-    if (UseErrorBoundary && _query.IsError && _query.Error is not null)
+    if (UseErrorBoundary && CurrentQuery.IsError && CurrentQuery.Error is not null)
     {
-        throw _query.Error;
+        throw CurrentQuery.Error;
     }
-    @ChildContent((Query<TResult>)_query)
+    @ChildContent((Query<TResult>)CurrentQuery)
 }

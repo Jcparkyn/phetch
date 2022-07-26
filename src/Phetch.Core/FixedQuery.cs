@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// A class representing a query with a single (fixed) query argument.
 /// </summary>
-public class FixedQuery<TArg, TResult>
+public sealed class FixedQuery<TArg, TResult> : IDisposable
 {
     /// <summary>
     /// The argument that was passed to this query.
@@ -21,7 +21,7 @@ public class FixedQuery<TArg, TResult>
     private readonly List<Query<TArg, TResult>> _observers = new();
 
     private Task<TResult>? _lastActionCall;
-    private bool _isInvalidated = false;
+    private bool _isInvalidated;
     private Timer? _gcTimer;
     private DateTime? _dataUpdatedAt;
     private DateTime? _lastCompletedTaskStartTime;
@@ -198,7 +198,7 @@ public class FixedQuery<TArg, TResult>
         }
         else if (cacheTime == TimeSpan.Zero)
         {
-            Cleanup();
+            Dispose();
         }
     }
 
@@ -208,9 +208,12 @@ public class FixedQuery<TArg, TResult>
         _gcTimer = null;
     }
 
-    private void GcTimerCallback(object _) => Cleanup();
+    private void GcTimerCallback(object _) => this.Dispose();
 
-    private void Cleanup()
+    /// <summary>
+    /// Removes this query from the cache.
+    /// </summary>
+    public void Dispose()
     {
         _gcTimer?.Dispose();
         _gcTimer = null;

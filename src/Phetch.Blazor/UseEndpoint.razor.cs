@@ -11,12 +11,12 @@ public partial class UseEndpoint<TArg, TResult> : UseEndpointWithArg<TArg, TResu
     [Parameter, EditorRequired]
     public Endpoint<TArg, TResult> Endpoint
     {
-        get => _endpoint!;
+        get => base.EndpointInternal!;
         set
         {
-            if (ReferenceEquals(_endpoint, value))
+            if (ReferenceEquals(base.EndpointInternal, value))
                 return;
-            _endpoint = value;
+            base.EndpointInternal = value;
             UpdateQuery();
         }
     }
@@ -27,9 +27,9 @@ public partial class UseEndpoint<TArg, TResult> : UseEndpointWithArg<TArg, TResu
     protected override Query<TArg, TResult> CreateQuery(Endpoint<TArg, TResult> endpoint)
     {
         var query = endpoint.Use(Options);
-        if (_hasSetArg && !Skip)
+        if (HasSetArg && !Skip)
         {
-            query.SetArg(_arg);
+            query.SetArg(Arg);
         }
         return query;
     }
