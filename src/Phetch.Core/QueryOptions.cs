@@ -5,7 +5,7 @@ using System;
 /// <summary>
 /// Options that are passed to an Endpoint.
 /// </summary>
-public record EndpointOptions<TArg, TResult>
+public sealed record EndpointOptions<TArg, TResult>
 {
     internal static EndpointOptions<TArg, TResult> Default { get; } = new();
 
@@ -41,7 +41,7 @@ public record EndpointOptions<TArg, TResult>
 /// Options that are passed when creating a <see cref="Query{TArg, TResult}"/> or calling <see
 /// cref="Endpoint{TArg, TResult}.Use"/>.
 /// </summary>
-public record QueryOptions<TArg, TResult>
+public sealed record QueryOptions<TArg, TResult>
 {
     internal static QueryOptions<TArg, TResult> Default { get; } = new();
 
@@ -77,7 +77,7 @@ public record QueryOptions<TArg, TResult>
 /// </summary>
 /// <param name="Arg">The original argument passed to the query</param>
 /// <param name="Result">The value returned by the query</param>
-public record QuerySuccessContext<TArg, TResult>(
+public sealed record QuerySuccessContext<TArg, TResult>(
     TArg Arg,
     TResult Result);
 
@@ -86,7 +86,7 @@ public record QuerySuccessContext<TArg, TResult>(
 /// </summary>
 /// <param name="Arg">The original argument passed to the query</param>
 /// <param name="Exception">The exception thrown by the query</param>
-public record QueryFailureContext<TArg>(
+public sealed record QueryFailureContext<TArg>(
     TArg Arg,
     Exception Exception);
 

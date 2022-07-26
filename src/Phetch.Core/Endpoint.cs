@@ -97,7 +97,7 @@ public class Endpoint<TArg, TResult>
 /// <summary>
 /// An alternate version of <see cref="Endpoint{TArg, TResult}"/> for queries that have no parameters.
 /// </summary>
-public class ParameterlessEndpoint<TResult> : Endpoint<Unit, TResult>
+public sealed class ParameterlessEndpoint<TResult> : Endpoint<Unit, TResult>
 {
     /// <summary>
     /// Creates a new Endpoint from a query function with no parameters.
@@ -116,7 +116,7 @@ public class ParameterlessEndpoint<TResult> : Endpoint<Unit, TResult>
 /// <summary>
 /// An alternate version of <see cref="Endpoint{TArg, TResult}"/> for queries that have no return value.
 /// </summary>
-public class MutationEndpoint<TArg> : Endpoint<TArg, Unit>
+public sealed class MutationEndpoint<TArg> : Endpoint<TArg, Unit>
 {
     /// <summary>
     /// Creates a new Endpoint from a query function with no return value.

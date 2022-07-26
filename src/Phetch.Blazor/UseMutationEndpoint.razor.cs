@@ -3,7 +3,7 @@
 using Microsoft.AspNetCore.Components;
 using Phetch.Core;
 
-public partial class UseMutationEndpoint<TArg> : UseEndpointWithArg<TArg, Unit>
+public sealed partial class UseMutationEndpoint<TArg> : UseEndpointWithArg<TArg, Unit>
 {
     /// <summary>
     /// The endpoint to use.

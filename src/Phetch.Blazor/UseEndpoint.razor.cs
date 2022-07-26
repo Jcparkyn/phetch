@@ -3,7 +3,7 @@
 using Microsoft.AspNetCore.Components;
 using Phetch.Core;
 
-public partial class UseEndpoint<TArg, TResult> : UseEndpointWithArg<TArg, TResult>
+public sealed partial class UseEndpoint<TArg, TResult> : UseEndpointWithArg<TArg, TResult>
 {
     /// <summary>
     /// The endpoint to use.

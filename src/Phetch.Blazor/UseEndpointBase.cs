@@ -7,6 +7,8 @@ using Phetch.Core;
 public abstract class UseEndpointBase<TArg, TResult>
     : ComponentBase, IDisposable
 {
+    internal UseEndpointBase() { }
+
     protected Query<TArg, TResult>? CurrentQuery { get; private set; }
     protected Endpoint<TArg, TResult>? EndpointInternal { get; set; }
     protected bool IsInitialized { get; private set; }
