@@ -55,8 +55,8 @@ var isEvenEndpoint = new Endpoint<int, bool>(
 Some notes on the example above:
 - Inside the `<UseEndpoint>` component, you can use `query` to access the current state of the query. Changing the `Context` parameter will rename this object.
 - By changing the `Arg` parameter, the query will automatically be re-fetched when needed.
-- Normally, you would share endpoints around your application using dependency injection (see [Defining Query Endpoints](#Defining-Query-Endpoints-(Recommended))).
-- If you need to access the query state inside the `@code` block of a component, you can replace `<UseEndpoint/>` with the pattern described in [Using Query Endpoints Directly](#using-query-endpoints-directly).
+- Normally, you would share endpoints around your application using dependency injection (see [Defining Query Endpoints](#defining-query-endpoints-recommended)).
+- If you need to access the query state inside the `@code` block of a component, you can replace `<UseEndpoint/>` with the pattern described in [Using Query Objects Directly](#using-query-objects-directly).
 
 ## Installing
 
@@ -90,7 +90,9 @@ var isEvenEndpoint = new Endpoint<int, bool>(
     // Replace this part with your own async function:
     async (value, cancellationToken) =>
     {
-        var response = await httpClient.GetFromJsonAsync<dynamic>($"https://api.isevenapi.xyz/api/iseven/{value}");
+        var response = await httpClient.GetFromJsonAsync<dynamic>(
+            $"https://api.isevenapi.xyz/api/iseven/{value}",
+            cancellationToken);
         return response.IsEven;
     }
 );
