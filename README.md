@@ -9,7 +9,8 @@ Currently, Phetch is only designed for use with Blazor WebAssembly. However, the
 
 ## Features
 - Automatically handles loading and error states, and updates your components whenever the state changes
-- Use any async method as a query or mutation (not restricted just to HTTP requests)
+- Automatically caches data returned by queries, and makes it easy to invalidate or update this cached data when needed.
+- Supports any async method as a query or mutation (not restricted just to HTTP requests)
 - Built-in support for CancellationTokens
 - Supports mutations, dependent queries, and pagination
 - 100% strongly typed, with nullability annotations
@@ -32,39 +33,42 @@ Phetch aims to solve all of these problems, and many more.
 
 [Click here to view the source code for the sample project, with more detailed examples.](https://github.com/Jcparkyn/Phetch/tree/main/samples/PhetchBlazorDemo)
 
-Below is the code for a super-basic component that runs a query when the component is first loaded.
+Below is the code for a basic component that runs a query when the component is first loaded.
 Phetch can do a whole lot more than that though, so make sure to check out the samples project and full documentation!
 
-```cshtml
-@inject HttpClient Http
-
-<ObserveQuery Query="forecastsQuery" OnChanged="StateHasChanged">
-
-@if (forecastsQuery.IsError)
-{
-    <p><em>Error!</em></p>
-}
-else if (forecastsQuery.IsLoading)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    // Render data from forecastsQuery.Data
-}
-
-@code {
-    private Query<WeatherForecast[]> forecastsQuery = null!;
-
-    protected override void OnInitialized()
+**Defining an endpoint:**
+```cs
+// This defines an endpoint that takes an int and returns a bool.
+var isEvenEndpoint = new Endpoint<int, bool>(
+    // Replace this part with your own async function:
+    async (value, cancellationToken) =>
     {
-        forecastsQuery = new(
-            _ => Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json")!
-        );
+        var response = await httpClient.GetFromJsonAsync<dynamic>(
+            $"https://api.isevenapi.xyz/api/iseven/{value}",
+            cancellationToken);
+        return response.IsEven;
     }
-}
-
+);
 ```
+
+**Using the endpoint in a component:**
+```cshtml
+<UseEndpoint Endpoint="isEvenEndpoint" Arg="3" Context="query">
+    @if (query.IsError) {
+        <p><em>Something went wrong!</em></p>
+    } else if (query.IsLoading) {
+        <p><em>Loading...</em></p>
+    } else if (query.HasData) {
+        <b>The number is @(query.Data ? "even" : "odd")</b>
+    }
+</UseEndpoint>
+```
+
+Some notes on the example above:
+- Inside the `<UseEndpoint>` component, you can use `query` to access the current state of the query. Changing the `Context` parameter will rename this object.
+- By changing the `Arg` parameter, the query will automatically be re-fetched when needed.
+- Normally, you would share endpoints around your application using dependency injection (see [Defining Query Endpoints](#Defining-Query-Endpoints-(Recommended))).
+- If you need to access the query state inside the `@code` block of a component, you can replace `<UseEndpoint/>` with the pattern described in [Using Query Endpoints Directly](#using-query-endpoints-directly).
 
 Phetch will also come with some useful extension methods to do things like this:
 
@@ -80,17 +84,13 @@ Phetch will also come with some useful extension methods to do things like this:
 
 ## Installing
 
-Note: Because many features have not been finalized, I won't yet be updating the NuGet version on a regular basis.
-If you want to try out Phetch in the meantime, I would recommend downloading the source code instead.
-
 You can install Phetch via the .NET CLI with the following command:
 
 ```sh
 dotnet add package Phetch.Blazor
 ```
 
-If you're using Visual Studio, you can also install via the built in NuGet package manager.
-
+If you're using Visual Studio, you can also install via the built-in NuGet package manager.
 
 ## Usage
 
@@ -105,9 +105,9 @@ All components that use the same endpoint will share the same cache automaticall
 // This defines an endpoint that takes an int and returns a bool.
 var isEvenEndpoint = new Endpoint<int, bool>(
     // Replace this part with your own async function:
-    async val =>
+    async (value, cancellationToken) =>
     {
-        var response = await httpClient.GetFromJsonAsync<dynamic>($"https://api.isevenapi.xyz/api/iseven/{val}");
+        var response = await httpClient.GetFromJsonAsync<dynamic>($"https://api.isevenapi.xyz/api/iseven/{value}");
         return response.IsEven;
     }
 );
@@ -156,7 +156,7 @@ builder.Services.AddScoped<MyApi>();
 If you just need to run a query in a single component and don't want to create an `Endpoint`, another option is to create a `Query` object directly.
 
 ```cs
-var query = new Query<string, int>(id => ...);
+var query = new Query<string, int>((id, cancellationToken) => ...);
 ```
 
 > :warning: Unlike with Endpoints, you generally shouldn't share a single instance of `Query` across multiple components.
@@ -234,7 +234,7 @@ You will often need to define queries or mutations that accept multiple paramete
 
 ```cs
 var queryEndpoint = new QueryEndpoint<(string searchTerm, int page), List<string>>(
-    args => GetThingsAsync(args.searchTerm, args.page)
+    (args, ct) => GetThingsAsync(args.searchTerm, args.page, ct)
 )
 ```
 
@@ -286,21 +286,24 @@ public class ExampleApi
     {
         GetThingEndpoint = new(GetThingByIdAsync);
 
-        UpdateThingEndpoint = new(async thing => 
+        UpdateThingEndpoint = new(UpdateThingAsync, options: new()
         {
-            await UpdateThingAsync(thing);
-            GetThingEndpoint.Invalidate(thing.Id);
+            // Automatically invalidate the cached value for this Thing in GetThingEndpoint,
+            // every time this mutation succeeds.
+            OnSuccess = context => GetThingEndpoint.Invalidate(context.Arg.Id)
         });
     }
 
-    async Task UpdateThingAsync(Thing thing)
+    async Task UpdateThingAsync(Thing thing, CancellationToken ct)
     {
         // TODO: Make an HTTP request to update thing
     }
 
-    async Task<Thing> GetThingByIdAsync(int thingId)
+    async Task<Thing> GetThingByIdAsync(int thingId, CancellationToken ct)
     {
         // TODO: Make an HTTP request to get thing
     }
+
+    record Thing(int Id, string Name);
 }
 ```
