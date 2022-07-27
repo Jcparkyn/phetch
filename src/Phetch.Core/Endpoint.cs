@@ -18,6 +18,8 @@ using System.Threading.Tasks;
 /// </remarks>
 public class Endpoint<TArg, TResult>
 {
+    private readonly EndpointOptions<TArg, TResult>? _options;
+
     internal QueryCache<TArg, TResult> Cache { get; }
 
     /// <summary>
@@ -28,7 +30,8 @@ public class Endpoint<TArg, TResult>
         Func<TArg, CancellationToken, Task<TResult>> queryFn,
         EndpointOptions<TArg, TResult>? options = null)
     {
-        Cache = new(queryFn, options ?? EndpointOptions<TArg, TResult>.Default);
+        _options = options ?? EndpointOptions<TArg, TResult>.Default;
+        Cache = new(queryFn, _options);
     }
 
     /// <summary>
@@ -81,6 +84,21 @@ public class Endpoint<TArg, TResult>
 
     /// <inheritdoc cref="QueryCache{TArg, TResult}.UpdateQueryData(TArg, TResult)"/>
     public bool UpdateQueryData(TArg arg, TResult resultData) => Cache.UpdateQueryData(arg, resultData);
+
+    /// <summary>
+    /// Begins running the query in the background for the specified query argument, so that the
+    /// result can be cached and used immediately when it is needed.
+    /// <para/>
+    /// If the specified query argument already exists in the cache and was not an error, this does nothing.
+    /// </summary>
+    public async Task PrefetchAsync(TArg arg)
+    {
+        var query = Cache.GetOrAdd(arg);
+        if (query.Status == QueryStatus.Idle || query.Status == QueryStatus.Error)
+        {
+            await query.RefetchAsync();
+        }
+    }
 
     /// <summary>
     /// Runs the original query function once, completely bypassing caching and other extra behaviour
