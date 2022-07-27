@@ -35,6 +35,16 @@ public class Endpoint<TArg, TResult>
     }
 
     /// <summary>
+    /// Creates a new query endpoint with a given query function. In most cases, the query function
+    /// will be a call to an HTTP endpoint, but it can be any async function.
+    /// </summary>
+    public Endpoint(
+        Func<TArg, Task<TResult>> queryFn,
+        EndpointOptions<TArg, TResult>? options = null)
+        : this((arg, _) => queryFn(arg), options)
+    { }
+
+    /// <summary>
     /// Creates a new <see cref="Query{TArg, TResult}"/> object, which can be used to make queries
     /// to this endpoint.
     /// </summary>
@@ -126,6 +136,15 @@ public sealed class ParameterlessEndpoint<TResult> : Endpoint<Unit, TResult>
     ) : base((_, ct) => queryFn(ct), options)
     { }
 
+    /// <summary>
+    /// Creates a new Endpoint from a query function with no parameters and no CancellationToken.
+    /// </summary>
+    public ParameterlessEndpoint(
+        Func<Task<TResult>> queryFn,
+        EndpointOptions<Unit, TResult>? options = null
+    ) : base((_, _) => queryFn(), options)
+    { }
+
     /// <inheritdoc cref="Endpoint{TArg, TResult}.Use"/>
     public new Query<TResult> Use(QueryOptions<Unit, TResult>? options = null) =>
         new(Cache, options);
@@ -146,6 +165,22 @@ public sealed class MutationEndpoint<TArg> : Endpoint<TArg, Unit>
         async (arg, token) =>
         {
             await queryFn(arg, token);
+            return default;
+        },
+        options
+    )
+    { }
+
+    /// <summary>
+    /// Creates a new Endpoint from a query function with no return value and no CancellationToken.
+    /// </summary>
+    public MutationEndpoint(
+        Func<TArg, Task> queryFn,
+        EndpointOptions<TArg, Unit>? options = null
+    ) : base(
+        async (arg, _) =>
+        {
+            await queryFn(arg);
             return default;
         },
         options

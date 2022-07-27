@@ -13,7 +13,7 @@
         public async Task Should_create_valid_query()
         {
             var endpoint = new Endpoint<int, string>(
-                (val, _) => Task.FromResult(val.ToString())
+                val => Task.FromResult(val.ToString())
             );
             var query = endpoint.Use();
             await query.SetArgAsync(10);
@@ -25,7 +25,7 @@
         {
             var numQueryFnCalls = 0;
             var endpoint = new Endpoint<int, string>(
-                (val, _) =>
+                val =>
                 {
                     numQueryFnCalls++;
                     return Task.FromResult(val.ToString());
@@ -82,7 +82,7 @@
         public async Task Invoke_should_work()
         {
             var endpoint = new Endpoint<int, string>(
-                (val, _) => Task.FromResult(val.ToString())
+                val => Task.FromResult(val.ToString())
             );
             var result = await endpoint.Invoke(2);
             result.Should().Be("2");
@@ -92,7 +92,7 @@
         public async Task UpdateQueryData_should_work()
         {
             var endpoint = new Endpoint<int, string>(
-                (val, _) => Task.FromResult(val.ToString())
+                val => Task.FromResult(val.ToString())
             );
             var query1 = endpoint.Use();
             var query2 = endpoint.Use();
