@@ -309,6 +309,12 @@ public class Query<TResult> : Query<Unit, TResult>
 
     /// <inheritdoc cref="Fetch"/>
     public Task FetchAsync() => SetArgAsync(default);
+
+    /// <inheritdoc cref="Query{TArg, TResult}.Trigger(TArg)"/>
+    public void Trigger() => _ = TriggerAsync(default);
+
+    /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
+    public Task<TResult> TriggerAsync() => TriggerAsync(default);
 }
 
 /// <summary>
