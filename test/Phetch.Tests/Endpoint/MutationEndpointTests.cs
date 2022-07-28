@@ -1,7 +1,5 @@
-﻿namespace Phetch.Tests
+﻿namespace Phetch.Tests.Endpoint
 {
-    using System;
-    using System.Threading;
     using System.Threading.Tasks;
     using FluentAssertions;
     using Phetch.Core;
@@ -9,24 +7,6 @@
 
     public class MutationEndpointTests
     {
-        [Fact]
-        public async Task Should_create_valid_mutation()
-        {
-            var endpoint = new Endpoint<int, string>(
-                val => Task.FromResult(val.ToString())
-            );
-            var mut = endpoint.Use();
-
-            mut.IsUninitialized.Should().BeTrue();
-            mut.Status.Should().Be(QueryStatus.Idle);
-
-            var result = await mut.TriggerAsync(10);
-
-            result.Should().Be("10");
-            mut.Data.Should().Be("10");
-            mut.Status.Should().Be(QueryStatus.Success);
-        }
-
         [Fact]
         public async Task Returnless_mutation_should_work()
         {

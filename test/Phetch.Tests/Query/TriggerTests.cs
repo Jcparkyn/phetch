@@ -1,4 +1,4 @@
-﻿namespace Phetch.Tests
+﻿namespace Phetch.Tests.Query
 {
     using System;
     using System.Threading.Tasks;
@@ -6,7 +6,7 @@
     using Phetch.Core;
     using Xunit;
 
-    public class MutationTests
+    public class TriggerTests
     {
         [Fact]
         public async Task Should_set_loading_states_correctly()
@@ -72,8 +72,10 @@
             query.IsLoading.Should().BeFalse();
         }
 
-        [Fact]
-        public async Task Should_reset_state_after_cancel()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task Should_reset_state_after_cancel(bool awaitBeforeCancel)
         {
             var query = new Mutation<string>(
                 (val, ct) => Task.Delay(1000, ct)
@@ -81,7 +83,10 @@
 
             var task = query.Invoking(x => x.TriggerAsync("test"))
                 .Should().ThrowExactlyAsync<TaskCanceledException>();
-            await Task.Delay(1);
+            if (awaitBeforeCancel)
+            {
+                await Task.Delay(1);
+            }
             query.Cancel();
 
             await task;

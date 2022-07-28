@@ -1,4 +1,4 @@
-﻿namespace Phetch.Tests
+﻿namespace Phetch.Tests.Query
 {
     using System;
     using System.Collections.Generic;
@@ -9,7 +9,7 @@
     using Phetch.Core;
     using Xunit;
 
-    public class QueryObserverTests
+    public class QueryTests
     {
         [Fact]
         public async Task Should_work_with_basic_query()
@@ -29,7 +29,7 @@
         }
 
         [Fact]
-        public async Task Should_set_loading_states_correctly()
+        public async Task SetArg_should_set_loading_states_correctly()
         {
             var tcs = new TaskCompletionSource<string>();
             var query = new Query<string>(
@@ -69,6 +69,33 @@
 
             query.IsLoading.Should().BeFalse();
             query.IsFetching.Should().BeFalse();
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task SetArg_should_reset_state_after_cancel(bool awaitBeforeCancel)
+        {
+            var query = new Mutation<string>(
+                (val, ct) => Task.Delay(1000, ct)
+            );
+
+            var task = query.Invoking(x => x.SetArgAsync("test"))
+                .Should().ThrowExactlyAsync<TaskCanceledException>();
+            if (awaitBeforeCancel)
+            {
+                await Task.Delay(1);
+            }
+            query.Cancel();
+
+            await task;
+
+            query.Status.Should().Be(QueryStatus.Idle);
+            query.Error.Should().Be(null);
+            query.HasData.Should().BeFalse();
+            query.IsError.Should().BeFalse();
+            query.IsSuccess.Should().BeFalse();
+            query.IsLoading.Should().BeFalse();
         }
 
         [Fact]
