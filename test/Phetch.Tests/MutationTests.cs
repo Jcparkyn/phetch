@@ -81,6 +81,7 @@
 
             var task = query.Invoking(x => x.TriggerAsync("test"))
                 .Should().ThrowExactlyAsync<TaskCanceledException>();
+            await Task.Delay(1);
             query.Cancel();
 
             await task;

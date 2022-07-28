@@ -108,11 +108,12 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         }
 
         var startTime = DateTime.UtcNow;
+        var token = _cts.Token; // Save token ahead of time so we can check the same reference later
 
         Task<TResult>? thisActionCall = null;
         try
         {
-            thisActionCall = _queryFn(Arg, _cts.Token);
+            thisActionCall = _queryFn(Arg, token);
             _lastActionCall = thisActionCall;
             var newData = await thisActionCall;
             // Only update if no more recent tasks have finished.
@@ -128,7 +129,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
             }
             return newData;
         }
-        catch (TaskCanceledException ex) when (ex.CancellationToken == _cts.Token)
+        catch (TaskCanceledException ex) when (ex.CancellationToken == token)
         {
             if (IsMostRecent(startTime) && Status == QueryStatus.Loading)
             {
