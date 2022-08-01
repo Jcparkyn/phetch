@@ -6,6 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using FluentAssertions;
+    using FluentAssertions.Execution;
     using Phetch.Core;
     using Xunit;
 
@@ -72,15 +73,18 @@
         }
 
         [Theory]
-        [InlineData(true)]
         [InlineData(false)]
-        public async Task SetArg_should_reset_state_after_cancel(bool awaitBeforeCancel)
+        [InlineData(true)]
+        public async Task SetArg_should_reset_state_after_cancel_with_cancelable_query(bool awaitBeforeCancel)
         {
-            var query = new Mutation<string>(
-                (val, ct) => Task.Delay(1000, ct)
+            var tcs = new TaskCompletionSource<string>();
+            var query = new Query<int, string>(
+                (val, ct) => tcs.Task.WaitAsync(ct)
             );
 
-            var task = query.Invoking(x => x.SetArgAsync("test"))
+            using var mon = query.Monitor();
+
+            var task = query.Invoking(x => x.SetArgAsync(1))
                 .Should().ThrowExactlyAsync<TaskCanceledException>();
             if (awaitBeforeCancel)
             {
@@ -88,14 +92,46 @@
             }
             query.Cancel();
 
+            using (new AssertionScope())
+            {
+                AssertIsIdleState(query);
+                mon.OccurredEvents.Should().SatisfyRespectively(
+                    e => e.EventName.Should().Be("StateChanged")
+                );
+            }
             await task;
+            AssertIsIdleState(query);
+        }
 
-            query.Status.Should().Be(QueryStatus.Idle);
-            query.Error.Should().Be(null);
-            query.HasData.Should().BeFalse();
-            query.IsError.Should().BeFalse();
-            query.IsSuccess.Should().BeFalse();
-            query.IsLoading.Should().BeFalse();
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task SetArg_should_reset_state_after_cancel_with_uncancelable_query(bool awaitBeforeCancel)
+        {
+            var tcs = new TaskCompletionSource<string>();
+            var query = new Query<int, string>(
+                (val, _) => tcs.Task
+            );
+
+            using var mon = query.Monitor();
+
+            var task = query.SetArgAsync(1);
+            if (awaitBeforeCancel)
+            {
+                await Task.Delay(1);
+            }
+            query.Cancel();
+
+            using (new AssertionScope())
+            {
+                AssertIsIdleState(query);
+                mon.OccurredEvents.Should().SatisfyRespectively(
+                    e => e.EventName.Should().Be("StateChanged")
+                );
+            }
+            tcs.SetResult("1");
+            await task;
+            AssertIsIdleState(query);
         }
 
         [Fact]
@@ -109,13 +145,15 @@
             await query.Invoking(x => x.SetArgAsync(default))
                 .Should().ThrowExactlyAsync<IndexOutOfRangeException>();
 
-            query.Data.Should().BeNull();
-            query.Status.Should().Be(QueryStatus.Error);
-            query.Error.Should().Be(error);
-
-            query.IsError.Should().BeTrue();
-            query.IsSuccess.Should().BeFalse();
-            query.IsLoading.Should().BeFalse();
+            using (new AssertionScope())
+            {
+                query.Data.Should().BeNull();
+                query.Status.Should().Be(QueryStatus.Error);
+                query.Error.Should().Be(error);
+                query.IsError.Should().BeTrue();
+                query.IsSuccess.Should().BeFalse();
+                query.IsLoading.Should().BeFalse();
+            }
         }
 
         [Fact]
@@ -196,6 +234,17 @@
             query.IsLoading.Should().BeFalse();
             query.IsFetching.Should().BeFalse();
             query.Data.Should().Be("test1");
+        }
+
+        private static void AssertIsIdleState<TArg, TResult>(Query<TArg, TResult> query)
+        {
+            query.Status.Should().Be(QueryStatus.Idle);
+            query.Error.Should().Be(null);
+            query.HasData.Should().BeFalse();
+            query.IsError.Should().BeFalse();
+            query.IsSuccess.Should().BeFalse();
+            query.IsLoading.Should().BeFalse();
+            query.IsFetching.Should().BeFalse();
         }
 
         // Makes a query function that can be called multiple times, using a different TaskCompletionSource each time.

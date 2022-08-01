@@ -91,10 +91,30 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
 
     internal void Cancel()
     {
+        if (Status == QueryStatus.Loading)
+        {
+            Status = QueryStatus.Idle;
+        }
+        foreach (var observer in _observers)
+        {
+            observer.OnQueryUpdate();
+        }
+        RequestCancellation();
+        _lastActionCall = null;
+    }
+
+    private void RequestCancellation()
+    {
         if (_lastActionCall is not null && !_lastActionCall.IsCompleted)
         {
-            _cts.Cancel();
-            _cts = new();
+            try
+            {
+                _cts.Cancel();
+            }
+            finally
+            {
+                _cts = new();
+            }
         }
     }
 
@@ -108,16 +128,16 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         }
 
         var startTime = DateTime.UtcNow;
-        var token = _cts.Token; // Save token ahead of time so we can check the same reference later
+        var thisCts = _cts; // Save _cts ahead of time so we can check the same reference later
 
         Task<TResult>? thisActionCall = null;
         try
         {
-            thisActionCall = _queryFn(Arg, token);
+            thisActionCall = _queryFn(Arg, thisCts.Token);
             _lastActionCall = thisActionCall;
             var newData = await thisActionCall;
             // Only update if no more recent tasks have finished.
-            if (IsMostRecent(startTime))
+            if (IsMostRecent(startTime) && !thisCts.IsCancellationRequested)
             {
                 SetSuccessState(newData, startTime);
                 var context = new QuerySuccessContext<TArg, TResult>(Arg, newData);
@@ -129,21 +149,15 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
             }
             return newData;
         }
-        catch (TaskCanceledException ex) when (ex.CancellationToken == token)
+        catch (TaskCanceledException ex) when (ex.CancellationToken == thisCts.Token)
         {
-            if (IsMostRecent(startTime) && Status == QueryStatus.Loading)
-            {
-                Status = QueryStatus.Idle;
-                foreach (var observer in _observers)
-                {
-                    observer.OnQueryUpdate();
-                }
-            }
+            // Do nothing when the cancellation is caught.
+            // The state change has already been handled by Cancel()
             throw;
         }
         catch (Exception ex)
         {
-            if (IsMostRecent(startTime))
+            if (IsMostRecent(startTime) && !thisCts.IsCancellationRequested)
             {
                 Error = ex;
                 Status = QueryStatus.Error;
