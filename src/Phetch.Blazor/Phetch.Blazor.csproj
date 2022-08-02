@@ -11,13 +11,13 @@
     <Description>A small Blazor library for handling async query state, in the style of React Query</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
-    <AnalysisLevel>6.0-recommended</AnalysisLevel>
+    <AnalysisLevel>6.0-all</AnalysisLevel>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <PropertyGroup>
-    <NoWarn>1701;1702;1591</NoWarn>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

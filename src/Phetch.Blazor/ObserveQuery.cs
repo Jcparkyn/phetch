@@ -41,7 +41,7 @@ public sealed class ObserveQuery<TArg, TResult> : ComponentBase, IDisposable
     [Parameter]
     public Action<QueryFailureContext<TArg>>? OnFailure { get; set; }
 
-    void IDisposable.Dispose() => TryUnsubscribe(_target);
+    public void Dispose() => TryUnsubscribe(_target);
 
     private void TryUnsubscribe(Query<TArg, TResult>? query)
     {

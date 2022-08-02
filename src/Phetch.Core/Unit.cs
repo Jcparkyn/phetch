@@ -7,7 +7,7 @@
 /// This is used for implementing queries with no parameter and/or no return value.
 /// </remarks>
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter")]
-public readonly struct Unit
+public readonly struct Unit : System.IEquatable<Unit>
 {
     /// <inheritdoc />
     public override int GetHashCode() => 0;
@@ -23,4 +23,7 @@ public readonly struct Unit
 
     ///
     public static bool operator !=(Unit left, Unit right) => false;
+
+    ///
+    public bool Equals(Unit other) => true;
 }

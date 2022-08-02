@@ -25,6 +25,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     private Timer? _gcTimer;
     private DateTime? _dataUpdatedAt;
     private DateTime? _lastCompletedTaskStartTime;
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "Undisposed CTSs are safe, and disposing would potentially cause issues with ongoing queries.")]
     private CancellationTokenSource _cts = new();
 
     /// <summary>
