@@ -30,6 +30,7 @@ public class Endpoint<TArg, TResult>
         Func<TArg, CancellationToken, Task<TResult>> queryFn,
         EndpointOptions<TArg, TResult>? options = null)
     {
+        _ = queryFn ?? throw new ArgumentNullException(nameof(queryFn));
         _options = options ?? EndpointOptions<TArg, TResult>.Default;
         Cache = new(queryFn, _options);
     }
@@ -89,7 +90,7 @@ public class Endpoint<TArg, TResult>
     /// </param>
     public void InvalidateWhere(Func<TArg, FixedQuery<TArg, TResult>, bool> predicate)
     {
-        Cache.InvalidateWhere(predicate);
+        Cache.InvalidateWhere(predicate ?? throw new ArgumentNullException(nameof(predicate)));
     }
 
     /// <inheritdoc cref="QueryCache{TArg, TResult}.UpdateQueryData(TArg, TResult)"/>

@@ -54,7 +54,9 @@ public class Query<TArg, TResult>
         Func<TArg, CancellationToken, Task<TResult>> queryFn,
         QueryOptions<TArg, TResult>? options = null
     ) : this(
-        new QueryCache<TArg, TResult>(queryFn, EndpointOptions<TArg, TResult>.Default),
+        new QueryCache<TArg, TResult>(
+            queryFn ?? throw new ArgumentNullException(nameof(queryFn)),
+            EndpointOptions<TArg, TResult>.Default),
         options)
     { }
 
