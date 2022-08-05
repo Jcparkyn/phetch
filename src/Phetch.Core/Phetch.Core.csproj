@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>10.0</LangVersion>
-    <VersionPrefix>0.1.1</VersionPrefix>
+    <VersionPrefix>0.1.2</VersionPrefix>
     <Authors>Jcparkyn</Authors>
     <RepositoryUrl>https://github.com/Jcparkyn/Phetch</RepositoryUrl>
     <PackageTags>blazor;fetch;query;swr</PackageTags>
