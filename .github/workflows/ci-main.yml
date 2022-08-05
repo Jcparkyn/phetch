@@ -1,0 +1,31 @@
+name: Build & Test Main
+
+on:
+  push:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+env:
+    NETCORE_VERSION: '6.0.x'
+    DOTNET_NOLOGO: true
+    DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup .NET Core ${{ env.NETCORE_VERSION }}
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.NETCORE_VERSION }}
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Run Tests
+      run: dotnet test -c Release --no-restore
