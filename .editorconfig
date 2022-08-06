@@ -35,6 +35,10 @@ indent_size = 2
 [*.ps1]
 indent_size = 2
 
+# YAML files
+[*.yml]
+indent_size = 2
+
 # Shell script files
 [*.sh]
 end_of_line = lf
