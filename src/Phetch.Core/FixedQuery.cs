@@ -150,7 +150,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
             }
             return newData;
         }
-        catch (TaskCanceledException ex) when (ex.CancellationToken == thisCts.Token)
+        catch (OperationCanceledException ex) when (ex.CancellationToken == thisCts.Token)
         {
             // Do nothing when the cancellation is caught.
             // The state change has already been handled by Cancel()
