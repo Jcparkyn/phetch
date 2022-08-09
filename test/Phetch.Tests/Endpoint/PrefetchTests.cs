@@ -8,15 +8,15 @@
 
     public class PrefetchTests
     {
-        [Fact]
+        [UIFact]
         public async Task Should_prefetch_data()
         {
             var numQueryFnCalls = 0;
             var endpoint = new Endpoint<int, string>(
-                async (val, ct) =>
+                async val =>
                 {
                     numQueryFnCalls++;
-                    await Task.Delay(1, ct);
+                    await Task.Yield();
                     return val.ToString();
                 }
             );
@@ -38,15 +38,15 @@
             await setArgTask;
         }
 
-        [Fact]
+        [UIFact]
         public async Task Should_do_nothing_if_query_exists()
         {
             var numQueryFnCalls = 0;
             var endpoint = new Endpoint<int, string>(
-                async (val, ct) =>
+                async val =>
                 {
                     numQueryFnCalls++;
-                    await Task.Delay(1, ct);
+                    await Task.Yield();
                     return val.ToString();
                 }
             );
@@ -68,7 +68,7 @@
             numQueryFnCalls.Should().Be(2);
         }
 
-        [Fact]
+        [UIFact]
         public async Task Should_refetch_failed_query()
         {
             var numQueryFnCalls = 0;
@@ -76,7 +76,7 @@
                 async (val, ct) =>
                 {
                     numQueryFnCalls++;
-                    await Task.Delay(1, ct);
+                    await Task.Yield();
                     throw new Exception("Test exception");
                 }
             );

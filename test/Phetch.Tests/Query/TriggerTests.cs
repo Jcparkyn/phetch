@@ -8,7 +8,7 @@
 
     public class TriggerTests
     {
-        [Fact]
+        [UIFact]
         public async Task Should_set_loading_states_correctly()
         {
             var tcs = new TaskCompletionSource<int>();
@@ -26,7 +26,7 @@
             mut.IsLoading.Should().BeTrue();
             mut.IsFetching.Should().BeTrue();
 
-            await Task.Delay(1);
+            await Task.Yield();
             tcs.SetResult(11);
             var result1 = await triggerTask1;
 
@@ -52,7 +52,7 @@
             mut.IsLoading.Should().BeFalse();
         }
 
-        [Fact]
+        [UIFact]
         public async Task Should_handle_query_error()
         {
             var error = new IndexOutOfRangeException("message");
@@ -72,7 +72,7 @@
             query.IsLoading.Should().BeFalse();
         }
 
-        [Theory]
+        [UITheory]
         [InlineData(true)]
         [InlineData(false)]
         public async Task Should_reset_state_after_cancel(bool awaitBeforeCancel)
@@ -85,7 +85,7 @@
                 .Should().ThrowExactlyAsync<TaskCanceledException>();
             if (awaitBeforeCancel)
             {
-                await Task.Delay(1);
+                await Task.Yield();
             }
             query.Cancel();
 

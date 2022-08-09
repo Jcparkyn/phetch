@@ -12,11 +12,11 @@
 
     public class QueryTests
     {
-        [Fact]
+        [UIFact]
         public async Task Should_work_with_basic_query()
         {
             var query = new Query<string>(
-                _ => Task.FromResult("test")
+                _ => TestHelpers.ReturnAsync("test")
             );
             await query.SetArgAsync(default);
 
@@ -29,7 +29,7 @@
             query.Error.Should().BeNull();
         }
 
-        [Fact]
+        [UIFact]
         public async Task SetArg_should_set_loading_states_correctly()
         {
             var tcs = new TaskCompletionSource<string>();
@@ -47,7 +47,6 @@
             query.IsLoading.Should().BeTrue();
             query.IsFetching.Should().BeTrue();
 
-            await Task.Delay(1);
             tcs.SetResult("test");
             await refetchTask;
 
@@ -72,7 +71,7 @@
             query.IsFetching.Should().BeFalse();
         }
 
-        [Theory]
+        [UITheory]
         [InlineData(false)]
         [InlineData(true)]
         public async Task SetArg_should_reset_state_after_cancel_with_cancelable_query(bool awaitBeforeCancel)
@@ -88,7 +87,7 @@
                 .Should().ThrowExactlyAsync<TaskCanceledException>();
             if (awaitBeforeCancel)
             {
-                await Task.Delay(1);
+                await Task.Yield();
             }
             query.Cancel();
 
@@ -103,7 +102,7 @@
             AssertIsIdleState(query);
         }
 
-        [Theory]
+        [UITheory]
         [InlineData(false)]
         [InlineData(true)]
         public async Task SetArg_should_reset_state_after_cancel_with_uncancelable_query(bool awaitBeforeCancel)
@@ -118,7 +117,7 @@
             var task = query.SetArgAsync(1);
             if (awaitBeforeCancel)
             {
-                await Task.Delay(1);
+                await Task.Yield();
             }
             query.Cancel();
 
@@ -134,7 +133,7 @@
             AssertIsIdleState(query);
         }
 
-        [Fact]
+        [UIFact]
         public async Task Should_handle_query_error()
         {
             var error = new IndexOutOfRangeException("message");
@@ -156,7 +155,7 @@
             }
         }
 
-        [Fact]
+        [UIFact]
         public async Task Should_always_keep_most_recent_data()
         {
             // Timing:
@@ -179,7 +178,7 @@
             query.Refetch();
 
             sources[0].SetResult("test0");
-            await Task.Delay(1);
+            await Task.Yield();
 
             query.Status.Should().Be(QueryStatus.Success);
             query.IsSuccess.Should().BeTrue();
@@ -188,7 +187,7 @@
             query.Data.Should().Be("test0");
 
             sources[1].SetResult("test1");
-            await Task.Delay(1);
+            await Task.Yield();
 
             query.Status.Should().Be(QueryStatus.Success);
             query.IsLoading.Should().BeFalse();
@@ -196,7 +195,7 @@
             query.Data.Should().Be("test1");
         }
 
-        [Fact]
+        [UIFact]
         public async Task Should_ignore_outdated_data()
         {
             // Timing:
@@ -219,7 +218,7 @@
             query.Refetch();
 
             sources[1].SetResult("test1");
-            await Task.Delay(1);
+            await Task.Yield();
 
             query.Status.Should().Be(QueryStatus.Success);
             query.IsSuccess.Should().BeTrue();
@@ -228,7 +227,7 @@
             query.Data.Should().Be("test1");
 
             sources[0].SetResult("test0");
-            await Task.Delay(1);
+            await Task.Yield();
 
             query.Status.Should().Be(QueryStatus.Success);
             query.IsLoading.Should().BeFalse();

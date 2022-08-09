@@ -12,22 +12,23 @@
         public async Task Should_create_valid_query()
         {
             var endpoint = new Endpoint<int, string>(
-                val => Task.FromResult(val.ToString())
+                val => TestHelpers.ReturnAsync(val.ToString())
             );
             var query = endpoint.Use();
             await query.SetArgAsync(10);
             query.Data.Should().Be("10");
         }
 
-        [Fact]
+        [UIFact]
         public async Task Should_share_cache_between_queries()
         {
             var numQueryFnCalls = 0;
             var endpoint = new Endpoint<int, string>(
-                val =>
+                async val =>
                 {
                     numQueryFnCalls++;
-                    return Task.FromResult(val.ToString());
+                    await Task.Yield();
+                    return val.ToString();
                 }
             );
             var options = new QueryOptions<int, string>()
@@ -45,15 +46,15 @@
             numQueryFnCalls.Should().Be(1);
         }
 
-        [Fact]
+        [UIFact]
         public async Task Invalidate_should_rerun_query()
         {
             var numQueryFnCalls = 0;
             var endpoint = new Endpoint<int, string>(
-                async (val, ct) =>
+                async val =>
                 {
                     numQueryFnCalls++;
-                    await Task.Delay(1, ct);
+                    await Task.Yield();
                     return val.ToString();
                 }
             );
@@ -77,21 +78,21 @@
             numQueryFnCalls.Should().Be(5);
         }
 
-        [Fact]
+        [UIFact]
         public async Task Invoke_should_work()
         {
             var endpoint = new Endpoint<int, string>(
-                val => Task.FromResult(val.ToString())
+                val => TestHelpers.ReturnAsync(val.ToString())
             );
             var result = await endpoint.Invoke(2);
             result.Should().Be("2");
         }
 
-        [Fact]
+        [UIFact]
         public async Task UpdateQueryData_should_work()
         {
             var endpoint = new Endpoint<int, string>(
-                val => Task.FromResult(val.ToString())
+                val => TestHelpers.ReturnAsync(val.ToString())
             );
             var query1 = endpoint.Use();
             var query2 = endpoint.Use();

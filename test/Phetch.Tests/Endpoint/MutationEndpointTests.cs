@@ -7,7 +7,7 @@
 
     public class MutationEndpointTests
     {
-        [Fact]
+        [UIFact]
         public async Task Returnless_mutation_should_work()
         {
             var mutationArg = 0;
