@@ -26,6 +26,8 @@ Phetch can do a whole lot more than that though, so make sure to check out the s
 
 **Defining an endpoint:**
 ```cs
+using Phetch.Core;
+
 // This defines an endpoint that takes an int and returns a bool.
 var isEvenEndpoint = new Endpoint<int, bool>(
     // Replace this part with your own async function:
@@ -41,6 +43,8 @@ var isEvenEndpoint = new Endpoint<int, bool>(
 
 **Using the endpoint in a component:**
 ```cshtml
+@using Phetch.Blazor
+
 <UseEndpoint Endpoint="isEvenEndpoint" Arg="3" Context="query">
     @if (query.IsError) {
         <p><em>Something went wrong!</em></p>
