@@ -111,6 +111,9 @@ public class Endpoint<TArg, TResult>
         }
     }
 
+    /// <inheritdoc cref="PrefetchAsync(TArg)"/>
+    public void Prefetch(TArg arg) => _ = PrefetchAsync(arg);
+
     /// <summary>
     /// Runs the original query function once, completely bypassing caching and other extra behaviour
     /// </summary>
