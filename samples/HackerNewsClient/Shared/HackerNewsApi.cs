@@ -28,12 +28,6 @@ public class HackerNewsApi
     public Endpoint<int, HnItemDetails> GetItem { get; }
 }
 
-public enum HnItemType
-{
-    Story,
-    Coment,
-}
-
 public record SearchResponse<T>(
     List<T> Hits,
     int NbHits,
