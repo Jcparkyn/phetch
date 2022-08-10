@@ -1,36 +1,24 @@
 ﻿
 
-<a href="/post/@Post.Id">
-    <MudCard>
-        <MudCardHeader>
-            <CardHeaderContent>
-                @if (Loading)
-                {
-                    <MudSkeleton />
-                }
-                else
-                {
-                    <MudText Typo="Typo.h6">@Post.Title</MudText>
-                }
-            </CardHeaderContent>
-        </MudCardHeader>
-        <MudCardContent>
-            @if (Loading)
-            {
-                <MudSkeleton />
-            }
-            else
-            {
-                <MudText>@Post.Author</MudText>
-            }
-        </MudCardContent>
-    </MudCard>
-</a>
+<MudCard>
+    <MudCardContent>
+        <div style="margin-bottom: 8px">
+            <MudLink Href="@TitleUrl" Typo="Typo.h6" Style="line-height: 1">
+                @Post.Title <span style="opacity: 0.5">@TitleSuffix(Post.UrlDomain)</span>
+            </MudLink>
+        </div>
+        <MudText Typo="Typo.subtitle1">
+            @Post.Points points by @Post.Author |
+            <MudLink Href=@($"/post/{Post.Id}")>@Post.NumComments comments</MudLink>
+        </MudText>
+    </MudCardContent>
+</MudCard>
 
 @code {
     [Parameter, EditorRequired]
     public HnItem Post { get; set; } = null!;
 
-    [Parameter]
-    public bool Loading { get; set; }
+    string? TitleSuffix(string? urlDomain) => urlDomain is null ? null : $"({urlDomain})";
+
+    string TitleUrl => Post.Url ?? $"/post/{Post.Id}";
 }

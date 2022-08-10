@@ -44,7 +44,10 @@ public record HnItem(
     int? Points,
     [property: JsonPropertyName("story_text")] string StoryText,
     [property: JsonPropertyName("num_comments")] int NumComments
-);
+)
+{
+    public string? UrlDomain => Url is not null ? new Uri(Url).Host : null;
+};
 
 public record HnItemDetails(
     int Id,

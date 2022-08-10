@@ -5,7 +5,7 @@
     @if (query.HasData)
     {
         <MudText Typo="Typo.h4" GutterBottom="true">@query.Data.Title</MudText>
-        <MudText Typo="Typo.body1">@query.Data.Text</MudText>
+        <MudText Typo="Typo.body1">@((MarkupString)(query.Data.Text ?? ""))</MudText>
     }
     else if (query.IsLoading)
     {
