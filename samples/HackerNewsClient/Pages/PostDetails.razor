@@ -4,8 +4,30 @@
 <UseEndpoint Endpoint="@Api.GetItem" Arg="PostId" Context="query">
     @if (query.HasData)
     {
-        <MudText Typo="Typo.h4" GutterBottom="true">@query.Data.Title</MudText>
-        <MudText Typo="Typo.body1">@((MarkupString)(query.Data.Text ?? ""))</MudText>
+        var post = query.Data;
+        <MudText Typo="Typo.h4" GutterBottom="true">@post.Title</MudText>
+        <MudText Typo="Typo.body1">@((MarkupString)(post.Text ?? ""))</MudText>
+        <MudText Typo="Typo.subtitle1">@post.Children.Count comments</MudText>
+        <MudTreeView Items="@(post.Children?.ToHashSet())">
+            <ItemTemplate Context="comment">
+                @{
+                    var isExpanded = GetExpanded(comment);
+                }
+                <MudTreeViewItem Items="@(isExpanded ? comment.Children?.ToHashSet() : null)"
+                             Expanded="isExpanded"
+                             Value="@comment">
+                    <Content>
+                        <div style="display: flex; align-items: flex-start; cursor: text">
+                            <MudTreeViewItemToggleButton Expanded="isExpanded" ExpandedChanged="e => SetExpanded(comment, e)" Visible="@comment.HasChildren" />
+                            <div>
+                                <MudText Typo="Typo.subtitle2">@comment.Author</MudText>
+                                <MudText Typo="Typo.body1">@((MarkupString)(comment.Text ?? ""))</MudText>
+                            </div>
+                        </div>
+                    </Content>
+                 </MudTreeViewItem>
+             </ItemTemplate>
+        </MudTreeView>
     }
     else if (query.IsLoading)
     {
@@ -24,4 +46,10 @@
 @code {
     [Parameter]
     public int PostId { get; set; }
+
+    private Dictionary<HnItemDetails, bool> expandedItems = new();
+
+    private bool GetExpanded(HnItemDetails item) => expandedItems.GetValueOrDefault(item, false);
+
+    private void SetExpanded(HnItemDetails item, bool expanded) => expandedItems[item] = expanded;
 }

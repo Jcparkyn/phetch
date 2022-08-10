@@ -59,5 +59,8 @@ public record HnItemDetails(
     string? Text,
     string Type,
     List<HnItemDetails> Children
-);
+)
+{
+    public bool HasChildren => Children.Count > 0;
+};
 
