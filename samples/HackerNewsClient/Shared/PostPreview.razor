@@ -9,7 +9,7 @@
         </div>
         <MudText Typo="Typo.subtitle1">
             @Post.Points points by @Post.Author |
-            <MudLink Href=@($"/post/{Post.Id}")>@Post.NumComments comments</MudLink>
+            <MudLink Href=@($"/post/{Post.Id}")>@CommentText(Post.NumComments)</MudLink>
         </MudText>
     </MudCardContent>
 </MudCard>
@@ -21,4 +21,11 @@
     string? TitleSuffix(string? urlDomain) => urlDomain is null ? null : $"({urlDomain})";
 
     string TitleUrl => Post.Url ?? $"/post/{Post.Id}";
+
+    string CommentText(int? numComments) => numComments switch
+    {
+        1 => "1 comment",
+        0 or null => "no comments",
+        _ => $"{numComments} comments",
+    };
 }

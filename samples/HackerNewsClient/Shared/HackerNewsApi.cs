@@ -1,5 +1,6 @@
 ﻿namespace HackerNewsClient.Shared;
 
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Phetch.Core;
@@ -16,16 +17,22 @@ public class HackerNewsApi
         );
 
         GetTopStories = new(
-            async ct => (await httpClient.GetFromJsonAsync<SearchResponse<HnItem>>(
-                $"https://hn.algolia.com/api/v1/search?tags=front_page",
-                ct
-            ))!
-        );
+            async (args, ct) =>
+            {
+                var url = $"https://hn.algolia.com/api/v1/search?tags={args.Tag}&query={args.Query}&hitsPerPage={args.PageSize}&page={args.Page}";// &query={args.Query}";
+                if (args.StartDate is DateTimeOffset dto)
+                {
+                    url += $"&numericFilters=created_at_i>{dto.ToUnixTimeSeconds()}";
+                }
+                return (await httpClient.GetFromJsonAsync<SearchResponse<HnItem>>(url, ct))!;
+            });
     }
 
-    public ParameterlessEndpoint<SearchResponse<HnItem>> GetTopStories { get; }
+    public Endpoint<GetTopStoriesArgs, SearchResponse<HnItem>> GetTopStories { get; }
 
     public Endpoint<int, HnItemDetails> GetItem { get; }
+
+    public record GetTopStoriesArgs(int Page, int PageSize = 20, string Query = "", string Tag = "", DateTimeOffset? StartDate = null);
 }
 
 public record SearchResponse<T>(
@@ -43,10 +50,10 @@ public record HnItem(
     string Author,
     int? Points,
     [property: JsonPropertyName("story_text")] string StoryText,
-    [property: JsonPropertyName("num_comments")] int NumComments
+    [property: JsonPropertyName("num_comments")] int? NumComments
 )
 {
-    public string? UrlDomain => Url is not null ? new Uri(Url).Host : null;
+    public string? UrlDomain => string.IsNullOrEmpty(Url) ? null : new Uri(Url).Host;
 };
 
 public record HnItemDetails(

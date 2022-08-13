@@ -3,21 +3,24 @@
 
 <PageTitle>Hacker News Demo</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Top Posts</MudText>
+<MudText Typo="Typo.h3" GutterBottom="true">Front Page</MudText>
 
-<UseParameterlessEndpoint Endpoint="Api.GetTopStories" Context="topPostsQuery" Options="queryOptions">
-    @if (topPostsQuery.HasData)
+<UseEndpoint Endpoint="Api.GetTopStories"
+                 Arg="@new(Page: 0, PageSize: 100, Tag: "front_page")"
+                 Context="query"
+                 Options="new() { StaleTime = TimeSpan.FromSeconds(300) }">
+    @if (query.HasData)
     {
-        var post = topPostsQuery.Data;
         <MudList>
-            <Virtualize ItemSize="144" Items="post.Hits" Context="post" OverscanCount="5">
+            @foreach (var post in query.Data.Hits)
+            {
                 <MudListItem>
                     <PostPreview @key="post.Id" Post="post" />
                 </MudListItem>
-            </Virtualize>
+            }
         </MudList>
     }
-    else if (topPostsQuery.IsLoading)
+    else if (query.IsLoading)
     {
         <MudProgressLinear Indeterminate />
     }
@@ -25,13 +28,8 @@
     {
         <MudAlert Severity="Severity.Error">
             Something went wrong!
+            @query.Error?.Message
+            <MudButton OnClick="query.Refetch">Retry</MudButton>
         </MudAlert>
     }
-</UseParameterlessEndpoint>
-
-@code {
-    private QueryOptions<Unit, SearchResponse<HnItem>> queryOptions = new()
-    {
-        StaleTime = TimeSpan.FromSeconds(300),
-    };
- }
+</UseEndpoint>
