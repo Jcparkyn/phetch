@@ -6,9 +6,8 @@
 <MudText Typo="Typo.h3" GutterBottom="true">Front Page</MudText>
 
 <UseEndpoint Endpoint="Api.GetTopStories"
-                 Arg="@new(Page: 0, PageSize: 100, Tag: "front_page")"
-                 Context="query"
-                 Options="new() { StaleTime = TimeSpan.FromSeconds(300) }">
+             Arg="@new(Page: 0, PageSize: 100, Tag: "front_page")"
+             Context="query">
     @if (query.HasData)
     {
         <MudList>

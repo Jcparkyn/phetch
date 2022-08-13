@@ -21,6 +21,13 @@ public sealed record EndpointOptions<TArg, TResult>
     public TimeSpan CacheTime { get; init; } = TimeSpan.FromMinutes(5);
 
     /// <summary>
+    /// Default stale time to be used if not supplied when using the endpoint. This defaults to
+    /// zero, so queries are considered stale as soon as they finish fetching.
+    /// </summary>
+    /// <remarks>This can be overriden by <see cref="QueryOptions{TArg, TResult}.StaleTime"/></remarks>
+    public TimeSpan DefaultStaleTime { get; init; } = TimeSpan.Zero;
+
+    /// <summary>
     /// A function that gets run whenever this query succeeds.
     /// <para/>
     /// To avoid a race condition when multiple queries return in a different order than they were
@@ -46,14 +53,15 @@ public sealed record QueryOptions<TArg, TResult>
     internal static QueryOptions<TArg, TResult> Default { get; } = new();
 
     /// <summary>
-    /// The amount of time until this query is considered "stale". This defaults to zero, so queries are
-    /// considered stale as soon as they finish fetching.
+    /// The amount of time until this query is considered "stale". If not set, the <see
+    /// cref="EndpointOptions{TArg, TResult}.DefaultStaleTime"/> (zero by default) will be used instead.
     /// <para/>
-    /// If a cached query is used <b>before</b> it becomes stale, the component will recieve the cached
-    /// result and won't re-fetch the data. If a cached query is used <b>after</b> it becomes stale, the
-    /// cached data will be used initially, but new data will be re-fetched in the background automatically.
+    /// If a cached query is used <b>before</b> it becomes stale, the component will receive the
+    /// cached result and won't re-fetch the data. If a cached query is used <b>after</b> it becomes
+    /// stale, the cached data will be used initially, but new data will be re-fetched in the
+    /// background automatically.
     /// </summary>
-    public TimeSpan StaleTime { get; init; } = TimeSpan.Zero;
+    public TimeSpan? StaleTime { get; init; }
 
     /// <summary>
     /// A function that gets run whenever this query succeeds.

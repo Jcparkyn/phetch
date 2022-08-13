@@ -18,7 +18,10 @@ using System.Threading.Tasks;
 /// </remarks>
 public class Endpoint<TArg, TResult>
 {
-    private readonly EndpointOptions<TArg, TResult>? _options;
+    /// <summary>
+    /// Options for this endpoint
+    /// </summary>
+    protected EndpointOptions<TArg, TResult> Options { get; }
 
     internal QueryCache<TArg, TResult> Cache { get; }
 
@@ -31,8 +34,8 @@ public class Endpoint<TArg, TResult>
         EndpointOptions<TArg, TResult>? options = null)
     {
         _ = queryFn ?? throw new ArgumentNullException(nameof(queryFn));
-        _options = options ?? EndpointOptions<TArg, TResult>.Default;
-        Cache = new(queryFn, _options);
+        Options = options ?? EndpointOptions<TArg, TResult>.Default;
+        Cache = new(queryFn, Options);
     }
 
     /// <summary>
@@ -53,7 +56,7 @@ public class Endpoint<TArg, TResult>
     /// <param name="options">Additional options to use when querying</param>
     public Query<TArg, TResult> Use(QueryOptions<TArg, TResult>? options = null)
     {
-        return new Query<TArg, TResult>(Cache, options);
+        return new Query<TArg, TResult>(Cache, options, Options);
     }
 
     /// <summary>
@@ -151,7 +154,7 @@ public sealed class ParameterlessEndpoint<TResult> : Endpoint<Unit, TResult>
 
     /// <inheritdoc cref="Endpoint{TArg, TResult}.Use"/>
     public new Query<TResult> Use(QueryOptions<Unit, TResult>? options = null) =>
-        new(Cache, options);
+        new(Cache, options, Options);
 }
 
 /// <summary>
@@ -193,5 +196,5 @@ public sealed class MutationEndpoint<TArg> : Endpoint<TArg, Unit>
 
     /// <inheritdoc cref="Endpoint{TArg, TResult}.Use"/>
     public new Mutation<TArg> Use(QueryOptions<TArg, Unit>? options = null) =>
-        new(Cache, options);
+        new(Cache, options, Options);
 }

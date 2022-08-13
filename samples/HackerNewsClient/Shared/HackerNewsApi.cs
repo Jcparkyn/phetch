@@ -13,7 +13,11 @@ public class HackerNewsApi
             async (itemId, ct) => (await httpClient.GetFromJsonAsync<HnItemDetails>(
                 $"https://hn.algolia.com/api/v1/items/{itemId}",
                 ct
-            ))!
+            ))!,
+            options: new()
+            {
+                DefaultStaleTime = TimeSpan.FromSeconds(60),
+            }
         );
 
         GetTopStories = new(
@@ -25,7 +29,12 @@ public class HackerNewsApi
                     url += $"&numericFilters=created_at_i>{dto.ToUnixTimeSeconds()}";
                 }
                 return (await httpClient.GetFromJsonAsync<SearchResponse<HnItem>>(url, ct))!;
-            });
+            },
+            options: new()
+            {
+                DefaultStaleTime = TimeSpan.FromMinutes(2),
+            }
+        );
     }
 
     public Endpoint<GetTopStoriesArgs, SearchResponse<HnItem>> GetTopStories { get; }

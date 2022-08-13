@@ -27,8 +27,7 @@
         var page = _page;
         <UseEndpoint Endpoint="Api.GetTopStories"
                  Arg="@new(page, PageSize: 30, Query: SearchText, Tag: "story", StartDate: StartDate)"
-                 Context="query"
-                 Options="new() { StaleTime = TimeSpan.FromSeconds(300) }">
+                 Context="query">
             @if (query.HasData)
             {
                 var posts = query.Data;

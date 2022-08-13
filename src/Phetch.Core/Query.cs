@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 public class Query<TArg, TResult>
 {
     private readonly QueryCache<TArg, TResult> _cache;
-    private readonly QueryOptions<TArg, TResult> _options;
+    private readonly TimeSpan _staleTime;
     private FixedQuery<TArg, TResult>? _lastSuccessfulQuery;
     private FixedQuery<TArg, TResult>? _currentQuery;
 
@@ -39,10 +39,11 @@ public class Query<TArg, TResult>
 
     internal Query(
         QueryCache<TArg, TResult> cache,
-        QueryOptions<TArg, TResult>? options = null)
+        QueryOptions<TArg, TResult>? options,
+        EndpointOptions<TArg, TResult> endpointOptions)
     {
         _cache = cache;
-        _options = options ?? QueryOptions<TArg, TResult>.Default;
+        _staleTime = options?.StaleTime ?? endpointOptions.DefaultStaleTime;
         Succeeded += options?.OnSuccess;
         Failed += options?.OnFailure;
     }
@@ -57,7 +58,8 @@ public class Query<TArg, TResult>
         new QueryCache<TArg, TResult>(
             queryFn ?? throw new ArgumentNullException(nameof(queryFn)),
             EndpointOptions<TArg, TResult>.Default),
-        options)
+        options,
+        EndpointOptions<TArg, TResult>.Default)
     { }
 
     /// <summary>
@@ -224,7 +226,7 @@ public class Query<TArg, TResult>
             _currentQuery = newQuery;
             // TODO: Is this the best behaviour?
 
-            if (!newQuery.IsFetching && newQuery.IsStaleByTime(_options.StaleTime, DateTime.Now))
+            if (!newQuery.IsFetching && newQuery.IsStaleByTime(_staleTime, DateTime.Now))
             {
                 await newQuery.RefetchAsync().ConfigureAwait(false);
             }
@@ -297,8 +299,9 @@ public class Query<TResult> : Query<Unit, TResult>
 
     internal Query(
         QueryCache<Unit, TResult> cache,
-        QueryOptions<Unit, TResult>? options = null
-    ) : base(cache, options)
+        QueryOptions<Unit, TResult>? options,
+        EndpointOptions<Unit, TResult> endpointOptions
+    ) : base(cache, options, endpointOptions)
     { }
 
     /// <summary>
@@ -343,8 +346,9 @@ public class Mutation<TArg> : Query<TArg, Unit>
 
     internal Mutation(
         QueryCache<TArg, Unit> cache,
-        QueryOptions<TArg, Unit>? options = null
-    ) : base(cache, options)
+        QueryOptions<TArg, Unit>? options,
+        EndpointOptions<TArg, Unit> endpointOptions
+    ) : base(cache, options, endpointOptions)
     {
     }
 }
