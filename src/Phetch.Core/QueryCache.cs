@@ -81,26 +81,23 @@ internal class QueryCache<TArg, TResult>
         return new FixedQuery<TArg, TResult>(this, QueryFn, arg, endpointOptions);
     }
 
-    /// <summary>
-    /// Updates the response data for a given query, if it exists.
-    /// </summary>
-    /// <param name="arg"></param>
-    /// <param name="resultData"></param>
-    /// <returns><c>true</c> if the query existed, otherwise <c>false</c>.</returns>
     public bool UpdateQueryData(TArg arg, TResult resultData)
     {
         var exists = false;
-        if (_cachedResponses.TryGetValue(arg, out var result))
+        foreach (var query in GetAllQueries(arg))
         {
-            result.UpdateQueryData(resultData);
+            query.UpdateQueryData(resultData);
             exists = true;
         }
-        if (_uncachedResponses.TryGetValue(arg, out var queries))
+        return exists;
+    }
+
+    public bool UpdateQueryData(TArg arg, Func<FixedQuery<TArg, TResult>, TResult> dataSelector)
+    {
+        var exists = false;
+        foreach (var query in GetAllQueries(arg))
         {
-            foreach (var query in queries)
-            {
-                query.UpdateQueryData(resultData);
-            }
+            query.UpdateQueryData(dataSelector(query));
             exists = true;
         }
         return exists;
@@ -115,6 +112,21 @@ internal class QueryCache<TArg, TResult>
         if (_uncachedResponses.TryGetValue(query.Arg, out var uncachedQueries))
         {
             uncachedQueries.RemoveAll(x => x == query);
+        }
+    }
+
+    private IEnumerable<FixedQuery<TArg, TResult>> GetAllQueries(TArg arg)
+    {
+        if (_cachedResponses.TryGetValue(arg, out var query1))
+        {
+            yield return query1;
+        }
+        if (_uncachedResponses.TryGetValue(arg, out var queries))
+        {
+            foreach (var query2 in queries)
+            {
+                yield return query2;
+            }
         }
     }
 }

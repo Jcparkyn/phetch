@@ -96,17 +96,22 @@
             );
             var query1 = endpoint.Use();
             var query2 = endpoint.Use();
+            var query3 = endpoint.Use();
 
             await query1.SetArgAsync(1);
             await query2.SetArgAsync(2);
+            await query3.SetArgAsync(3);
 
             query1.Data.Should().Be("1");
             query2.Data.Should().Be("2");
+            query3.Data.Should().Be("3");
 
-            endpoint.UpdateQueryData(1, "updated");
+            endpoint.UpdateQueryData(2, "2 - test1");
+            endpoint.UpdateQueryData(3, q => q.Data + " - test2");
 
-            query1.Data.Should().Be("updated");
-            query2.Data.Should().Be("2");
+            query1.Data.Should().Be("1");
+            query2.Data.Should().Be("2 - test1");
+            query3.Data.Should().Be("3 - test2");
         }
     }
 }

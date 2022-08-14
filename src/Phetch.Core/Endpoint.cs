@@ -96,8 +96,22 @@ public class Endpoint<TArg, TResult>
         Cache.InvalidateWhere(predicate ?? throw new ArgumentNullException(nameof(predicate)));
     }
 
-    /// <inheritdoc cref="QueryCache{TArg, TResult}.UpdateQueryData(TArg, TResult)"/>
+    /// <summary>
+    /// Updates the response data for a given query, if it exists.
+    /// </summary>
+    /// <param name="arg">The query argument of the query to be updated.</param>
+    /// <param name="resultData">The new data to set on the query.</param>
+    /// <returns><c>true</c> if the query existed, otherwise <c>false</c>.</returns>
     public bool UpdateQueryData(TArg arg, TResult resultData) => Cache.UpdateQueryData(arg, resultData);
+
+    /// <summary>
+    /// Updates the response data for a given query, if it exists.
+    /// </summary>
+    /// <param name="arg">The query argument of the query to be updated.</param>
+    /// <param name="dataSelector">A function to select the new data for the query.</param>
+    /// <returns><c>true</c> if the query existed, otherwise <c>false</c>.</returns>
+    public bool UpdateQueryData(TArg arg, Func<FixedQuery<TArg, TResult>, TResult> dataSelector)
+        => Cache.UpdateQueryData(arg, dataSelector ?? throw new ArgumentNullException(nameof(dataSelector)));
 
     /// <summary>
     /// Begins running the query in the background for the specified query argument, so that the
