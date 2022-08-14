@@ -115,7 +115,12 @@ internal class QueryCache<TArg, TResult>
         }
     }
 
-    private IEnumerable<FixedQuery<TArg, TResult>> GetAllQueries(TArg arg)
+    public FixedQuery<TArg, TResult>? GetCachedQuery(TArg arg)
+    {
+        return _cachedResponses.TryGetValue(arg, out var query) ? query : null;
+    }
+
+    public IEnumerable<FixedQuery<TArg, TResult>> GetAllQueries(TArg arg)
     {
         if (_cachedResponses.TryGetValue(arg, out var query1))
         {
