@@ -12,7 +12,7 @@ Currently, Phetch is only designed for use with Blazor WebAssembly. However, the
 - Automatically caches data returned by queries, and makes it easy to invalidate or update this cached data when needed.
 - Supports any async method as a query or mutation (not restricted just to HTTP requests)
 - Built-in support for CancellationTokens
-- Supports mutations, dependent queries, and pagination
+- Supports mutations, dependent queries, pagination, prefetching, and request de-duplication
 - 100% strongly typed, with nullability annotations
 - Super lightweight and easy to mix-and-match with other state management methods
 - No Javascript whatsoever!
