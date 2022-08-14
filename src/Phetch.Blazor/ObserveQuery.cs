@@ -32,14 +32,14 @@ public sealed class ObserveQuery<TArg, TResult> : ComponentBase, IDisposable
     /// component is still mounted when the query succeeds.
     /// </summary>
     [Parameter]
-    public Action<QuerySuccessContext<TArg, TResult>>? OnSuccess { get; set; }
+    public Action<QuerySuccessEventArgs<TArg, TResult>>? OnSuccess { get; set; }
 
     /// <summary>
     /// Callback function to call when the query fails. This will only be called if this component
     /// is still mounted when the query fails.
     /// </summary>
     [Parameter]
-    public Action<QueryFailureContext<TArg>>? OnFailure { get; set; }
+    public Action<QueryFailureEventArgs<TArg>>? OnFailure { get; set; }
 
     public void Dispose() => TryUnsubscribe(_target);
 
@@ -57,7 +57,7 @@ public sealed class ObserveQuery<TArg, TResult> : ComponentBase, IDisposable
         OnChanged?.Invoke();
     }
 
-    private void SuccessCallback(QuerySuccessContext<TArg, TResult> context) { OnSuccess?.Invoke(context); }
+    private void SuccessCallback(QuerySuccessEventArgs<TArg, TResult> context) { OnSuccess?.Invoke(context); }
 
-    private void FailureCallback(QueryFailureContext<TArg> context) { OnFailure?.Invoke(context); }
+    private void FailureCallback(QueryFailureEventArgs<TArg> context) { OnFailure?.Invoke(context); }
 }

@@ -141,11 +141,11 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
             if (IsMostRecent(startTime) && !thisCts.IsCancellationRequested)
             {
                 SetSuccessState(newData, startTime);
-                var context = new QuerySuccessContext<TArg, TResult>(Arg, newData);
-                _endpointOptions.OnSuccess?.Invoke(context);
+                var eventArgs = new QuerySuccessEventArgs<TArg, TResult>(Arg, newData);
+                _endpointOptions.OnSuccess?.Invoke(eventArgs);
                 foreach (var observer in _observers)
                 {
-                    observer.OnQuerySuccess(context);
+                    observer.OnQuerySuccess(eventArgs);
                 }
             }
             return newData;
@@ -163,11 +163,11 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
                 Error = ex;
                 Status = QueryStatus.Error;
                 _lastCompletedTaskStartTime = startTime;
-                var context = new QueryFailureContext<TArg>(Arg, ex);
-                _endpointOptions.OnFailure?.Invoke(context);
+                var eventArgs = new QueryFailureEventArgs<TArg>(Arg, ex);
+                _endpointOptions.OnFailure?.Invoke(eventArgs);
                 foreach (var observer in _observers)
                 {
-                    observer.OnQueryFailure(context);
+                    observer.OnQueryFailure(eventArgs);
                 }
             }
 

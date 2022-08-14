@@ -30,12 +30,12 @@ public class Query<TArg, TResult>
     /// <summary>
     /// An event that fires whenever this query succeeds.
     /// </summary>
-    public event Action<QuerySuccessContext<TArg, TResult>>? Succeeded;
+    public event Action<QuerySuccessEventArgs<TArg, TResult>>? Succeeded;
 
     /// <summary>
     /// An event that fires whenever this query fails.
     /// </summary>
-    public event Action<QueryFailureContext<TArg>>? Failed;
+    public event Action<QueryFailureEventArgs<TArg>>? Failed;
 
     internal Query(
         QueryCache<TArg, TResult> cache,
@@ -263,16 +263,16 @@ public class Query<TArg, TResult>
         return await query.RefetchAsync().ConfigureAwait(false);
     }
 
-    internal void OnQuerySuccess(QuerySuccessContext<TArg, TResult> context)
+    internal void OnQuerySuccess(QuerySuccessEventArgs<TArg, TResult> args)
     {
         _lastSuccessfulQuery = _currentQuery;
-        Succeeded?.Invoke(context);
+        Succeeded?.Invoke(args);
         StateChanged?.Invoke();
     }
 
-    internal void OnQueryFailure(QueryFailureContext<TArg> context)
+    internal void OnQueryFailure(QueryFailureEventArgs<TArg> args)
     {
-        Failed?.Invoke(context);
+        Failed?.Invoke(args);
         StateChanged?.Invoke();
     }
 

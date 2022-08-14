@@ -33,7 +33,7 @@ public sealed record EndpointOptions<TArg, TResult>
     /// To avoid a race condition when multiple queries return in a different order than they were
     /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
     /// </summary>
-    public Action<QuerySuccessContext<TArg, TResult>>? OnSuccess { get; init; }
+    public Action<QuerySuccessEventArgs<TArg, TResult>>? OnSuccess { get; init; }
 
     /// <summary>
     /// A function that gets run whenever this query fails.
@@ -41,7 +41,7 @@ public sealed record EndpointOptions<TArg, TResult>
     /// To avoid a race condition when multiple queries return in a different order than they were
     /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
     /// </summary>
-    public Action<QueryFailureContext<TArg>>? OnFailure { get; init; }
+    public Action<QueryFailureEventArgs<TArg>>? OnFailure { get; init; }
 }
 
 /// <summary>
@@ -69,7 +69,7 @@ public sealed record QueryOptions<TArg, TResult>
     /// To avoid a race condition when multiple queries return in a different order than they were
     /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
     /// </summary>
-    public Action<QuerySuccessContext<TArg, TResult>>? OnSuccess { get; init; }
+    public Action<QuerySuccessEventArgs<TArg, TResult>>? OnSuccess { get; init; }
 
     /// <summary>
     /// A function that gets run whenever this query fails.
@@ -77,24 +77,55 @@ public sealed record QueryOptions<TArg, TResult>
     /// To avoid a race condition when multiple queries return in a different order than they were
     /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
     /// </summary>
-    public Action<QueryFailureContext<TArg>>? OnFailure { get; init; }
+    public Action<QueryFailureEventArgs<TArg>>? OnFailure { get; init; }
 }
 
 /// <summary>
-/// Object containing information about a succeeded query
+/// Object containing information about a succeeded query.
 /// </summary>
-/// <param name="Arg">The original argument passed to the query</param>
-/// <param name="Result">The value returned by the query</param>
-public sealed record QuerySuccessContext<TArg, TResult>(
-    TArg Arg,
-    TResult Result);
+public sealed class QuerySuccessEventArgs<TArg, TResult> : EventArgs
+{
+    /// <summary>
+    /// The original argument passed to the query.
+    /// </summary>
+    public TArg Arg { get; }
+
+    /// <summary>
+    /// The value returned by the query.
+    /// </summary>
+    public TResult Result { get; }
+
+    /// <summary>
+    /// Creates a new QuerySuccessEventArgs
+    /// </summary>
+    public QuerySuccessEventArgs(TArg arg, TResult result)
+    {
+        Arg = arg;
+        Result = result;
+    }
+}
 
 /// <summary>
-/// Object containing information about a faild query
+/// Object containing information about a succeeded query.
 /// </summary>
-/// <param name="Arg">The original argument passed to the query</param>
-/// <param name="Exception">The exception thrown by the query</param>
-public sealed record QueryFailureContext<TArg>(
-    TArg Arg,
-    Exception Exception);
+public sealed class QueryFailureEventArgs<TArg> : EventArgs
+{
+    /// <summary>
+    /// The original argument passed to the query.
+    /// </summary>
+    public TArg Arg { get; }
 
+    /// <summary>
+    /// The exception thrown by the query.
+    /// </summary>
+    public Exception Exception { get; }
+
+    /// <summary>
+    /// Creates a new QueryFailureEventArgs
+    /// </summary>
+    public QueryFailureEventArgs(TArg arg, Exception exception)
+    {
+        Arg = arg;
+        Exception = exception;
+    }
+}

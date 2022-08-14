@@ -279,7 +279,7 @@ public class ExampleApi
         {
             // Automatically invalidate the cached value for this Thing in GetThingEndpoint,
             // every time this mutation succeeds.
-            OnSuccess = context => GetThingEndpoint.Invalidate(context.Arg.Id)
+            OnSuccess = eventArgs => GetThingEndpoint.Invalidate(eventArgs.Arg.Id)
         });
     }
 
