@@ -61,7 +61,11 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         _endpointOptions = endpointOptions;
     }
 
-    internal void UpdateQueryData(TResult? resultData)
+    /// <summary>
+    /// Replaces the data for this cache entry. Any components using it will automatically receive
+    /// the updated data.
+    /// </summary>
+    public void UpdateQueryData(TResult resultData)
     {
         Data = resultData;
         _dataUpdatedAt = DateTime.Now;
@@ -78,7 +82,12 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
             || _dataUpdatedAt + staleTime < now;
     }
 
-    internal void Invalidate()
+    /// <summary>
+    /// Invalidates this cache entry, causing it to be re-fetched if it is currently being used. If
+    /// this cache entry is unused, it will be marked as invalidated and re-fetched as soon as it
+    /// becomes used.
+    /// </summary>
+    public void Invalidate()
     {
         if (_observers.Count > 0)
         {
