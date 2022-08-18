@@ -7,12 +7,20 @@
 
 <MudText Class="mb-8">This component demonstrates fetching paginated data from the server.</MudText>
 
-<UseEndpoint Endpoint="Api.GetTopAssets" Arg="currentPage" Context="query">
-    <MudButton @onclick="query.Refetch">Refresh</MudButton>
+<div>
+    <MudCheckBox @bind-Checked="EnablePrefetch" Color="Color.Secondary">
+        Prefetch next page automatically?
+    </MudCheckBox>
+</div>
 
-    <MudPagination Color="Color.Primary"
-                   Count="query.LastData?.Pagination.TotalPages ?? 1"
-                   @bind-Selected="@currentPage" />
+<UseEndpoint Endpoint="Api.GetTopAssets" Arg="CurrentPage" Context="query">
+    <div style="margin-block: 12px">
+        <MudButton @onclick="query.Refetch">Refresh</MudButton>
+
+        <MudPagination Color="Color.Primary"
+                       Count="query.LastData?.Pagination.TotalPages ?? 1"
+                       @bind-Selected="@CurrentPage" />
+    </div>
 
     @if (query.IsError)
     {
@@ -20,7 +28,11 @@
     }
     else
     {
-        <MudTable Items="query.LastData?.Data ?? new()"
+        @if (query.HasData && EnablePrefetch)
+        {
+            Api.GetTopAssets.Prefetch(CurrentPage + 1);
+        }
+        <MudTable Items="query.LastData?.Data"
               Hover="true"
               Elevation="0"
               Dense
@@ -40,5 +52,6 @@
 </UseEndpoint>
 
 @code {
-    private int currentPage = 1;
+    private int CurrentPage { get; set; } = 1;
+    private bool EnablePrefetch { get; set; } = false;
 }
