@@ -72,6 +72,10 @@ dotnet add package Phetch.Blazor
 
 If you're using Visual Studio, you can also install via the built-in NuGet package manager.
 
+## Contributing
+
+Any contributions are welcome, but ideally start by creating an [issue](https://github.com/Jcparkyn/phetch/issues).
+
 ## Comparison with other libraries
 
 - **[Fluxor](https://github.com/mrpmorris/Fluxor), [Blazor-State](https://github.com/TimeWarpEngineering/blazor-state) or [Cortex.Net](https://github.com/jspuij/Cortex.Net):** These are general-purpose state management libraries, so:
