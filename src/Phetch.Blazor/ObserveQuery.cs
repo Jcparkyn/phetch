@@ -1,6 +1,7 @@
 ﻿namespace Phetch.Blazor;
 
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Phetch.Core;
 
 public sealed class ObserveQuery<TArg, TResult> : ComponentBase, IDisposable
@@ -24,7 +25,7 @@ public sealed class ObserveQuery<TArg, TResult> : ComponentBase, IDisposable
         }
     }
 
-    [Parameter, EditorRequired]
+    [Parameter]
     public Action OnChanged { get; set; } = null!;
 
     /// <summary>
@@ -41,7 +42,18 @@ public sealed class ObserveQuery<TArg, TResult> : ComponentBase, IDisposable
     [Parameter]
     public Action<QueryFailureEventArgs<TArg>>? OnFailure { get; set; }
 
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
     public void Dispose() => TryUnsubscribe(_target);
+
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        if (ChildContent is not null)
+        {
+            builder?.AddContent(0, ChildContent);
+        }
+    }
 
     private void TryUnsubscribe(Query<TArg, TResult>? query)
     {
@@ -55,6 +67,7 @@ public sealed class ObserveQuery<TArg, TResult> : ComponentBase, IDisposable
     private void OnStateChanged()
     {
         OnChanged?.Invoke();
+        StateHasChanged();
     }
 
     private void SuccessCallback(QuerySuccessEventArgs<TArg, TResult> context) { OnSuccess?.Invoke(context); }
