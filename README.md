@@ -296,3 +296,17 @@ public class ExampleApi
     record Thing(int Id, string Name);
 }
 ```
+
+### Cancellation
+
+Queries that are currently running can be cancelled by calling `query.Cancel()`. This immediately resets the state of the query to whatever it was before the query was started.
+
+This also cancels the `CancellationToken` that was passed to the query function, but this **only has an effect if you used the `CancellationToken` in your query function**.
+If you pass the `CancellationToken` to the HTTP client (see the code sample in [Defining Query Endpoints](#defining-query-endpoints-recommended)), the browser will automatically cancel the in-flight request when you call `query.Cancel`.
+
+It is still up to your API to correctly handle the cancellation, so you should not rely on this to cancel requests that modify data on the server.
+
+### Pre-fetching
+
+If you know which data your user is likely to request in the future, you can call `endpoint.Prefetch(arg)` to trigger a request ahead of time and store the result in the cache.
+For example, you can use this to automatically fetch the next page of data in a table, which is demonstrated in the [sample project](./samples/PhetchBlazorDemo/Pages/Pagination.razor).
