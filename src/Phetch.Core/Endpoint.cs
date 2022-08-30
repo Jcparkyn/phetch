@@ -97,20 +97,22 @@ public class Endpoint<TArg, TResult>
     }
 
     /// <summary>
-    /// Updates the response data for a given query, if it exists.
+    /// Updates the response data for a given query. If no cache entry exists for this arg, a new
+    /// one will be created.
     /// </summary>
     /// <param name="arg">The query argument of the query to be updated.</param>
     /// <param name="resultData">The new data to set on the query.</param>
-    /// <returns><c>true</c> if the query existed, otherwise <c>false</c>.</returns>
-    public bool UpdateQueryData(TArg arg, TResult resultData) => Cache.UpdateQueryData(arg, resultData);
+    public void UpdateQueryData(TArg arg, TResult resultData) => Cache.UpdateQueryData(arg, resultData);
 
     /// <summary>
-    /// Updates the response data for a given query, if it exists.
+    /// Updates the response data for a given query. If no cache entry exists for this arg, a new
+    /// one will be created.
     /// </summary>
     /// <param name="arg">The query argument of the query to be updated.</param>
-    /// <param name="dataSelector">A function to select the new data for the query.</param>
-    /// <returns><c>true</c> if the query existed, otherwise <c>false</c>.</returns>
-    public bool UpdateQueryData(TArg arg, Func<FixedQuery<TArg, TResult>, TResult> dataSelector)
+    /// <param name="dataSelector">
+    /// A function to select the new data for the query, based on the existing cached query.
+    /// </param>
+    public void UpdateQueryData(TArg arg, Func<FixedQuery<TArg, TResult>, TResult> dataSelector)
         => Cache.UpdateQueryData(arg, dataSelector ?? throw new ArgumentNullException(nameof(dataSelector)));
 
     /// <summary>

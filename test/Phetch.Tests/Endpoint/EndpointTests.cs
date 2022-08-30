@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using FluentAssertions;
+    using FluentAssertions.Execution;
     using Phetch.Core;
     using Xunit;
 
@@ -112,6 +113,30 @@
             query1.Data.Should().Be("1");
             query2.Data.Should().Be("2 - test1");
             query3.Data.Should().Be("3 - test2");
+        }
+
+        [UIFact]
+        public async Task UpdateQueryData_for_new_arg_should_add_cache_entry()
+        {
+            var (queryFn, queryFnCalls) = TestHelpers.MakeTrackedQueryFn();
+            var endpoint = new Endpoint<int, string>(queryFn);
+
+            endpoint.UpdateQueryData(1, "1");
+            var query1 = endpoint.Use(new()
+            {
+                StaleTime = TimeSpan.FromSeconds(30),
+            });
+
+            var setArgTask = query1.SetArgAsync(1);
+
+            using (new AssertionScope())
+            {
+                setArgTask.IsCompletedSuccessfully.Should().BeTrue();
+                query1.Data.Should().Be("1");
+                queryFnCalls.Should().BeEmpty();
+            }
+
+            await setArgTask;
         }
     }
 }

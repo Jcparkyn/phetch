@@ -1,6 +1,7 @@
 ﻿namespace Phetch.Core;
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -81,26 +82,30 @@ internal class QueryCache<TArg, TResult>
         return new FixedQuery<TArg, TResult>(this, QueryFn, arg, endpointOptions);
     }
 
-    public bool UpdateQueryData(TArg arg, TResult resultData)
+    public void UpdateQueryData(TArg arg, TResult resultData)
     {
-        var exists = false;
-        foreach (var query in GetAllQueries(arg))
-        {
-            query.UpdateQueryData(resultData);
-            exists = true;
-        }
-        return exists;
+        UpdateQueryData(arg, _ => resultData);
     }
 
-    public bool UpdateQueryData(TArg arg, Func<FixedQuery<TArg, TResult>, TResult> dataSelector)
+    public void UpdateQueryData(TArg arg, Func<FixedQuery<TArg, TResult>, TResult> dataSelector)
     {
-        var exists = false;
-        foreach (var query in GetAllQueries(arg))
+        if (_cachedResponses.TryGetValue(arg, out var query1))
         {
-            query.UpdateQueryData(dataSelector(query));
-            exists = true;
+            query1.UpdateQueryData(dataSelector(query1));
         }
-        return exists;
+        else
+        {
+            var newQuery = CreateQuery(arg, _endpointOptions);
+            newQuery.UpdateQueryData(dataSelector(newQuery));
+            _cachedResponses.Add(arg, newQuery);
+        }
+        if (_uncachedResponses.TryGetValue(arg, out var queries))
+        {
+            foreach (var query2 in queries)
+            {
+                query2.UpdateQueryData(dataSelector(query2));
+            }
+        }
     }
 
     public void Remove(FixedQuery<TArg, TResult> query)
