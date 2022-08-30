@@ -63,6 +63,11 @@ public class Query<TArg, TResult>
     { }
 
     /// <summary>
+    /// The current argument passed to this query, or <c>default</c> if the query is unititialized.
+    /// </summary>
+    public TArg? Arg => _currentQuery is { } query ? query.Arg : default;
+
+    /// <summary>
     /// The current status of this query.
     /// </summary>
     public QueryStatus Status => _currentQuery?.Status ?? QueryStatus.Idle;
@@ -136,6 +141,7 @@ public class Query<TArg, TResult>
     /// <summary>
     /// True if no arguments have been provided to this query yet.
     /// </summary>
+    [MemberNotNullWhen(false, nameof(Arg))]
     public bool IsUninitialized => Status == QueryStatus.Idle;
 
     /// <summary>
