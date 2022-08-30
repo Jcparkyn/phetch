@@ -1,6 +1,7 @@
 ﻿namespace Phetch.Tests.Endpoint
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using FluentAssertions;
     using Phetch.Core;
@@ -11,18 +12,11 @@
         [UIFact]
         public async Task Should_prefetch_data()
         {
-            var numQueryFnCalls = 0;
-            var endpoint = new Endpoint<int, string>(
-                async val =>
-                {
-                    numQueryFnCalls++;
-                    await Task.Yield();
-                    return val.ToString();
-                }
-            );
+            var (queryFn, queryFnCalls) = TestHelpers.MakeTrackedQueryFn();
+            var endpoint = new Endpoint<int, string>(queryFn);
             await endpoint.PrefetchAsync(1);
 
-            numQueryFnCalls.Should().Be(1);
+            queryFnCalls.Should().Equal(1);
 
             var query = endpoint.Use(new()
             {
@@ -33,7 +27,7 @@
             // The query should have completed synchronously without re-fetching
             query.IsSuccess.Should().BeTrue();
             query.Data.Should().Be("1");
-            numQueryFnCalls.Should().Be(1);
+            queryFnCalls.Should().Equal(1);
 
             await setArgTask;
         }
@@ -41,15 +35,8 @@
         [UIFact]
         public async Task Should_do_nothing_if_query_exists()
         {
-            var numQueryFnCalls = 0;
-            var endpoint = new Endpoint<int, string>(
-                async val =>
-                {
-                    numQueryFnCalls++;
-                    await Task.Yield();
-                    return val.ToString();
-                }
-            );
+            var (queryFn, queryFnCalls) = TestHelpers.MakeTrackedQueryFn();
+            var endpoint = new Endpoint<int, string>(queryFn);
             // Query in progress:
             var query1 = endpoint.Use();
             var setArgTask1 = query1.SetArgAsync(1);
@@ -57,7 +44,7 @@
             await setArgTask1;
 
             query1.Data.Should().Be("1");
-            numQueryFnCalls.Should().Be(1);
+            queryFnCalls.Should().Equal(1);
 
             // Complete query:
             var query2 = endpoint.Use();
@@ -65,17 +52,17 @@
             await endpoint.PrefetchAsync(1);
 
             query2.Data.Should().Be("1");
-            numQueryFnCalls.Should().Be(2);
+            queryFnCalls.Should().Equal(1, 1);
         }
 
         [UIFact]
         public async Task Should_refetch_failed_query()
         {
-            var numQueryFnCalls = 0;
+            var queryFnCalls = new List<int>();
             var endpoint = new Endpoint<int, string>(
-                async (val, ct) =>
+                async val =>
                 {
-                    numQueryFnCalls++;
+                    queryFnCalls.Add(val);
                     await Task.Yield();
                     throw new Exception("Test exception");
                 }
@@ -89,7 +76,7 @@
             await query.Awaiting(q => q.SetArgAsync(1)).Should().ThrowAsync<Exception>();
             var prefetchTask = endpoint.Awaiting(e => e.PrefetchAsync(1)).Should().ThrowAsync<Exception>();
 
-            numQueryFnCalls.Should().Be(2);
+            queryFnCalls.Should().Equal(1, 1);
             query.IsFetching.Should().BeTrue();
             await prefetchTask;
             query.IsError.Should().BeTrue();

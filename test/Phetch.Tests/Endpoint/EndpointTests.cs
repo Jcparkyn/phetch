@@ -23,15 +23,9 @@
         [UIFact]
         public async Task Should_share_cache_between_queries()
         {
-            var numQueryFnCalls = 0;
-            var endpoint = new Endpoint<int, string>(
-                async val =>
-                {
-                    numQueryFnCalls++;
-                    await Task.Yield();
-                    return val.ToString();
-                }
-            );
+            var (queryFn, queryFnCalls) = TestHelpers.MakeTrackedQueryFn();
+            var endpoint = new Endpoint<int, string>(queryFn);
+
             var options = new QueryOptions<int, string>()
             {
                 StaleTime = TimeSpan.FromMinutes(100),
@@ -44,39 +38,33 @@
             query1.Data.Should().Be("10");
             query2.Data.Should().Be("10");
 
-            numQueryFnCalls.Should().Be(1);
+            queryFnCalls.Should().Equal(10);
         }
 
         [UIFact]
         public async Task Invalidate_should_rerun_query()
         {
-            var numQueryFnCalls = 0;
-            var endpoint = new Endpoint<int, string>(
-                async val =>
-                {
-                    numQueryFnCalls++;
-                    await Task.Yield();
-                    return val.ToString();
-                }
-            );
+            var (queryFn, queryFnCalls) = TestHelpers.MakeTrackedQueryFn();
+            var endpoint = new Endpoint<int, string>(queryFn);
+
             var query1 = endpoint.Use();
             var query2 = endpoint.Use();
 
             await query1.SetArgAsync(1);
             await query2.SetArgAsync(2);
 
-            numQueryFnCalls.Should().Be(2);
+            queryFnCalls.Should().Equal(1, 2);
 
             endpoint.Invalidate(1);
 
             query1.IsFetching.Should().BeTrue();
             query2.IsFetching.Should().BeFalse();
 
-            numQueryFnCalls.Should().Be(3);
+            queryFnCalls.Should().Equal(1, 2, 1);
 
             endpoint.InvalidateAll();
 
-            numQueryFnCalls.Should().Be(5);
+            queryFnCalls.Should().Equal(1, 2, 1, 1, 2);
         }
 
         [UIFact]

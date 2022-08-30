@@ -10,23 +10,17 @@
         [UIFact]
         public async Task Returnless_mutation_should_work()
         {
-            var mutationArg = 0;
-            var endpoint = new MutationEndpoint<int>(
-                async val =>
-                {
-                    mutationArg = val;
-                    await Task.Yield();
-                }
-            );
+            var (queryFn, queryFnCalls) = TestHelpers.MakeTrackedQueryFn();
+            var endpoint = new MutationEndpoint<int>(queryFn);
             var mut = endpoint.Use();
 
             mut.IsUninitialized.Should().BeTrue();
             mut.Status.Should().Be(QueryStatus.Idle);
 
-            var result = await mut.TriggerAsync(10);
+            await mut.TriggerAsync(10);
 
             mut.Status.Should().Be(QueryStatus.Success);
-            mutationArg.Should().Be(10);
+            queryFnCalls.Should().Equal(10);
         }
     }
 }
