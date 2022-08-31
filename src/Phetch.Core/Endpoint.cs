@@ -87,11 +87,10 @@ public class Endpoint<TArg, TResult>
     /// Invalidates all cache entries that match the given predicate.
     /// </summary>
     /// <param name="predicate">
-    /// The function to use when deciding which entries to invalidate. The arguments to this
-    /// function are the query arg, and the query object itself. This should return <c>true</c> for
-    /// entries that should be invalidated, or false otherwise.
+    /// The function to use when deciding which entries to invalidate, based on the cached query.
+    /// This should return <c>true</c> for entries that should be invalidated, or false otherwise.
     /// </param>
-    public void InvalidateWhere(Func<TArg, FixedQuery<TArg, TResult>, bool> predicate)
+    public void InvalidateWhere(Func<FixedQuery<TArg, TResult>, bool> predicate)
     {
         Cache.InvalidateWhere(predicate ?? throw new ArgumentNullException(nameof(predicate)));
     }

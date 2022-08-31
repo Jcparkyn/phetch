@@ -22,7 +22,7 @@ internal class QueryCache<TArg, TResult>
 
     public void InvalidateAll()
     {
-        foreach (var (_, query) in _cachedResponses)
+        foreach (var query in _cachedResponses.Values)
         {
             query?.Invalidate();
         }
@@ -36,11 +36,11 @@ internal class QueryCache<TArg, TResult>
         }
     }
 
-    internal void InvalidateWhere(Func<TArg, FixedQuery<TArg, TResult>, bool> predicate)
+    internal void InvalidateWhere(Func<FixedQuery<TArg, TResult>, bool> predicate)
     {
-        foreach (var (arg, query) in _cachedResponses)
+        foreach (var query in _cachedResponses.Values)
         {
-            if (predicate(arg, query))
+            if (predicate(query))
             {
                 query?.Invalidate();
             }
