@@ -41,7 +41,10 @@ public class HackerNewsApi
 
     public Endpoint<int, HnItemDetails> GetItem { get; }
 
-    public record GetTopStoriesArgs(int Page, int PageSize = 20, string Query = "", string Tag = "", DateTimeOffset? StartDate = null);
+    public record GetTopStoriesArgs(int Page, int PageSize = 20, string Query = "", string Tag = "", DateTimeOffset? StartDate = null)
+    {
+        public GetTopStoriesArgs GetNextPageArgs() => this with { Page = Page + 1 };
+    }
 }
 
 public record SearchResponse<T>(

@@ -6,7 +6,7 @@
 <MudText Typo="Typo.h3" GutterBottom>Search</MudText>
 
 <div style="display: flex; gap: 16px">
-    <MudTextField @bind-Value=SearchText
+    <MudTextField @bind-Value=_searchText
                   Label="Search"
                   Clearable
                   Variant="Variant.Outlined"
@@ -14,20 +14,20 @@
                   Adornment="Adornment.End"
                   AdornmentIcon="@Icons.Filled.Search"
                   AdornmentColor="Color.Secondary" />
-    <MudSelect T="DateTimeOffset?" @bind-Value="StartDate" Variant="Variant.Outlined" Label="Time range" Placeholder="All">
+    <MudSelect T="DateTimeOffset?" @bind-Value="_startDate" Variant="Variant.Outlined" Label="Time range" Placeholder="All">
         <MudSelectItem T="DateTimeOffset?" Value="null"><div>All</div></MudSelectItem>
         <MudSelectItem T="DateTimeOffset?" Value="now.AddHours(-24)"><div>Last 24h</div></MudSelectItem>
         <MudSelectItem T="DateTimeOffset?" Value="now.AddDays(-7)"><div>Last 7 days</div></MudSelectItem>
     </MudSelect>
 </div>
 
-<MudList>
-    @for (int _page = 0; _page < pageCount; _page++)
-    {
-        var page = _page;
-        <UseEndpoint Endpoint="Api.GetTopStories"
-                 Arg="@new(page, PageSize: 30, Query: SearchText, Tag: "story", StartDate: StartDate)"
-                 Context="query">
+<UseEndpointInfinite
+    Endpoint="Api.GetTopStories"
+    Arg="@new(Page: 0, PageSize: 30, Query: _searchText, Tag: "story", StartDate: _startDate)"
+    GetNextPageArg="(q, pageCount) => pageCount < q.Data?.NbPages ? q.Arg?.GetNextPageArgs() : null">
+    <MudList>
+        @foreach(var query in context.Pages)
+        {
             @if (query.HasData)
             {
                 var posts = query.Data;
@@ -36,12 +36,6 @@
                     <MudListItem Style="padding-inline: 0">
                         <PostPreview @key="post.Id" Post="post" />
                     </MudListItem>
-                }
-                if (page == pageCount - 1 && page < posts.NbPages - 1)
-                {
-                    <div style="display: flex; justify-content: center">
-                        <MudButton OnClick="() => pageCount++">Load More</MudButton>
-                    </div>
                 }
             }
             else if (query.IsLoading)
@@ -56,31 +50,19 @@
                     <MudButton OnClick="query.Refetch">Retry</MudButton>
                 </MudAlert>
             }
-        </UseEndpoint>
+        }
+    </MudList>
+    @if (context.HasNextPage)
+    {
+        <div style="display: flex; justify-content: center">
+            <MudButton OnClick="context.LoadNextPage">Load More</MudButton>
+        </div>
     }
-</MudList>
+</UseEndpointInfinite>
 
 @code {
-    int pageCount = 1;
     string _searchText = "";
-    string SearchText
-    {
-        get => _searchText;
-        set
-        {
-            _searchText = value;
-            pageCount = 1;
-        }
-    }
     DateTimeOffset? _startDate = null;
-    DateTimeOffset? StartDate
-    {
-        get => _startDate;
-        set
-        {
-            _startDate = value;
-            pageCount = 1;
-        }
-    }
-    DateTimeOffset now = DateTimeOffset.Now;
+
+    readonly DateTimeOffset now = DateTimeOffset.Now;
 }
