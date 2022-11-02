@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 public class Query<TArg, TResult>
 {
     private readonly QueryCache<TArg, TResult> _cache;
+    private readonly QueryOptions<TArg, TResult>? _options;
     private readonly TimeSpan _staleTime;
     private FixedQuery<TArg, TResult>? _lastSuccessfulQuery;
     private FixedQuery<TArg, TResult>? _currentQuery;
@@ -43,6 +44,7 @@ public class Query<TArg, TResult>
         EndpointOptions<TArg, TResult> endpointOptions)
     {
         _cache = cache;
+        _options = options;
         _staleTime = options?.StaleTime ?? endpointOptions.DefaultStaleTime;
         Succeeded += options?.OnSuccess;
         Failed += options?.OnFailure;
@@ -188,7 +190,7 @@ public class Query<TArg, TResult>
     /// <inheritdoc cref="RefetchAsync" path="/exception"/>
     public void Refetch()
     {
-        _currentQuery?.Refetch();
+        _currentQuery?.Refetch(_options?.RetryHandler);
     }
 
     /// <summary>
@@ -201,7 +203,7 @@ public class Query<TArg, TResult>
         if (_currentQuery is null)
             throw new InvalidOperationException("Cannot refetch an unititialized query");
 
-        return _currentQuery.RefetchAsync();
+        return _currentQuery.RefetchAsync(_options?.RetryHandler);
     }
 
     /// <summary>
@@ -234,7 +236,7 @@ public class Query<TArg, TResult>
 
             if (!newQuery.IsFetching && newQuery.IsStaleByTime(_staleTime, DateTime.Now))
             {
-                await newQuery.RefetchAsync().ConfigureAwait(false);
+                await newQuery.RefetchAsync(_options?.RetryHandler).ConfigureAwait(false);
             }
         }
     }
@@ -266,7 +268,7 @@ public class Query<TArg, TResult>
         _currentQuery?.RemoveObserver(this);
         query.AddObserver(this);
         _currentQuery = query;
-        return await query.RefetchAsync().ConfigureAwait(false);
+        return await query.RefetchAsync(_options?.RetryHandler).ConfigureAwait(false);
     }
 
     internal void OnQuerySuccess(QuerySuccessEventArgs<TArg, TResult> args)

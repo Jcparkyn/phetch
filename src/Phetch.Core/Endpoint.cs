@@ -125,7 +125,7 @@ public class Endpoint<TArg, TResult>
         var query = Cache.GetOrAdd(arg);
         if (query.Status == QueryStatus.Idle || query.Status == QueryStatus.Error)
         {
-            await query.RefetchAsync();
+            await query.RefetchAsync(retryHandler: null);
         }
     }
 

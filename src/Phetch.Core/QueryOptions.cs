@@ -42,6 +42,21 @@ public sealed record EndpointOptions<TArg, TResult>
     /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
     /// </summary>
     public Action<QueryFailureEventArgs<TArg>>? OnFailure { get; init; }
+
+    /// <summary>
+    /// An optional object to control whether and how the query function is retried if it fails. If
+    /// left null, the query will not be retried when it fails.
+    /// </summary>
+    /// <remarks>
+    /// <example><b>Example:</b>
+    /// <code>
+    /// var endpoint = new Endpoint&lt;int, string&gt;(..., new() {
+    ///     RetryHandler = RetryHandler.Simple(3);
+    /// });
+    /// </code>
+    /// </example>
+    /// </remarks>
+    public IRetryHandler? RetryHandler { get; init; }
 }
 
 /// <summary>
@@ -78,6 +93,13 @@ public sealed record QueryOptions<TArg, TResult>
     /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
     /// </summary>
     public Action<QueryFailureEventArgs<TArg>>? OnFailure { get; init; }
+
+    /// <summary>
+    /// If set, overrides the default RetryHandler for the endpoint.
+    /// <para/>
+    /// To remove the endpoint's retry handler if it has one, set this to <see cref="RetryHandler.None"/>.
+    /// </summary>
+    public IRetryHandler? RetryHandler { get; init; }
 }
 
 /// <summary>

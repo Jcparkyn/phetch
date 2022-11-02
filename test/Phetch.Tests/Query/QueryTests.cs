@@ -1,14 +1,12 @@
 ﻿namespace Phetch.Tests.Query
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
     using FluentAssertions;
     using FluentAssertions.Execution;
     using Phetch.Core;
     using Xunit;
+    using static TestHelpers;
 
     public class QueryTests
     {
@@ -244,25 +242,6 @@
             query.IsSuccess.Should().BeFalse();
             query.IsLoading.Should().BeFalse();
             query.IsFetching.Should().BeFalse();
-        }
-
-        // Makes a query function that can be called multiple times, using a different TaskCompletionSource each time.
-        private static (Func<CancellationToken, Task<string>> queryFn, List<TaskCompletionSource<string>> sources) MakeCustomQueryFn(int numSources)
-        {
-            var sources = Enumerable.Range(0, numSources)
-                .Select(_ => new TaskCompletionSource<string>())
-                .ToList();
-
-            var queryCount = 0;
-            var queryFn = async (CancellationToken _) =>
-            {
-                if (queryCount > numSources)
-                    throw new Exception("Query function called too many times");
-                var resultTask = sources[queryCount].Task;
-                queryCount++;
-                return await resultTask;
-            };
-            return (queryFn, sources);
         }
     }
 }

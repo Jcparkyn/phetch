@@ -17,6 +17,7 @@ public class HackerNewsApi
             options: new()
             {
                 DefaultStaleTime = TimeSpan.FromSeconds(60),
+                RetryHandler = RetryHandler.Simple(1),
             }
         );
 

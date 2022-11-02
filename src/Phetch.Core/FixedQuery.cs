@@ -91,7 +91,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     {
         if (_observers.Count > 0)
         {
-            Refetch();
+            Refetch(retryHandler: null);
         }
         else
         {
@@ -128,9 +128,9 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         }
     }
 
-    internal void Refetch() => _ = RefetchAsync();
+    internal void Refetch(IRetryHandler? retryHandler) => _ = RefetchAsync(retryHandler);
 
-    internal async Task<TResult> RefetchAsync()
+    internal async Task<TResult> RefetchAsync(IRetryHandler? retryHandler)
     {
         if (Status != QueryStatus.Success)
         {
@@ -143,7 +143,13 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         Task<TResult>? thisActionCall = null;
         try
         {
-            thisActionCall = _queryFn(Arg, thisCts.Token);
+            var token = thisCts.Token;
+            thisActionCall = (retryHandler ?? _endpointOptions.RetryHandler) switch
+            {
+                { } handler when handler is not NoRetryHandler => handler.ExecuteAsync(ct => _queryFn(Arg, ct), token),
+                _ => _queryFn(Arg, thisCts.Token),
+            };
+
             _lastActionCall = thisActionCall;
             var newData = await thisActionCall;
             // Only update if no more recent tasks have finished.

@@ -17,10 +17,4 @@
     <ProjectReference Include="..\..\src\Phetch.Blazor\Phetch.Blazor.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Update="Pages\Counter2.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-  </ItemGroup>
-
 </Project>
