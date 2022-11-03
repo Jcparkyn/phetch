@@ -1,4 +1,4 @@
-﻿namespace Phetch.Blazor;
+﻿namespace Phetch.Blazor.Experimental;
 
 using Microsoft.AspNetCore.Components;
 using Phetch.Core;
