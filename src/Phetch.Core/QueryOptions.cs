@@ -3,12 +3,26 @@
 using System;
 
 /// <summary>
-/// Options that are passed to an Endpoint.
+/// A re-usable version of <see cref="Endpoint{TArg, TResult}"/> without type arguments, which can
+/// be used to share endpoint settings across multiple endpoints.
 /// </summary>
-public sealed record EndpointOptions<TArg, TResult>
+/// <remarks>
+/// This can be customised for each endpoint using the <see cref="EndpointOptions{TArg, TResult}"/> constructor.
+/// <para/>
+/// <code>
+/// var defaultEndpointOptions = new EndpointOptions
+/// {
+///     RetryHandler = RetryHandler.Simple(3)
+/// };
+/// var endpoint = new Endpoint&lt;int, string&gt;(..., new(defaultEndpointOptions)
+/// {
+///     RetryHandler = RetryHandler.None,
+///     CacheTime = TimeSpan.Zero,
+/// });
+/// </code>
+/// </remarks>
+public sealed record EndpointOptions
 {
-    internal static EndpointOptions<TArg, TResult> Default { get; } = new();
-
     /// <summary>
     /// The amount of time to store query results in the cache after they stop being used.
     /// </summary>
@@ -33,7 +47,7 @@ public sealed record EndpointOptions<TArg, TResult>
     /// To avoid a race condition when multiple queries return in a different order than they were
     /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
     /// </summary>
-    public Action<QuerySuccessEventArgs<TArg, TResult>>? OnSuccess { get; init; }
+    public Action<object>? OnSuccess { get; init; }
 
     /// <summary>
     /// A function that gets run whenever this query fails.
@@ -41,7 +55,7 @@ public sealed record EndpointOptions<TArg, TResult>
     /// To avoid a race condition when multiple queries return in a different order than they were
     /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
     /// </summary>
-    public Action<QueryFailureEventArgs<TArg>>? OnFailure { get; init; }
+    public Action<object>? OnFailure { get; init; }
 
     /// <summary>
     /// An optional object to control whether and how the query function is retried if it fails. If
@@ -51,12 +65,60 @@ public sealed record EndpointOptions<TArg, TResult>
     /// <example><b>Example:</b>
     /// <code>
     /// var endpoint = new Endpoint&lt;int, string&gt;(..., new() {
-    ///     RetryHandler = RetryHandler.Simple(3);
+    ///     RetryHandler = RetryHandler.Simple(3)
     /// });
     /// </code>
     /// </example>
     /// </remarks>
     public IRetryHandler? RetryHandler { get; init; }
+}
+
+/// <summary>
+/// Options that are passed to an Endpoint.
+/// </summary>
+public sealed record EndpointOptions<TArg, TResult>()
+{
+    /// <summary>
+    /// Creates a strongly-typed EndpointOptions&lt;TArg, TResult&gt; from an EndpointOptions.
+    /// </summary>
+    public EndpointOptions(EndpointOptions original) : this()
+    {
+        _ = original ?? throw new ArgumentNullException(nameof(original));
+        CacheTime = original.CacheTime;
+        DefaultStaleTime = original.DefaultStaleTime;
+        OnSuccess = original.OnSuccess;
+        OnFailure = original.OnFailure;
+        RetryHandler = original.RetryHandler;
+    }
+
+    private static EndpointOptions<TArg, TResult>? s_default;
+
+    internal static EndpointOptions<TArg, TResult> Default => s_default ??= new();
+
+    /// <inheritdoc cref="EndpointOptions.CacheTime"/>
+    public TimeSpan CacheTime { get; init; } = TimeSpan.FromMinutes(5);
+
+    /// <inheritdoc cref="EndpointOptions.DefaultStaleTime"/>
+    public TimeSpan DefaultStaleTime { get; init; } = TimeSpan.Zero;
+
+    /// <inheritdoc cref="EndpointOptions.OnSuccess"/>
+    public Action<QuerySuccessEventArgs<TArg, TResult>>? OnSuccess { get; init; }
+
+    /// <inheritdoc cref="EndpointOptions.OnFailure"/>
+    public Action<QueryFailureEventArgs<TArg>>? OnFailure { get; init; }
+
+    /// <inheritdoc cref="EndpointOptions.RetryHandler"/>
+    public IRetryHandler? RetryHandler { get; init; }
+
+    /// <summary>
+    /// Converts an untyped <see cref="EndpointOptions"/> instance into an <see cref="Endpoint{TArg, TResult}"/>.
+    /// </summary>
+    /// <param name="original"></param>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Usage",
+        "CA2225:Operator overloads have named alternates",
+        Justification = "Constructor is clearer than ToEndpointOptions method.")]
+    public static implicit operator EndpointOptions<TArg, TResult>(EndpointOptions original) => new(original);
 }
 
 /// <summary>
