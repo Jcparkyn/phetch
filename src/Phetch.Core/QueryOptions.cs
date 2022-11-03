@@ -55,7 +55,7 @@ public sealed record EndpointOptions
     /// To avoid a race condition when multiple queries return in a different order than they were
     /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
     /// </summary>
-    public Action<object>? OnFailure { get; init; }
+    public Action<QueryFailureEventArgs>? OnFailure { get; init; }
 
     /// <summary>
     /// An optional object to control whether and how the query function is retried if it fails. If
@@ -190,9 +190,25 @@ public sealed class QuerySuccessEventArgs<TArg, TResult> : EventArgs
 }
 
 /// <summary>
+/// Object containing information about a succeeded query, without type information.
+/// </summary>
+public abstract class QueryFailureEventArgs : EventArgs
+{
+    /// <summary>
+    /// The exception thrown by the query.
+    /// </summary>
+    public Exception Exception { get; }
+
+    internal QueryFailureEventArgs(Exception exception)
+    {
+        Exception = exception;
+    }
+}
+
+/// <summary>
 /// Object containing information about a succeeded query.
 /// </summary>
-public sealed class QueryFailureEventArgs<TArg> : EventArgs
+public sealed class QueryFailureEventArgs<TArg> : QueryFailureEventArgs
 {
     /// <summary>
     /// The original argument passed to the query.
@@ -200,16 +216,10 @@ public sealed class QueryFailureEventArgs<TArg> : EventArgs
     public TArg Arg { get; }
 
     /// <summary>
-    /// The exception thrown by the query.
-    /// </summary>
-    public Exception Exception { get; }
-
-    /// <summary>
     /// Creates a new QueryFailureEventArgs
     /// </summary>
-    public QueryFailureEventArgs(TArg arg, Exception exception)
+    public QueryFailureEventArgs(TArg arg, Exception exception) : base(exception)
     {
         Arg = arg;
-        Exception = exception;
     }
 }
