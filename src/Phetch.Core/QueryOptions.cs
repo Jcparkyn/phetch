@@ -127,7 +127,8 @@ public sealed record EndpointOptions<TArg, TResult>()
 /// </summary>
 public sealed record QueryOptions<TArg, TResult>
 {
-    internal static QueryOptions<TArg, TResult> Default { get; } = new();
+    private static QueryOptions<TArg, TResult>? s_default;
+    internal static QueryOptions<TArg, TResult> Default => s_default ??= new();
 
     /// <summary>
     /// The amount of time until this query is considered "stale". If not set, the <see
