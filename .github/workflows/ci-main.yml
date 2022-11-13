@@ -6,7 +6,9 @@ on:
   workflow_dispatch:
 
 env:
-    NETCORE_VERSION: '6.0.x'
+    NETCORE_VERSION: |
+      6.0.x
+      7.0.x
     DOTNET_NOLOGO: true
     DOTNET_CLI_TELEMETRY_OPTOUT: true
     NUGET_FEED: https://api.nuget.org/v3/index.json
