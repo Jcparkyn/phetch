@@ -42,16 +42,15 @@ public static class RetryHandler
 
 /// <summary>
 /// A simple retry handler that retries a given number of times with no waiting between retries.
-/// Pass the <see cref="ExecuteAsync">ExecuteAsync</see> method to the <see
-/// cref="EndpointOptions{TArg,TResult}.RetryHandler"/> property of an <see cref="Endpoint{TArg,
-/// TResult}"/> to use this retry handler.
+/// <para/>
+/// This will retry if the query function throws an exception other than <see cref="OperationCanceledException"/>.
 /// </summary>
 /// <remarks>
 /// Construct this using <see cref="RetryHandler.Simple(int)"/>.
 /// <para/>
 /// <example><b>Example:</b>
 /// <code>
-///RetryHandler = RetryHandler.Simple(2);
+/// RetryHandler = RetryHandler.Simple(2);
 /// </code>
 /// </example>
 /// </remarks>
