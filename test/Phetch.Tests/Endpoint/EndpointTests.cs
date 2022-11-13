@@ -109,7 +109,7 @@
             var (queryFn, queryFnCalls) = TestHelpers.MakeTrackedQueryFn();
             var endpoint = new Endpoint<int, string>(queryFn);
 
-            endpoint.UpdateQueryData(1, "1");
+            endpoint.UpdateQueryData(1, "1", true);
             var query1 = endpoint.Use(new()
             {
                 StaleTime = TimeSpan.FromSeconds(30),

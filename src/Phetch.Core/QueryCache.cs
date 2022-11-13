@@ -1,7 +1,6 @@
 ﻿namespace Phetch.Core;
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,18 +81,18 @@ internal class QueryCache<TArg, TResult>
         return new FixedQuery<TArg, TResult>(this, QueryFn, arg, endpointOptions);
     }
 
-    public void UpdateQueryData(TArg arg, TResult resultData)
+    public void UpdateQueryData(TArg arg, TResult resultData, bool addIfNotExists)
     {
-        UpdateQueryData(arg, _ => resultData);
+        UpdateQueryData(arg, _ => resultData, addIfNotExists);
     }
 
-    public void UpdateQueryData(TArg arg, Func<FixedQuery<TArg, TResult>, TResult> dataSelector)
+    public void UpdateQueryData(TArg arg, Func<FixedQuery<TArg, TResult>, TResult> dataSelector, bool addIfNotExists)
     {
         if (_cachedResponses.TryGetValue(arg, out var query1))
         {
             query1.UpdateQueryData(dataSelector(query1));
         }
-        else
+        else if (addIfNotExists)
         {
             var newQuery = CreateQuery(arg, _endpointOptions);
             newQuery.UpdateQueryData(dataSelector(newQuery));
