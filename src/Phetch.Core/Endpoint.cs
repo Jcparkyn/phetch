@@ -96,24 +96,18 @@ public class Endpoint<TArg, TResult>
     }
 
     /// <summary>
-    /// Updates the response data for a given query, if it already exists in the cache.
-    /// </summary>
-    /// <param name="arg">The query argument of the query to be updated.</param>
-    /// <param name="resultData">The new data to set on the query.</param>
-    public void UpdateQueryData(TArg arg, TResult resultData) => Cache.UpdateQueryData(arg, resultData, true);
-
-    /// <summary>
     /// Updates the response data for a given query. If no cache entry exists for this arg and
     /// <paramref name="addIfNotExists"/> is <c>true</c>, a new one will be created.
     /// </summary>
     /// <param name="arg">The query argument of the query to be updated.</param>
     /// <param name="resultData">The new data to set on the query.</param>
     /// <param name="addIfNotExists"></param>
-    public void UpdateQueryData(TArg arg, TResult resultData, bool addIfNotExists) => Cache.UpdateQueryData(arg, resultData, addIfNotExists);
+    public void UpdateQueryData(TArg arg, TResult resultData, bool addIfNotExists = false)
+        => Cache.UpdateQueryData(arg, resultData, addIfNotExists);
 
     /// <summary>
-    /// Updates the response data for a given query. If no cache entry exists for this arg, a new
-    /// one will be created.
+    /// Updates the response data for a given query. If no cache entry exists for this arg and
+    /// <paramref name="addIfNotExists"/> is <c>true</c>, a new one will be created.
     /// </summary>
     /// <remarks>
     /// Note: It is not guaranteed that the the query object passed to <paramref
@@ -123,11 +117,12 @@ public class Endpoint<TArg, TResult>
     /// <param name="dataSelector">
     /// A function to select the new data for the query, based on the existing cached query.
     /// </param>
-    public void UpdateQueryData(TArg arg, Func<FixedQuery<TArg, TResult>, TResult> dataSelector)
-        => Cache.UpdateQueryData(
-            arg,
-            dataSelector ?? throw new ArgumentNullException(nameof(dataSelector)),
-            addIfNotExists: false);
+    /// <param name="addIfNotExists">
+    /// If <c>true</c> and there is no cache entry for the given <paramref name="arg"/>, a new query
+    /// will be added to the cache.
+    /// </param>
+    public void UpdateQueryData(TArg arg, Func<FixedQuery<TArg, TResult>, TResult> dataSelector, bool addIfNotExists = false)
+        => Cache.UpdateQueryData(arg, dataSelector ?? throw new ArgumentNullException(nameof(dataSelector)), addIfNotExists);
 
     /// <summary>
     /// Begins running the query in the background for the specified query argument, so that the
