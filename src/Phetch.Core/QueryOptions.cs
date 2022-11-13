@@ -3,7 +3,7 @@
 using System;
 
 /// <summary>
-/// A re-usable version of <see cref="Endpoint{TArg, TResult}"/> without type arguments, which can
+/// A re-usable version of <see cref="EndpointOptions{TArg, TResult}"/> without type arguments, which can
 /// be used to share endpoint settings across multiple endpoints.
 /// </summary>
 /// <remarks>
@@ -47,7 +47,7 @@ public sealed record EndpointOptions
     /// To avoid a race condition when multiple queries return in a different order than they were
     /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
     /// </summary>
-    public Action<object>? OnSuccess { get; init; }
+    public Action<EventArgs>? OnSuccess { get; init; }
 
     /// <summary>
     /// A function that gets run whenever this query fails.
@@ -79,7 +79,7 @@ public sealed record EndpointOptions
 public sealed record EndpointOptions<TArg, TResult>()
 {
     /// <summary>
-    /// Creates a strongly-typed EndpointOptions&lt;TArg, TResult&gt; from an EndpointOptions.
+    /// Creates a strongly-typed EndpointOptions&lt;TArg, TResult&gt; from an EndpointOptions instance.
     /// </summary>
     public EndpointOptions(EndpointOptions original) : this()
     {
@@ -122,13 +122,13 @@ public sealed record EndpointOptions<TArg, TResult>()
 }
 
 /// <summary>
-/// Options that are passed when creating a <see cref="Query{TArg, TResult}"/> or calling <see
-/// cref="Endpoint{TArg, TResult}.Use"/>.
+/// A re-usable version of <see cref="QueryOptions{TArg, TResult}"/> without type arguments, which
+/// can be used to share query settings across multiple calls to <see cref="Endpoint{TArg, TResult}.Use">endpoint.Use(options)</see>.
 /// </summary>
-public sealed record QueryOptions<TArg, TResult>
+public sealed record QueryOptions()
 {
-    private static QueryOptions<TArg, TResult>? s_default;
-    internal static QueryOptions<TArg, TResult> Default => s_default ??= new();
+    private static QueryOptions? s_default;
+    internal static QueryOptions Default => s_default ??= new();
 
     /// <summary>
     /// The amount of time until this query is considered "stale". If not set, the <see
@@ -139,6 +139,54 @@ public sealed record QueryOptions<TArg, TResult>
     /// stale, the cached data will be used initially, but new data will be re-fetched in the
     /// background automatically.
     /// </summary>
+    public TimeSpan? StaleTime { get; init; }
+
+    /// <summary>
+    /// A function that gets run whenever this query succeeds.
+    /// <para/>
+    /// To avoid a race condition when multiple queries return in a different order than they were
+    /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
+    /// </summary>
+    public Action<EventArgs>? OnSuccess { get; init; }
+
+    /// <summary>
+    /// A function that gets run whenever this query fails.
+    /// <para/>
+    /// To avoid a race condition when multiple queries return in a different order than they were
+    /// started, this only gets called if the data is "current" (i.e., no newer queries have already returned).
+    /// </summary>
+    public Action<QueryFailureEventArgs>? OnFailure { get; init; }
+
+    /// <summary>
+    /// If set, overrides the default RetryHandler for the endpoint.
+    /// <para/>
+    /// To remove the endpoint's retry handler if it has one, set this to <see cref="RetryHandler.None"/>.
+    /// </summary>
+    public IRetryHandler? RetryHandler { get; init; }
+}
+
+/// <summary>
+/// Options that are passed when creating a <see cref="Query{TArg, TResult}"/> or calling <see
+/// cref="Endpoint{TArg, TResult}.Use"/>.
+/// </summary>
+public sealed record QueryOptions<TArg, TResult>()
+{
+    /// <summary>
+    /// Creates a strongly-typed QueryOptions&lt;TArg, TResult&gt; from a QueryOptions instance.
+    /// </summary>
+    public QueryOptions(QueryOptions original) : this()
+    {
+        _ = original ?? throw new ArgumentNullException(nameof(original));
+        StaleTime = original.StaleTime;
+        OnSuccess = original.OnSuccess;
+        OnFailure = original.OnFailure;
+        RetryHandler = original.RetryHandler;
+    }
+
+    private static QueryOptions<TArg, TResult>? s_default;
+    internal static QueryOptions<TArg, TResult> Default => s_default ??= new();
+
+    /// <inheritdoc cref="QueryOptions.StaleTime"/>
     public TimeSpan? StaleTime { get; init; }
 
     /// <summary>
