@@ -93,7 +93,11 @@ public sealed record EndpointOptions<TArg, TResult>()
 
     private static EndpointOptions<TArg, TResult>? s_default;
 
-    internal static EndpointOptions<TArg, TResult> Default => s_default ??= new();
+    /// <summary>
+    /// An instance of <see cref="EndpointOptions{TArg, TResult}"/> with default values.
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1000:Do not declare static members on generic types")]
+    public static EndpointOptions<TArg, TResult> Default => s_default ??= new();
 
     /// <inheritdoc cref="EndpointOptions.CacheTime"/>
     public TimeSpan CacheTime { get; init; } = TimeSpan.FromMinutes(5);
@@ -128,7 +132,11 @@ public sealed record EndpointOptions<TArg, TResult>()
 public sealed record QueryOptions()
 {
     private static QueryOptions? s_default;
-    internal static QueryOptions Default => s_default ??= new();
+
+    /// <summary>
+    /// An instance of <see cref="QueryOptions{TArg, TResult}"/> with default values.
+    /// </summary>
+    public static QueryOptions Default => s_default ??= new();
 
     /// <summary>
     /// The amount of time until this query is considered "stale". If not set, the <see
@@ -184,7 +192,12 @@ public sealed record QueryOptions<TArg, TResult>()
     }
 
     private static QueryOptions<TArg, TResult>? s_default;
-    internal static QueryOptions<TArg, TResult> Default => s_default ??= new();
+
+    /// <summary>
+    /// An instance of <see cref="QueryOptions{TArg, TResult}"/> with default values.
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1000:Do not declare static members on generic types")]
+    public static QueryOptions<TArg, TResult> Default => s_default ??= new();
 
     /// <inheritdoc cref="QueryOptions.StaleTime"/>
     public TimeSpan? StaleTime { get; init; }

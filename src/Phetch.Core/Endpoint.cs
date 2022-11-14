@@ -20,9 +20,9 @@ using System.Threading.Tasks;
 public class Endpoint<TArg, TResult>
 {
     /// <summary>
-    /// Options for this endpoint
+    /// Options for this endpoint.
     /// </summary>
-    protected EndpointOptions<TArg, TResult> Options { get; }
+    public EndpointOptions<TArg, TResult> Options { get; }
 
     internal QueryCache<TArg, TResult> Cache { get; }
 

@@ -17,8 +17,13 @@
             );
             var query = endpoint.Use();
             var result = await query.SetArgAsync(10);
-            result.Should().Be("10");
-            query.Data.Should().Be("10");
+
+            using (new AssertionScope())
+            {
+                query.Options.Should().Be(QueryOptions<int, string>.Default);
+                result.Should().Be("10");
+                query.Data.Should().Be("10");
+            }
         }
 
         [UIFact]

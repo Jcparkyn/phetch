@@ -39,6 +39,11 @@ public class Query<TArg, TResult>
     /// </summary>
     public event Action<QueryFailureEventArgs<TArg>>? Failed;
 
+    /// <summary>
+    /// Options for this query.
+    /// </summary>
+    public QueryOptions<TArg, TResult> Options => _options ?? QueryOptions<TArg, TResult>.Default;
+
     internal Query(
         QueryCache<TArg, TResult> cache,
         QueryOptions<TArg, TResult>? options,
