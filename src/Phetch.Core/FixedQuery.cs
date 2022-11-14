@@ -83,7 +83,9 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     {
         return _isInvalidated
             || _dataUpdatedAt is null
-            || _dataUpdatedAt + staleTime < now;
+            // Comparison order is important to avoid overflow with TimeSpan.MaxValue
+            // Note: This is safe even if (now < _dataUpdatedAt)
+            || now - _dataUpdatedAt > staleTime;
     }
 
     /// <summary>
