@@ -16,7 +16,8 @@
             var query = new Query<string>(
                 _ => TestHelpers.ReturnAsync("test")
             );
-            await query.SetArgAsync(default);
+            var result = await query.SetArgAsync(default);
+            result.Should().Be("test");
 
             query.Data.Should().Be("test");
             query.Status.Should().Be(QueryStatus.Success);
@@ -46,7 +47,8 @@
             query.IsFetching.Should().BeTrue();
 
             tcs.SetResult("test");
-            await refetchTask;
+            var result = await refetchTask;
+            result.Should().Be("test");
 
             query.Status.Should().Be(QueryStatus.Success);
             query.IsSuccess.Should().BeTrue();
@@ -127,7 +129,7 @@
                 );
             }
             tcs.SetResult("1");
-            await task;
+            (await task).Should().Be("1");
             AssertIsIdleState(query);
         }
 

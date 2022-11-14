@@ -1,6 +1,7 @@
 ﻿namespace Phetch.Core;
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -224,7 +225,7 @@ public class Query<TArg, TResult>
     /// A <see cref="Task"/> which completes when the query returns, or immediately if there is a
     /// non-stale cached value for this argument.
     /// </returns>
-    public async Task SetArgAsync(TArg arg)
+    public async Task<TResult> SetArgAsync(TArg arg)
     {
         var newQuery = _cache.GetOrAdd(arg);
         if (newQuery != _currentQuery)
@@ -236,8 +237,18 @@ public class Query<TArg, TResult>
 
             if (!newQuery.IsFetching && newQuery.IsStaleByTime(_staleTime, DateTime.Now))
             {
-                await newQuery.RefetchAsync(_options?.RetryHandler).ConfigureAwait(false);
+                return await newQuery.RefetchAsync(_options?.RetryHandler).ConfigureAwait(false);
             }
+        }
+        Debug.Assert(newQuery.LastInvokation is not null, "newQuery should have been invoked before this point");
+        if (newQuery.LastInvokation is { } task)
+        {
+            return await task!;
+        }
+        else
+        {
+            // Probably not possible to get here, but just in case
+            return newQuery.Data!;
         }
     }
 
@@ -321,7 +332,7 @@ public class Query<TResult> : Query<Unit, TResult>
     public void Fetch() => _ = SetArgAsync(default);
 
     /// <inheritdoc cref="Fetch"/>
-    public Task FetchAsync() => SetArgAsync(default);
+    public Task<TResult> FetchAsync() => SetArgAsync(default);
 
     /// <inheritdoc cref="Query{TArg, TResult}.Trigger(TArg)"/>
     public void Trigger() => _ = TriggerAsync(default);

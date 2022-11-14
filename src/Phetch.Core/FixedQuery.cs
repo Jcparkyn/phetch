@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -49,6 +50,8 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     /// </summary>
     public bool IsFetching => _lastActionCall is not null && !_lastActionCall.IsCompleted;
 
+    internal Task<TResult>? LastInvokation { get; private set; }
+
     internal FixedQuery(
         QueryCache<TArg, TResult> queryCache,
         Func<TArg, CancellationToken, Task<TResult>> queryFn,
@@ -67,8 +70,9 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     /// </summary>
     public void UpdateQueryData(TResult resultData)
     {
-        Data = resultData;
-        _dataUpdatedAt = DateTime.Now;
+        // Updating LastInvokation makes the API a bit more consistent
+        LastInvokation = Task.FromResult(resultData);
+        SetSuccessState(resultData, DateTime.Now);
         foreach (var observer in _observers)
         {
             observer.OnQueryUpdate();
@@ -130,7 +134,16 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
 
     internal void Refetch(IRetryHandler? retryHandler) => _ = RefetchAsync(retryHandler);
 
-    internal async Task<TResult> RefetchAsync(IRetryHandler? retryHandler)
+    [DebuggerStepThrough]
+    internal Task<TResult> RefetchAsync(IRetryHandler? retryHandler)
+    {
+        var task = RefetchAsyncImpl(retryHandler);
+        LastInvokation = task;
+        return task;
+    }
+
+    // This is a separate method to allow the resulting Task to be stored and poten
+    private async Task<TResult> RefetchAsyncImpl(IRetryHandler? retryHandler)
     {
         if (Status != QueryStatus.Success)
         {

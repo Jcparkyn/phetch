@@ -1,6 +1,7 @@
 ﻿namespace Phetch.Core;
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -130,13 +131,15 @@ public class Endpoint<TArg, TResult>
     /// <para/>
     /// If the specified query argument already exists in the cache and was not an error, this does nothing.
     /// </summary>
-    public async Task PrefetchAsync(TArg arg)
+    public async Task<TResult> PrefetchAsync(TArg arg)
     {
         var query = Cache.GetOrAdd(arg);
         if (query.Status == QueryStatus.Idle || query.Status == QueryStatus.Error)
         {
-            await query.RefetchAsync(retryHandler: null);
+            return await query.RefetchAsync(retryHandler: null);
         }
+        Debug.Assert(query.LastInvokation is not null, "query should always be invoked before this point.");
+        return await query.LastInvokation;
     }
 
     /// <inheritdoc cref="PrefetchAsync(TArg)"/>

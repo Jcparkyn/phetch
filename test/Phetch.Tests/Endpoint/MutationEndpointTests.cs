@@ -8,7 +8,7 @@
     public class MutationEndpointTests
     {
         [UIFact]
-        public async Task Returnless_mutation_should_work()
+        public async Task MutationEndpoint_should_work()
         {
             var (queryFn, queryFnCalls) = TestHelpers.MakeTrackedQueryFn();
             var endpoint = new MutationEndpoint<int>(queryFn);

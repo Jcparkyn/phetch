@@ -16,7 +16,8 @@
                 val => TestHelpers.ReturnAsync(val.ToString())
             );
             var query = endpoint.Use();
-            await query.SetArgAsync(10);
+            var result = await query.SetArgAsync(10);
+            result.Should().Be("10");
             query.Data.Should().Be("10");
         }
 
@@ -32,8 +33,11 @@
             };
             var query1 = endpoint.Use(options);
             var query2 = endpoint.Use(options);
-            await query1.SetArgAsync(10);
-            await query2.SetArgAsync(10);
+            var result1 = await query1.SetArgAsync(10);
+            var result2 = await query2.SetArgAsync(10);
+
+            result1.Should().Be("10");
+            result2.Should().Be("10");
 
             query1.Data.Should().Be("10");
             query2.Data.Should().Be("10");
@@ -87,20 +91,28 @@
             var query2 = endpoint.Use();
             var query3 = endpoint.Use();
 
-            await query1.SetArgAsync(1);
-            await query2.SetArgAsync(2);
-            await query3.SetArgAsync(3);
+            var result1 = await query1.SetArgAsync(1);
+            var result2 = await query2.SetArgAsync(2);
+            var result3 = await query3.SetArgAsync(3);
 
-            query1.Data.Should().Be("1");
-            query2.Data.Should().Be("2");
-            query3.Data.Should().Be("3");
-
+            using (new AssertionScope())
+            {
+                result1.Should().Be("1");
+                result2.Should().Be("2");
+                result3.Should().Be("3");
+                query1.Data.Should().Be("1");
+                query2.Data.Should().Be("2");
+                query3.Data.Should().Be("3");
+            }
             endpoint.UpdateQueryData(2, "2 - test1");
             endpoint.UpdateQueryData(3, q => q.Data + " - test2");
 
-            query1.Data.Should().Be("1");
-            query2.Data.Should().Be("2 - test1");
-            query3.Data.Should().Be("3 - test2");
+            using (new AssertionScope())
+            {
+                query1.Data.Should().Be("1");
+                query2.Data.Should().Be("2 - test1");
+                query3.Data.Should().Be("3 - test2");
+            }
         }
 
         [UIFact]
@@ -120,11 +132,13 @@
             using (new AssertionScope())
             {
                 setArgTask.IsCompletedSuccessfully.Should().BeTrue();
+                query1.IsSuccess.Should().BeTrue();
                 query1.Data.Should().Be("1");
                 queryFnCalls.Should().BeEmpty();
-            }
 
-            await setArgTask;
+                var result = await setArgTask;
+                result.Should().Be("1");
+            }
         }
     }
 }
