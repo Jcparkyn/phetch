@@ -145,5 +145,51 @@
                 result.Should().Be("1");
             }
         }
+
+        [Fact]
+        public async Task Should_handle_null_value_keys()
+        {
+            var endpoint = new Endpoint<int?, string>(
+                val => TestHelpers.ReturnAsync(val?.ToString() ?? "null")
+            );
+            var query1 = endpoint.Use();
+            var result1 = await query1.SetArgAsync(10);
+            var queryNull = endpoint.Use();
+            var resultNull = await queryNull.SetArgAsync(null);
+
+            using (new AssertionScope())
+            {
+                result1.Should().Be("10");
+                query1.Data.Should().Be("10");
+                resultNull.Should().Be("null");
+                queryNull.Data.Should().Be("null");
+
+                endpoint.GetCachedQuery(10).Should().Be(query1.CurrentQuery);
+                endpoint.GetCachedQuery(null).Should().Be(queryNull.CurrentQuery);
+            }
+        }
+
+        [Fact]
+        public async Task Should_handle_null_reference_keys()
+        {
+            var endpoint = new Endpoint<string?, string>(
+                val => TestHelpers.ReturnAsync(val?.ToString() ?? "null")
+            );
+            var query1 = endpoint.Use();
+            var result1 = await query1.SetArgAsync("10");
+            var queryNull = endpoint.Use();
+            var resultNull = await queryNull.SetArgAsync(null);
+
+            using (new AssertionScope())
+            {
+                result1.Should().Be("10");
+                query1.Data.Should().Be("10");
+                resultNull.Should().Be("null");
+                queryNull.Data.Should().Be("null");
+
+                endpoint.GetCachedQuery("10").Should().Be(query1.CurrentQuery);
+                endpoint.GetCachedQuery(null).Should().Be(queryNull.CurrentQuery);
+            }
+        }
     }
 }

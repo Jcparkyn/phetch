@@ -9,8 +9,9 @@ internal class QueryCache<TArg, TResult>
 {
     internal Func<TArg, CancellationToken, Task<TResult>> QueryFn { get; }
 
-    private readonly Dictionary<TArg, FixedQuery<TArg, TResult>> _cachedResponses = new();
-    private readonly Dictionary<TArg, List<FixedQuery<TArg, TResult>>> _uncachedResponses = new();
+    // ValueTuple makes it possible to use null keys
+    private readonly Dictionary<ValueTuple<TArg>, FixedQuery<TArg, TResult>> _cachedResponses = new();
+    private readonly Dictionary<ValueTuple<TArg>, List<FixedQuery<TArg, TResult>>> _uncachedResponses = new();
     private readonly EndpointOptions<TArg, TResult> _endpointOptions;
 
     public QueryCache(Func<TArg, CancellationToken, Task<TResult>> queryFn, EndpointOptions<TArg, TResult> endpointOptions)
@@ -29,7 +30,7 @@ internal class QueryCache<TArg, TResult>
 
     public void Invalidate(TArg arg)
     {
-        if (_cachedResponses.TryGetValue(arg, out var query))
+        if (_cachedResponses.TryGetValue(new(arg), out var query))
         {
             query?.Invalidate();
         }
@@ -48,14 +49,14 @@ internal class QueryCache<TArg, TResult>
 
     public FixedQuery<TArg, TResult> GetOrAdd(TArg arg)
     {
-        if (_cachedResponses.TryGetValue(arg, out var value))
+        if (_cachedResponses.TryGetValue(new(arg), out var value))
         {
             return value;
         }
 
         var newQuery = CreateQuery(arg, _endpointOptions);
 
-        _cachedResponses.Add(arg, newQuery);
+        _cachedResponses.Add(new(arg), newQuery);
 
         return newQuery;
     }
@@ -64,13 +65,13 @@ internal class QueryCache<TArg, TResult>
     {
         var newQuery = CreateQuery(arg, _endpointOptions with { CacheTime = TimeSpan.Zero });
 
-        if (_uncachedResponses.TryGetValue(arg, out var queries))
+        if (_uncachedResponses.TryGetValue(new(arg), out var queries))
         {
             queries.Add(newQuery);
         }
         else
         {
-            _uncachedResponses.Add(arg, new() { newQuery });
+            _uncachedResponses.Add(new(arg), new() { newQuery });
         }
 
         return newQuery;
@@ -88,7 +89,7 @@ internal class QueryCache<TArg, TResult>
 
     public void UpdateQueryData(TArg arg, Func<FixedQuery<TArg, TResult>, TResult> dataSelector, bool addIfNotExists)
     {
-        if (_cachedResponses.TryGetValue(arg, out var query1))
+        if (_cachedResponses.TryGetValue(new(arg), out var query1))
         {
             query1.UpdateQueryData(dataSelector(query1));
         }
@@ -96,9 +97,9 @@ internal class QueryCache<TArg, TResult>
         {
             var newQuery = CreateQuery(arg, _endpointOptions);
             newQuery.UpdateQueryData(dataSelector(newQuery));
-            _cachedResponses.Add(arg, newQuery);
+            _cachedResponses.Add(new(arg), newQuery);
         }
-        if (_uncachedResponses.TryGetValue(arg, out var queries))
+        if (_uncachedResponses.TryGetValue(new(arg), out var queries))
         {
             foreach (var query2 in queries)
             {
@@ -109,28 +110,28 @@ internal class QueryCache<TArg, TResult>
 
     public void Remove(FixedQuery<TArg, TResult> query)
     {
-        if (_cachedResponses.TryGetValue(query.Arg, out var cachedQuery) && cachedQuery == query)
+        if (_cachedResponses.TryGetValue(new(query.Arg), out var cachedQuery) && cachedQuery == query)
         {
-            _cachedResponses.Remove(query.Arg);
+            _cachedResponses.Remove(new(query.Arg));
         }
-        if (_uncachedResponses.TryGetValue(query.Arg, out var uncachedQueries))
+        if (_uncachedResponses.TryGetValue(new(query.Arg), out var uncachedQueries))
         {
-            uncachedQueries.RemoveAll(x => x == query);
+            uncachedQueries.RemoveAll(x => ReferenceEquals(x, query));
         }
     }
 
     public FixedQuery<TArg, TResult>? GetCachedQuery(TArg arg)
     {
-        return _cachedResponses.TryGetValue(arg, out var query) ? query : null;
+        return _cachedResponses.TryGetValue(new(arg), out var query) ? query : null;
     }
 
     public IEnumerable<FixedQuery<TArg, TResult>> GetAllQueries(TArg arg)
     {
-        if (_cachedResponses.TryGetValue(arg, out var query1))
+        if (_cachedResponses.TryGetValue(new(arg), out var query1))
         {
             yield return query1;
         }
-        if (_uncachedResponses.TryGetValue(arg, out var queries))
+        if (_uncachedResponses.TryGetValue(new(arg), out var queries))
         {
             foreach (var query2 in queries)
             {
