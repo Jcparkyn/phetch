@@ -10,8 +10,8 @@ internal class QueryCache<TArg, TResult>
     internal Func<TArg, CancellationToken, Task<TResult>> QueryFn { get; }
 
     // ValueTuple makes it possible to use null keys
-    private readonly Dictionary<ValueTuple<TArg>, FixedQuery<TArg, TResult>> _cachedResponses = new();
-    private readonly Dictionary<ValueTuple<TArg>, List<FixedQuery<TArg, TResult>>> _uncachedResponses = new();
+    private readonly Dictionary<ValueTuple<object?>, FixedQuery<TArg, TResult>> _cachedResponses = new();
+    private readonly Dictionary<ValueTuple<object?>, List<FixedQuery<TArg, TResult>>> _uncachedResponses = new();
     private readonly EndpointOptions<TArg, TResult> _endpointOptions;
 
     public QueryCache(Func<TArg, CancellationToken, Task<TResult>> queryFn, EndpointOptions<TArg, TResult> endpointOptions)
@@ -30,7 +30,7 @@ internal class QueryCache<TArg, TResult>
 
     public void Invalidate(TArg arg)
     {
-        if (_cachedResponses.TryGetValue(new(arg), out var query))
+        if (_cachedResponses.TryGetValue(GetKey(arg), out var query))
         {
             query?.Invalidate();
         }
@@ -49,14 +49,15 @@ internal class QueryCache<TArg, TResult>
 
     public FixedQuery<TArg, TResult> GetOrAdd(TArg arg)
     {
-        if (_cachedResponses.TryGetValue(new(arg), out var value))
+        var key = GetKey(arg);
+        if (_cachedResponses.TryGetValue(key, out var value))
         {
             return value;
         }
 
         var newQuery = CreateQuery(arg, _endpointOptions);
 
-        _cachedResponses.Add(new(arg), newQuery);
+        _cachedResponses.Add(key, newQuery);
 
         return newQuery;
     }
@@ -64,14 +65,15 @@ internal class QueryCache<TArg, TResult>
     public FixedQuery<TArg, TResult> AddUncached(TArg arg)
     {
         var newQuery = CreateQuery(arg, _endpointOptions with { CacheTime = TimeSpan.Zero });
+        var key = GetKey(arg);
 
-        if (_uncachedResponses.TryGetValue(new(arg), out var queries))
+        if (_uncachedResponses.TryGetValue(key, out var queries))
         {
             queries.Add(newQuery);
         }
         else
         {
-            _uncachedResponses.Add(new(arg), new() { newQuery });
+            _uncachedResponses.Add(key, new() { newQuery });
         }
 
         return newQuery;
@@ -89,7 +91,8 @@ internal class QueryCache<TArg, TResult>
 
     public void UpdateQueryData(TArg arg, Func<FixedQuery<TArg, TResult>, TResult> dataSelector, bool addIfNotExists)
     {
-        if (_cachedResponses.TryGetValue(new(arg), out var query1))
+        var key = GetKey(arg);
+        if (_cachedResponses.TryGetValue(key, out var query1))
         {
             query1.UpdateQueryData(dataSelector(query1));
         }
@@ -97,9 +100,9 @@ internal class QueryCache<TArg, TResult>
         {
             var newQuery = CreateQuery(arg, _endpointOptions);
             newQuery.UpdateQueryData(dataSelector(newQuery));
-            _cachedResponses.Add(new(arg), newQuery);
+            _cachedResponses.Add(key, newQuery);
         }
-        if (_uncachedResponses.TryGetValue(new(arg), out var queries))
+        if (_uncachedResponses.TryGetValue(key, out var queries))
         {
             foreach (var query2 in queries)
             {
@@ -110,11 +113,12 @@ internal class QueryCache<TArg, TResult>
 
     public void Remove(FixedQuery<TArg, TResult> query)
     {
-        if (_cachedResponses.TryGetValue(new(query.Arg), out var cachedQuery) && cachedQuery == query)
+        var key = GetKey(query.Arg);
+        if (_cachedResponses.TryGetValue(key, out var cachedQuery) && cachedQuery == query)
         {
-            _cachedResponses.Remove(new(query.Arg));
+            _cachedResponses.Remove(key);
         }
-        if (_uncachedResponses.TryGetValue(new(query.Arg), out var uncachedQueries))
+        if (_uncachedResponses.TryGetValue(key, out var uncachedQueries))
         {
             uncachedQueries.RemoveAll(x => ReferenceEquals(x, query));
         }
@@ -122,16 +126,22 @@ internal class QueryCache<TArg, TResult>
 
     public FixedQuery<TArg, TResult>? GetCachedQuery(TArg arg)
     {
-        return _cachedResponses.TryGetValue(new(arg), out var query) ? query : null;
+        return _cachedResponses.TryGetValue(GetKey(arg), out var query) ? query : null;
+    }
+
+    public FixedQuery<TArg, TResult>? GetCachedQueryByKey(object? key)
+    {
+        return _cachedResponses.TryGetValue(new ValueTuple<object?>(key), out var query) ? query : null;
     }
 
     public IEnumerable<FixedQuery<TArg, TResult>> GetAllQueries(TArg arg)
     {
-        if (_cachedResponses.TryGetValue(new(arg), out var query1))
+        var key = GetKey(arg);
+        if (_cachedResponses.TryGetValue(key, out var query1))
         {
             yield return query1;
         }
-        if (_uncachedResponses.TryGetValue(new(arg), out var queries))
+        if (_uncachedResponses.TryGetValue(key, out var queries))
         {
             foreach (var query2 in queries)
             {
@@ -139,4 +149,8 @@ internal class QueryCache<TArg, TResult>
             }
         }
     }
+
+    private ValueTuple<object?> GetKey(TArg arg) => _endpointOptions.KeySelector is { } keySelector
+        ? new ValueTuple<object?>(keySelector(arg))
+        : new ValueTuple<object?>(arg);
 }

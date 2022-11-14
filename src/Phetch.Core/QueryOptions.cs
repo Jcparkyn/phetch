@@ -115,6 +115,23 @@ public sealed record EndpointOptions<TArg, TResult>()
     public IRetryHandler? RetryHandler { get; init; }
 
     /// <summary>
+    /// A function that can be used to override the default behaviour for determining which query
+    /// arguments are the same. The object returned by this function will be used as the dictionary
+    /// keys for the query cache. This is useful if your query argument type is not suitable to use
+    /// a dictionary key, because it doesn't implement GetHashCode and Equals.
+    /// <para/>
+    /// If not provided, the query arguments are used as dictionary keys directly.
+    /// </summary>
+    /// <remarks>
+    /// <example> In many cases, the best way to use this is by returning a tuple of all relevant fields:
+    /// <code>
+    ///KeySelector = arg => (arg.Id, arg.Name)
+    /// </code>
+    /// </example>
+    /// </remarks>
+    public Func<TArg, object>? KeySelector { get; set; }
+
+    /// <summary>
     /// Converts an untyped <see cref="EndpointOptions"/> instance into an <see cref="Endpoint{TArg, TResult}"/>.
     /// </summary>
     /// <param name="original"></param>

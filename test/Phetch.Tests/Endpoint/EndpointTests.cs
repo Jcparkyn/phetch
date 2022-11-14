@@ -9,7 +9,7 @@
 
     public class EndpointTests
     {
-        [Fact]
+        [UIFact]
         public async Task Should_create_valid_query()
         {
             var endpoint = new Endpoint<int, string>(
@@ -23,6 +23,8 @@
                 query.Options.Should().Be(QueryOptions<int, string>.Default);
                 result.Should().Be("10");
                 query.Data.Should().Be("10");
+                endpoint.GetCachedQuery(10).Should().Be(query.CurrentQuery);
+                endpoint.GetCachedQueryByKey(10).Should().Be(query.CurrentQuery);
             }
         }
 
@@ -146,7 +148,7 @@
             }
         }
 
-        [Fact]
+        [UIFact]
         public async Task Should_handle_null_value_keys()
         {
             var endpoint = new Endpoint<int?, string>(
@@ -169,7 +171,7 @@
             }
         }
 
-        [Fact]
+        [UIFact]
         public async Task Should_handle_null_reference_keys()
         {
             var endpoint = new Endpoint<string?, string>(

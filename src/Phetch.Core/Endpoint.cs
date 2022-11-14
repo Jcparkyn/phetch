@@ -75,8 +75,6 @@ public class Endpoint<TArg, TResult>
     /// <param name="arg">The query argument to invalidate</param>
     /// <remarks>
     /// <para/>
-    /// This should be preferred over <see cref="InvalidateWhere"/>, because it is more efficient.
-    /// <para/>
     /// If no queries are using the provided query argument, this does nothing.
     /// </remarks>
     public void Invalidate(TArg arg)
@@ -163,6 +161,13 @@ public class Endpoint<TArg, TResult>
     /// This does not return queries created by <see cref="Query{TArg, TResult}.Trigger(TArg)"/>.
     /// </remarks>
     public FixedQuery<TArg, TResult>? GetCachedQuery(TArg arg) => Cache.GetCachedQuery(arg);
+
+    /// <summary>
+    /// Similar to <see cref="GetCachedQuery(TArg)"/>, but looks up a query by it's key directly.
+    /// This is only useful when using <see cref="EndpointOptions{TArg, TResult}.KeySelector"/>,
+    /// because otherwise the key and arguments are equivalent.
+    /// </summary>
+    public FixedQuery<TArg, TResult>? GetCachedQueryByKey(object? key) => Cache.GetCachedQueryByKey(key);
 }
 
 /// <summary>
