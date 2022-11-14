@@ -14,9 +14,10 @@
         {
             var (queryFn, queryFnCalls) = TestHelpers.MakeTrackedQueryFn();
             var endpoint = new Endpoint<int, string>(queryFn);
-            await endpoint.PrefetchAsync(1);
+            var prefetchResult = await endpoint.PrefetchAsync(1);
 
             queryFnCalls.Should().Equal(1);
+            prefetchResult.Should().Be("1");
 
             var query = endpoint.Use(new()
             {
@@ -40,7 +41,8 @@
             // Query in progress:
             var query1 = endpoint.Use();
             var setArgTask1 = query1.SetArgAsync(1);
-            await endpoint.PrefetchAsync(1);
+            var prefetchResult1 = await endpoint.PrefetchAsync(1);
+            prefetchResult1.Should().Be("1");
             await setArgTask1;
 
             query1.Data.Should().Be("1");
@@ -49,7 +51,8 @@
             // Complete query:
             var query2 = endpoint.Use();
             await query2.SetArgAsync(1);
-            await endpoint.PrefetchAsync(1);
+            var prefetchResult2 = await endpoint.PrefetchAsync(1);
+            prefetchResult2.Should().Be("1");
 
             query2.Data.Should().Be("1");
             queryFnCalls.Should().Equal(1, 1);
