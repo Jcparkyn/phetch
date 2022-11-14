@@ -118,12 +118,14 @@ public class Query<TArg, TResult>
     /// This will return <c>false</c> if the query is currently re-fetching due to the current data
     /// being stale. Use <see cref="IsFetching"/> for these cases (e.g., to show a loading indicator).
     /// </remarks>
+    [MemberNotNullWhen(true, nameof(CurrentQuery))]
     public bool IsLoading => _currentQuery?.Status == QueryStatus.Loading;
 
     /// <summary>
     /// True if the query threw an exception and has not been re-run.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Error))]
+    [MemberNotNullWhen(true, nameof(CurrentQuery))]
     public bool IsError => Status == QueryStatus.Error;
 
     /// <summary>
@@ -134,6 +136,7 @@ public class Query<TArg, TResult>
     /// nullable reference types.
     /// </remarks>
     [MemberNotNullWhen(true, nameof(_currentQuery))]
+    [MemberNotNullWhen(true, nameof(CurrentQuery))]
     public bool IsSuccess => _currentQuery?.Status == QueryStatus.Success;
 
     /// <summary>
@@ -150,6 +153,7 @@ public class Query<TArg, TResult>
     /// True if no arguments have been provided to this query yet.
     /// </summary>
     [MemberNotNullWhen(false, nameof(Arg))]
+    [MemberNotNullWhen(false, nameof(CurrentQuery))]
     public bool IsUninitialized => Status == QueryStatus.Idle;
 
     /// <summary>
@@ -160,6 +164,12 @@ public class Query<TArg, TResult>
     /// If you only need to know about the initial load, use <see cref="IsLoading"/> instead.
     /// </remarks>
     public bool IsFetching => _currentQuery?.IsFetching ?? false;
+
+    /// <summary>
+    /// The instance of <see cref="FixedQuery{TArg, TResult}"/> that this query is currently
+    /// observing. This changes every time the <see cref="Arg"/> for this query changes.
+    /// </summary>
+    public FixedQuery<TArg, TResult>? CurrentQuery => _currentQuery;
 
     /// <summary>
     /// Stop listening to changes of the current query.
