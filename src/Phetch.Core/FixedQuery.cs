@@ -83,9 +83,10 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     {
         return _isInvalidated
             || _dataUpdatedAt is null
+            || staleTime == TimeSpan.Zero
             // Comparison order is important to avoid overflow with TimeSpan.MaxValue
             // Note: This is safe even if (now < _dataUpdatedAt)
-            || now - _dataUpdatedAt > staleTime;
+            || staleTime > TimeSpan.Zero && (now - _dataUpdatedAt > staleTime);
     }
 
     /// <summary>
@@ -238,7 +239,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     {
         var cacheTime = _endpointOptions.CacheTime;
         _gcTimer?.Dispose();
-        if (cacheTime > TimeSpan.Zero)
+        if (cacheTime > TimeSpan.Zero && cacheTime != TimeSpan.MaxValue)
         {
             _gcTimer = new Timer(GcTimerCallback, null, cacheTime, Timeout.InfiniteTimeSpan);
         }

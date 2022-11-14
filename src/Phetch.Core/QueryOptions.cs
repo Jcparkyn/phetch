@@ -23,6 +23,9 @@ public sealed record QueryOptions()
     /// cached result and won't re-fetch the data. If a cached query is used <b>after</b> it becomes
     /// stale, the cached data will be used initially, but new data will be re-fetched in the
     /// background automatically.
+    /// <para/>
+    /// When set to a negative value, queries will never be considered stale (unless they are
+    /// manually invalidated).
     /// </summary>
     public TimeSpan? StaleTime { get; init; }
 

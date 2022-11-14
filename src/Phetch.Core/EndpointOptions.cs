@@ -37,6 +37,9 @@ public sealed record EndpointOptions
     /// <summary>
     /// Default stale time to be used if not supplied when using the endpoint. This defaults to
     /// zero, so queries are considered stale as soon as they finish fetching.
+    /// <para/>
+    /// When set to a negative value, queries will never be considered stale (unless they are
+    /// manually invalidated).
     /// </summary>
     /// <remarks>This can be overriden by <see cref="QueryOptions{TArg, TResult}.StaleTime"/></remarks>
     public TimeSpan DefaultStaleTime { get; init; } = TimeSpan.Zero;
