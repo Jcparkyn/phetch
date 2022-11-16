@@ -20,6 +20,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phetch.Blazor", "src\Phetch
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HackerNewsClient", "samples\HackerNewsClient\HackerNewsClient.csproj", "{9F157853-311E-49B0-9C39-CF8F7B53538F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phetch.Blazor.Tests", "test\Phetch.Blazor.Tests\Phetch.Blazor.Tests.csproj", "{F5614B98-276A-4BFF-A21F-73C25C524133}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,10 @@ Global
 		{9F157853-311E-49B0-9C39-CF8F7B53538F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F157853-311E-49B0-9C39-CF8F7B53538F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9F157853-311E-49B0-9C39-CF8F7B53538F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5614B98-276A-4BFF-A21F-73C25C524133}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5614B98-276A-4BFF-A21F-73C25C524133}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5614B98-276A-4BFF-A21F-73C25C524133}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5614B98-276A-4BFF-A21F-73C25C524133}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

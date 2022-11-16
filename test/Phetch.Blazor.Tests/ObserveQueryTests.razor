@@ -1,0 +1,51 @@
+@inherits TestContext
+
+@code {
+    [Fact]
+    public void Should_render_with_no_callbacks()
+    {
+        var query = new Endpoint<int, string>(x => Task.FromResult(x.ToString()))
+            .Use();
+
+        var cut = Render(@<ObserveQuery Target="query" />);
+
+        cut.MarkupMatches(@<text></text>);
+    }
+
+    [Fact]
+    public void Should_call_correct_callbacks()
+    {
+        var (queryFn, sources, queryFnCalls) = MakeCustomTrackedQueryFn(1);
+        var query = new Endpoint<int, string>(queryFn)
+            .Use();
+
+        var (onChanged, onChangedCalls) = MakeMonitoredAction();
+        var (onSuccess, onSuccessCalls) = MakeMonitoredAction<QuerySuccessEventArgs<int, string>>();
+
+        var cut = Render(@<ObserveQuery Target="query" OnChanged="onChanged" OnSuccess="onSuccess" />);
+
+        onChangedCalls.Should().HaveCount(0);
+
+        cut.MarkupMatches(@<text></text>);
+
+        query.SetArg(1);
+
+        onChangedCalls.Should().HaveCount(0);
+        onSuccessCalls.Should().HaveCount(0);
+
+        sources[0].SetResult("1");
+
+        cut.WaitForAssertion(() => onChangedCalls.Should().HaveCount(1), TimeSpan.FromSeconds(0.5));
+        cut.WaitForAssertion(() => onSuccessCalls.Should().HaveCount(1), TimeSpan.FromSeconds(0.5));
+
+        onSuccessCalls.Should().SatisfyRespectively(
+            e =>
+            {
+                e.Result.Should().Be("1");
+                e.Arg.Should().Be(1);
+            }
+        );
+        cut.RenderCount.Should().Be(1);
+        cut.FindComponent<ObserveQuery<int, string>>().RenderCount.Should().Be(1);
+    }
+}
