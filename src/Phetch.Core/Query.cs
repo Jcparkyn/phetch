@@ -206,7 +206,9 @@ public class Query<TArg, TResult>
     /// <inheritdoc cref="RefetchAsync" path="/exception"/>
     public void Refetch()
     {
-        _currentQuery?.Refetch(_options?.RetryHandler);
+        if (_currentQuery is null)
+            throw new InvalidOperationException("Cannot refetch an unititialized query");
+        _currentQuery.Refetch(_options?.RetryHandler);
     }
 
     /// <summary>
