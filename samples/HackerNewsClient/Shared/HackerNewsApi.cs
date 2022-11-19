@@ -1,5 +1,6 @@
 ﻿namespace HackerNewsClient.Shared;
 
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
@@ -24,7 +25,10 @@ public class HackerNewsApi
         GetTopStories = new(
             async (args, ct) =>
             {
-                var url = $"https://hn.algolia.com/api/v1/search?tags={args.Tag}&query={args.Query}&hitsPerPage={args.PageSize}&page={args.Page}";// &query={args.Query}";
+                var url = "https://hn.algolia.com/api/v1/search" +
+                    $"?tags={WebUtility.UrlEncode(args.Tag)}" +
+                    $"&query={WebUtility.UrlEncode(args.Query)}" +
+                    $"&hitsPerPage={args.PageSize}&page={args.Page}";
                 if (args.StartDate is DateTimeOffset dto)
                 {
                     url += $"&numericFilters=created_at_i>{dto.ToUnixTimeSeconds()}";

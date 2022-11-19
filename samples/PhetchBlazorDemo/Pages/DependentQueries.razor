@@ -21,7 +21,7 @@
                     <MudText Typo="Typo.h6">Random Number:</MudText>
                 </CardHeaderContent>
                 <CardHeaderActions>
-                    <MudIconButton OnClick="query1.Refetch" Icon="@Icons.Material.Filled.Refresh" Color="Color.Secondary" />
+                    <MudIconButton OnClick="query1.Refetch" Disabled="query1.IsFetching" Icon="@Icons.Material.Filled.Refresh" Color="Color.Secondary" />
                 </CardHeaderActions>
             </MudCardHeader>
             <MudCardContent>
@@ -48,7 +48,7 @@
                     <MudText Typo="Typo.h6">Plus One:</MudText>
                 </CardHeaderContent>
                 <CardHeaderActions>
-                    <MudIconButton OnClick="query2.Refetch" Icon="@Icons.Material.Filled.Refresh" Color="Color.Secondary" />
+                    <MudIconButton OnClick="query2.Refetch" Disabled="query2.IsUninitialized || query2.IsFetching" Icon="@Icons.Material.Filled.Refresh" Color="Color.Secondary" />
                 </CardHeaderActions>
             </MudCardHeader>
             <MudCardContent>
@@ -75,24 +75,24 @@
 
     protected override void OnInitialized()
     {
-        base.OnInitialized();
-        var random = new Random();
-        query1 = new(
+        query1 = new ParameterlessEndpoint<int>(
             async ct =>
             {
+                Console.WriteLine("Fetching random number...");
                 await Task.Delay(500, ct);
-                return random.Next() % 10000;
+                return Random.Shared.Next() % 10000;
             },
             // Note: you could also do this by conditionally calling query2.SetArg before each render.
             new() { OnSuccess = c => query2.SetArg(c.Result) }
-        );
+        ).Use();
+        query1.Fetch();
 
-        query2 = new(
+        query2 = new Endpoint<int, int>(
             async (val, ct) =>
             {
                 await Task.Delay(500, ct);
                 return val + 1;
             }
-        );
+        ).Use();
     }
 }

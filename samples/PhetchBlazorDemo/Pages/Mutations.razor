@@ -6,48 +6,46 @@
 <MudText Typo="Typo.h3" GutterBottom="true">Counter</MudText>
 <MudText Class="mb-4">Current count: @currentCount</MudText>
 
-<MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="IncrementCount">Click me</MudButton>
+<div style="margin-bottom: 12px">
+    <MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="() => currentCount++">Increment</MudButton>
+    <MudButton Color="Color.Secondary" Variant="Variant.Filled" @onclick="() => mutation.Trigger(currentCount)">
+        Save to local storage
+    </MudButton>
+</div>
 
-@if (mutation.IsLoading)
-{
-    <MudProgressLinear Indeterminate />
-}
-else if (mutation.IsError)
-{
-    <MudAlert Severity="Severity.Error">
-        @mutation.Error.Message
-    </MudAlert>
-}
-else if (mutation.IsSuccess)
-{
-    <MudAlert Severity="Severity.Success">
-        Saved value to local storage
-    </MudAlert>
-}
+<ObserveQuery Target="mutation">
+    @if (mutation.IsLoading)
+    {
+        <MudProgressLinear Indeterminate />
+    }
+    else if (mutation.IsError)
+    {
+        <MudAlert Severity="Severity.Error">
+            @mutation.Error.Message
+        </MudAlert>
+    }
+    else if (mutation.IsSuccess)
+    {
+        <MudAlert Severity="Severity.Success">
+            Saved count = @mutation.Arg to local storage
+        </MudAlert>
+    }
+</ObserveQuery>
 
 @code {
     private int currentCount = 0;
     private Mutation<int> mutation = null!;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
-        mutation = new(
+        mutation = new MutationEndpoint<int>(
             async (val, _) =>
             {
-                await Task.Delay(500); // Artificial delay
+                await Task.Delay(Random.Shared.Next(1000)); // Artificial delay
                 await LocalStorage.SetItemAsync("counterVal", val);
             }
-        );
-        mutation.StateChanged += StateHasChanged;
-        mutation.Trigger(currentCount);
-    }
-
-    private void IncrementCount()
-    {
-        currentCount++;
-
-        // Use TriggerAsync if you need the return value
-        mutation.Trigger(currentCount);
+        ).Use();
+        currentCount = await LocalStorage.GetItemAsync<int>("counterVal");
     }
 }
