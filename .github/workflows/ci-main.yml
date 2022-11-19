@@ -4,6 +4,12 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish to NuGet'
+        required: false
+        default: false
+        type: boolean
 
 env:
     NETCORE_VERSION: |
@@ -36,7 +42,7 @@ jobs:
   deploy:
     name: Publish NuGet Packages
     needs: build
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.publish == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
