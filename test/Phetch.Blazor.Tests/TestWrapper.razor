@@ -1,0 +1,13 @@
+﻿
+@{
+    RenderCount++;
+}
+
+@ChildContent
+
+@code {
+    [Parameter, EditorRequired]
+    public RenderFragment? ChildContent { get; set; }
+
+    public int RenderCount { get; private set; }
+}
