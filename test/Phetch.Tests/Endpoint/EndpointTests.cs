@@ -83,6 +83,7 @@ public class EndpointTests
             endpoint.GetCachedQuery(10).Should().Be(query1.CurrentQuery);
             endpoint.GetCachedQuery(null).Should().Be(queryNull.CurrentQuery);
             endpoint.TryGetCachedResult(10, out var data).Should().BeTrue();
+            endpoint.TryGetCachedResult(11, out _).Should().BeFalse();
             data.Should().Be("10");
         }
     }
@@ -108,6 +109,7 @@ public class EndpointTests
             endpoint.GetCachedQuery("10").Should().Be(query1.CurrentQuery);
             endpoint.GetCachedQuery(null).Should().Be(queryNull.CurrentQuery);
             endpoint.TryGetCachedResult("10", out var data).Should().BeTrue();
+            endpoint.TryGetCachedResult("11", out _).Should().BeFalse();
             data.Should().Be("10");
         }
     }

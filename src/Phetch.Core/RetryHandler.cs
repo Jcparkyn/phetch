@@ -3,6 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Diagnostics.CodeAnalysis;
 
 /// <summary>
 /// An interface to allow queries to be retried when they fail.
@@ -103,6 +104,7 @@ public sealed class NoRetryHandler : IRetryHandler
     internal NoRetryHandler() { }
 
     /// <inheritdoc/>
+    [ExcludeFromCodeCoverage]
     public Task<TResult> ExecuteAsync<TResult>(Func<CancellationToken, Task<TResult>> queryFn, CancellationToken ct)
     {
         _ = queryFn ?? throw new ArgumentNullException(nameof(queryFn));

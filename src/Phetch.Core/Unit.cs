@@ -1,12 +1,15 @@
 ﻿namespace Phetch.Core;
 
+using System.Diagnostics.CodeAnalysis;
+
 /// <summary>
 /// A type that allows only one value.
 /// </summary>
 /// <remarks>
 /// This is used for implementing queries with no parameter and/or no return value.
 /// </remarks>
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter")]
+[SuppressMessage("Style", "IDE0060:Remove unused parameter")]
+[ExcludeFromCodeCoverage]
 public readonly struct Unit : System.IEquatable<Unit>
 {
     /// <inheritdoc />
