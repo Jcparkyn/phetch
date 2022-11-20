@@ -1,79 +1,48 @@
 ﻿@page "/search"
 @inject HackerNewsApi Api
+@inject NavigationManager Nav
 
 <PageTitle>Search | Hacker News</PageTitle>
 
-<h1>Search</h1>
+<header style="margin-bottom: 16px">
+    <h1>Search</h1>
+    <MostRecentSelector />
+</header>
 
 <div style="display: flex; gap: 32px">
     <label>Search
-        <input type="search" placeholder="Search" @bind-value="_searchText"/>
+        <input type="search" placeholder="Search" @bind-value="searchQuery.Value" />
     </label>
-    <label>Time range
-        <InputSelect TValue="TimeRange" @bind-Value="_timeRange">
-            <option value="@TimeRange.Last7Days">Last 7 days</option>
-            <option value="@TimeRange.Last24Hours">Last 24h</option>
-            <option value="@TimeRange.All">All</option>
-        </InputSelect>
+    <label>Author
+        <input type="text" placeholder="Author" @bind-value="author.Value" />
     </label>
 </div>
 
-<UseEndpointInfinite
-    Endpoint="Api.GetTopStories"
-    Arg="@new(Page: 0, PageSize: 30, Query: _searchText, Tag: "story", StartDate: StartDate)"
-    GetNextPageArg="(q, pageCount) => pageCount < q.Data?.NbPages ? q.Arg?.GetNextPageArgs() : null">
-    <ul class="post-list">
-        @foreach(var query in context.Pages)
-        {
-            @if (query.HasData)
-            {
-                var posts = query.Data;
-                foreach (var post in posts.Hits)
-                {
-                    <li>
-                        <PostPreview @key="post.Id" Post="post" />
-                    </li>
-                }
-            }
-            else if (query.IsLoading)
-            {
-                <strong style="margin-bottom: 200px" >Loading...</strong>
-            }
-            else
-            {
-                <strong>
-                    Something went wrong!
-                    @query.Error?.Message
-                    <button @onclick="query.Refetch">Retry</button>
-                </strong>
-            }
-        }
-    </ul>
-    @if (context.HasNextPage)
-    {
-        <div style="display: flex; justify-content: center; margin: 2em">
-            <button @onclick="context.LoadNextPage">Load More</button>
-        </div>
-    }
-</UseEndpointInfinite>
+<InfinitePostList Arg="@new(Page: 0, PageSize: 30, Query: searchQuery.Value, Tag: Tag, StartDate: StartDate)" />
 
 @code {
-    enum TimeRange
+    [Parameter, SupplyParameterFromQuery(Name = "mostRecent")]
+    public string MostRecent { get; set; } = "";
+
+    public string Tag => string.IsNullOrEmpty(author.Value) ? "story" : $"story,author_{author.Value}";
+
+    private QueryParam searchQuery = null!;
+    private QueryParam author = null!;
+
+    protected override void OnInitialized()
     {
-        All,
-        Last7Days,
-        Last24Hours,
+        searchQuery = new(Nav, "query", "");
+        author = new(Nav, "author", "");
     }
 
-    string _searchText = "";
-    TimeRange _timeRange = TimeRange.All;
+    // Round to day, so that this requests the same cache entry each time
+    readonly DateTimeOffset now = DateTimeOffset.Now.Date;
 
-    readonly DateTimeOffset now = DateTimeOffset.Now;
-
-    private DateTimeOffset? StartDate => _timeRange switch
+    private DateTimeOffset? StartDate => MostRecent switch
     {
-        TimeRange.Last7Days => now.AddDays(-7),
-        TimeRange.Last24Hours => now.AddDays(-1),
-        TimeRange.All or _ => null,
+        "day" => now.AddDays(-1),
+        "week" => now.AddDays(-7),
+        "month" => now.AddDays(-31),
+        _ => null,
     };
 }

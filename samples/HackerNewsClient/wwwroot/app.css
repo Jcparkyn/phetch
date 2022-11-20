@@ -4,8 +4,11 @@
     --col-bg: #252827;
     --col-bg-2: #3f4349;
     --col-text: #fffdfc;
+    --col-text-subtle: #a9a5a3;
     --col-primary: #febb06;
+    --col-primary-subtle: #d4a527;
     --col-secondary: #5ebb8f;
+    --col-secondary-subtle: #9eb7ac;
 }
 
 *, *::before, *::after {
@@ -36,7 +39,6 @@ img, picture, video, canvas, svg {
 input, button, textarea, select, option {
     font: inherit;
     height: 2em;
-    border: 0;
     padding: 3px;
 }
 
@@ -144,27 +146,7 @@ h1 {
     text-underline-offset: 0.4em;
 }
 
-.comment {
-    margin-bottom: 0.5em;
-}
-
-.comment-content {
-    padding: 0.53em;
-    border-left: 5px solid #fff2;
-}
-
 .comment-list {
     list-style-type: none;
     padding-left: 0;
-}
-
-.collapse-toggle {
-    padding: 0 1em;
-    cursor: pointer;
-    color: var(--col-text);
-    background-color: transparent;
-}
-
-.collapse-toggle:hover {
-    color: var(--col-secondary);
 }

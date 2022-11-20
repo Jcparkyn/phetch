@@ -1,15 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A simple Hacker News client made with Blazor WASM." />
     <title>Hacker News</title>
     <base href="/" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap" rel="stylesheet">
     <link href="app.css" rel="stylesheet" />
+    <link href="HackerNewsClient.styles.css" rel="stylesheet" />
+
+    <script type="module">
+        // Preload front page data
+        if (window.location.pathname === "/") {
+            const preloadLink = document.createElement("link");
+            preloadLink.rel = "preload";
+            preloadLink.href = "https://hn.algolia.com/api/v1/search?tags=front_page&query=&hitsPerPage=100&page=0";
+            preloadLink.as = "fetch";
+            preloadLink.crossOrigin = true;
+            document.head.appendChild(preloadLink);
+        }
+    </script>
 </head>
 
 <body>
@@ -21,6 +35,12 @@
         <a class="dismiss">🗙</a>
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
+    <script>
+        function scrollIntoView(element) {
+            window.location.hash = element.id; // Sets the page target
+            element.scrollIntoView({ block: "center" });
+        }
+    </script>
 </body>
 
 </html>

@@ -1,0 +1,114 @@
+﻿@implements IDisposable
+@inject IJSRuntime JsRuntime
+@inject NavigationManager Nav
+
+<li class="comment">
+    <div class="comment-container" @ref=_elementRef tabindex="-1" id="comment-@Item.Id">
+        <button class="comment-show-parent-button" @onclick=ShowParents title="Show parents" aria-label="Show parents">◤</button>
+        <div class="comment-details">
+            <a href="@($"/user/{Item.Author}")" style="color: @AuthorColor">@Item.Author</a>,
+            <DateDisplay Date="@Item.CreatedAt" /> |
+            <a href="https://news.ycombinator.com/reply?id=@Item.Id" target="_blank" style="color: inherit">reply</a>
+            @if (collapsed)
+            {
+                <text> [@(Item.TotalChildCount + 1) collapsed] </text>
+            }
+        </div>
+        <div class="comment-edge comment-edge-horizontal" data-expanded="@collapsed" @onclick=ToggleExpanded title="Expand"/>
+        <div class="comment-edge comment-edge-vertical" data-expanded="@(!collapsed)" @onclick=ToggleExpanded title="Collapse"/>
+        @if (!collapsed)
+        {
+            <div class="comment-content">
+                @((MarkupString)(Item.Text ?? ""))
+            </div>
+        }
+    </div>
+    @if (Item.HasChildren && !collapsed)
+    {
+        <ul class="comment-list comment-children">
+            @foreach (var (child, index) in Item.ValidChilden.Select((c, i) => (c, i)))
+            {
+                <Comment Item=child CommentColors=CommentColors CollapseCallback=thisCollapseCallback Index="index" />
+            }
+        </ul>
+    }
+</li>
+
+@code {
+    [Parameter, EditorRequired]
+    public HnItemDetails Item { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public IReadOnlyDictionary<string, int> CommentColors { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public CommentCollapseCallback CollapseCallback { get; set; } = null!; // For passing messages to siblings
+
+    [Parameter, EditorRequired]
+    public int Index { get; set; }
+
+    private CommentCollapseCallback thisCollapseCallback = new(); // For communication between children
+
+    private ElementReference _elementRef;
+
+    private bool _shouldScrollIntoView = false;
+
+    private string AuthorColor => (Item.Author is not null && CommentColors.TryGetValue(Item.Author, out var colorId))
+        ? $"hsl({colorId * 35} 80% 70%)"
+        : "inherit";
+
+    private bool collapsed = false;
+
+    private void ToggleExpanded()
+    {
+        collapsed = !collapsed;
+    }
+
+    private void ShowParents()
+    {
+        CollapseCallback.Collapse(Index);
+        _shouldScrollIntoView = true;
+    }
+
+    protected override void OnAfterRender(bool _)
+    {
+        if (_shouldScrollIntoView)
+        {
+            ((IJSInProcessRuntime)JsRuntime).InvokeVoid("scrollIntoView", _elementRef);
+            _shouldScrollIntoView = false;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        CollapseCallback.OnCollapse += OnSiblingCollapsed;
+        thisCollapseCallback.OnCollapse += OnChildCollapsed;
+    }
+
+    private void OnChildCollapsed(int _)
+    {
+        CollapseCallback.Collapse(Index);
+    }
+
+    private void OnSiblingCollapsed(int siblingIndex)
+    {
+        if (siblingIndex > Index)
+        {
+            collapsed = true;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        CollapseCallback.OnCollapse -= OnSiblingCollapsed;
+        thisCollapseCallback.OnCollapse -= OnChildCollapsed;
+    }
+
+    public class CommentCollapseCallback
+    {
+        public event Action<int>? OnCollapse;
+
+        public void Collapse(int index) => OnCollapse?.Invoke(index);
+    }
+}

@@ -1,21 +1,26 @@
-﻿
+﻿@using System.Net;
 
+@{
+    var titleSuffix = TitleSuffix(Post.UrlDomain);
+}
 <div style="display: flex; align-items: center">
     <div style="flex: 1">
         <a href="@TitleUrl" class="post-title">
             @Post.Title
         </a>
-        <a href="@TitleUrl" class="post-title" style="opacity: 0.7; font-weight: 300">
-            @TitleSuffix(Post.UrlDomain)
+        <a href="search?query=@WebUtility.UrlEncode(Post.UrlDomain)" class="post-title" style="opacity: 0.7; font-weight: 300"
+            aria-label="View other posts from @titleSuffix">
+            @titleSuffix
         </a>
         <br/>
-        <span>
-            @Post.Author | @Post.CreatedAt.ToString()
-        </span>
+        <a href="user/@Post.Author" style="color: var(--col-text)">
+            @Post.Author
+        </a>
+        | <DateDisplay Date="@Post.CreatedAt" />
     </div>
     <div style="display: flex; flex-direction: column">
         <span style="text-align: right">@Post.Points points</span>
-        <a href=@($"/post/{Post.Id}") style="text-align: right">@CommentText(Post.NumComments)</a>
+        <a href="post/@Post.Id" style="text-align: right">@CommentText(Post.NumComments)</a>
     </div>
 </div>
 

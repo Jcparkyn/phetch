@@ -1,0 +1,32 @@
+@typeparam T
+
+@if (_rendered is not null)
+{
+    @foreach (var item in _rendered)
+    {
+        @item
+    }
+}
+
+@code {
+    [Parameter] public RenderFragment<T> ChildContent { get; set; } = null!;
+    [Parameter] public IEnumerable<T> Items { get; set; } = null!;
+    [Parameter] public int ChunkSize { get; set; } = 10;
+
+    private List<RenderFragment>? _rendered = null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _rendered = new();
+        StateHasChanged();
+        foreach (var itemChunk in Items.Chunk(ChunkSize))
+        {
+            await Task.Delay(1);
+            foreach (var item in itemChunk)
+            {
+                _rendered.Add(ChildContent.Invoke(item));
+            }
+            StateHasChanged();
+        }
+    }
+}

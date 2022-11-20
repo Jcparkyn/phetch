@@ -1,0 +1,38 @@
+﻿@using System.Globalization;
+
+<span title="@Date.ToString("s", CultureInfo.InvariantCulture)">
+    @FormatRelativeDate(Date, DateTimeOffset.Now)
+</span>
+
+@code {
+    [Parameter] public DateTimeOffset Date { get; set; }
+
+    private static string FormatRelativeDate(DateTimeOffset date, DateTimeOffset now)
+    {
+        var diff = now - date;
+        if (diff.TotalDays > 365)
+        {
+            return $"{diff.TotalDays / 365.0:0} years ago";
+        }
+        if (diff.TotalDays > 60)
+        {
+            return $"{diff.TotalDays/30.0:0} months ago";
+        }
+        if (diff.TotalDays > 2)
+        {
+            return $"{diff.TotalDays:0} days ago";
+        }
+        else if (diff.TotalHours > 1)
+        {
+            return $"{diff.TotalHours:0} hours ago";
+        }
+        else if (diff.TotalMinutes > 1)
+        {
+            return $"{diff.TotalMinutes:0} minutes ago";
+        }
+        else
+        {
+            return "just now";
+        }
+    }
+}

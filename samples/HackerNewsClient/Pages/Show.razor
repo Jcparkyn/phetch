@@ -1,0 +1,27 @@
+﻿@page "/show"
+@inject HackerNewsApi Api
+
+<PageTitle>Show | Hacker News</PageTitle>
+
+<header>
+    <h1>Show HN</h1>
+    <MostRecentSelector />
+</header>
+
+<InfinitePostList Arg="@new(Page: 0, PageSize: 30, Tag: "show_hn", StartDate: StartDate)" />
+
+@code {
+    [Parameter, SupplyParameterFromQuery(Name = "mostRecent")]
+    public string MostRecent { get; set; } = "";
+
+    // Round to day, so that this requests the same cache entry each time
+    readonly DateTimeOffset now = DateTimeOffset.Now.Date;
+
+    private DateTimeOffset? StartDate => MostRecent switch
+    {
+        "day" => now.AddDays(-1),
+        "week" => now.AddDays(-7),
+        "month" => now.AddDays(-31),
+        _ => null,
+    };
+}

@@ -1,0 +1,38 @@
+﻿@page "/user/{userId}"
+@inject HackerNewsApi Api
+
+<PageTitle>@UserId | Hacker News</PageTitle>
+<h1>@UserId</h1>
+
+<UseEndpoint Endpoint="@Api.GetUser" Arg="UserId" Context="query">
+    @if (query.HasData)
+    {
+        var user = query.Data;
+        <div style="margin: 1em 0"><strong>Karma: @user.Karma</strong></div>
+        <a href="/search?author=@user.Username">posts</a>
+        @if (string.IsNullOrEmpty(user.About))
+        {
+            <p>This user has no description.</p>
+        }
+        else
+        {
+            <p>@((MarkupString)(user.About ?? ""))</p>
+        }
+    }
+    else if (query.IsLoading)
+    {
+        <strong>Loading...</strong>
+    }
+    else if (query.IsError)
+    {
+        <strong>
+            There was an error loading the selected user.
+            <p>@query.Error.Message</p>
+        </strong>
+    }
+</UseEndpoint>
+
+@code {
+    [Parameter]
+    public string UserId { get; set; } = "";
+}

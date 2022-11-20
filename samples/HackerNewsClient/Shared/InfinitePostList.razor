@@ -1,0 +1,44 @@
+﻿@inject HackerNewsApi Api
+
+<UseEndpointInfinite Endpoint="Api.GetTopStories"
+                     Arg="Arg"
+                     GetNextPageArg="(q, pageCount) => pageCount < q.Data?.NbPages ? q.Arg?.GetNextPageArgs() : null">
+    <ul class="post-list">
+        @foreach (var query in context.Pages)
+        {
+            @if (query.HasData)
+            {
+                var posts = query.Data;
+                foreach (var post in posts.Hits)
+                {
+                    <li>
+                        <PostPreview @key="post.Id" Post="post" />
+                    </li>
+                }
+            }
+            else if (query.IsError)
+            {
+                <strong>
+                    Something went wrong!
+                    @query.Error?.Message
+                    <button @onclick="query.Refetch">Retry</button>
+                </strong>
+            }
+        }
+    </ul>
+    @if (context.HasNextPage || context.IsLoadingNextPage)
+    {
+        <div style="display: flex; justify-content: center; margin: 2em">
+            <button @onclick="context.LoadNextPage" disabled="@context.IsLoadingNextPage" style="width: 10em; font-size: 1.3em;">
+                @(context.IsLoadingNextPage
+                    ? "Loading..."
+                    : "Load More")
+            </button>
+        </div>
+    }
+</UseEndpointInfinite>
+
+@code {
+    [Parameter, EditorRequired]
+    public HackerNewsApi.SearchStoriesArgs Arg { get; set; } = null!;
+}

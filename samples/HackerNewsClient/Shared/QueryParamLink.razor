@@ -1,0 +1,50 @@
+﻿@using Microsoft.AspNetCore.WebUtilities;
+@implements IDisposable
+@inject NavigationManager NavigationManager
+@inject NavigationManager Nav
+
+@if (IsActive())
+{
+    @ChildContent
+}
+else
+{
+    <a href="@Url">@ChildContent</a>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public string? Value { get; set; } = null;
+
+    [Parameter, EditorRequired]
+    public string Key { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public RenderFragment ChildContent {get;set;} = null!;
+
+    private string Url => Nav.GetUriWithQueryParameter(Key, Value);
+
+    private bool IsActive()
+    {
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        return QueryHelpers.ParseQuery(uri.Query).TryGetValue(Key, out var val)
+            ? val == Value
+            : Value == null;
+    }
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += LocationChanged;
+        base.OnInitialized();
+    }
+
+    void LocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    void IDisposable.Dispose()
+    {
+        NavigationManager.LocationChanged -= LocationChanged;
+    }
+}

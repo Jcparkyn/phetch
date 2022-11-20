@@ -6,15 +6,35 @@
     {
         var post = query.Data;
         <PageTitle>@post.Title</PageTitle>
-        <h1>@post.Title</h1>
-        <p>@((MarkupString)(post.Text ?? ""))</p>
-        <p><strong>@post.Children.Count comments</strong></p>
+        <h1>
+            <a href="@post.Title" style="text-decoration: none">
+                @post.Title
+            </a>
+        </h1>
+        @if (!string.IsNullOrEmpty(post.Text))
+        {
+            <p>@((MarkupString)(post.Text))</p>
+        }
+        <p style="margin: 1em 0">
+            <strong>
+                <a href="@($"/user/{post.Author}")" style="color: hsl(0 80% 70%)">
+                    @post.Author
+                </a>
+                | <DateDisplay Date="@post.CreatedAt" />
+                | @post.TotalChildCount comments
+            </strong>
+        </p>
 
         <ul class="comment-list">
-            @foreach (var comment in post.Children)
-            {
-                @RenderComment(comment)
-            }
+            @* Defer rendering of the comments, so that the title and body text loads faster, without waiting for comments at end. *@
+            @* This has less scrolling artifacts than using Virtualize. *@
+            <DeferList Items="post.ValidChilden.Select((comment,i) => (comment,i))" Context=comment ChunkSize="20">
+                <Comment
+                    Item=comment.comment
+                    CommentColors="GetCommentColors(comment.comment, post.Author)"
+                    CollapseCallback=thisCollapseCallback
+                    Index="comment.i" />
+            </DeferList>
         </ul>
     }
     else if (query.IsLoading)
@@ -34,43 +54,41 @@
     [Parameter]
     public int PostId { get; set; }
 
-    private HashSet<HnItemDetails> collapsedItems = new();
+    private Comment.CommentCollapseCallback thisCollapseCallback = new();
 
-    private void ToggleExpanded(HnItemDetails item){
-        if (collapsedItems.Contains(item))
+    private IReadOnlyDictionary<string, int> GetCommentColors(HnItemDetails comment, string? postAuthor)
+    {
+        var colors = new Dictionary<string, int>();
+        var stack = new Stack<string>();
+        if (postAuthor is not null)
         {
-            collapsedItems.Remove(item);
+            colors[postAuthor] = 0;
+            stack.Push(postAuthor);
         }
-        else
-        {
-            collapsedItems.Add(item);
-        }
+        GetCommentColors(comment, stack, colors);
+        return colors;
     }
 
-    private RenderFragment RenderComment(HnItemDetails comment) =>
-    @<li class="comment">
-        <div class="comment-content">
-            <div style="color: var(--col-primary)">@comment.Author</div>
-            <p>@((MarkupString)(comment.Text ?? ""))</p>
-        </div>
-        @if (comment.HasChildren)
+    private void GetCommentColors(HnItemDetails comment, Stack<string> parents, Dictionary<string, int> colors)
+    {
+        var author = comment.Author;
+        if (author is null)
         {
-            <div style="display: flex">
-                <button @onclick="() => ToggleExpanded(comment)" class="collapse-toggle">
-                    @(collapsedItems.Contains(comment) ? "▼ expand" : "▲")
-                </button>
-                @if (!collapsedItems.Contains(comment))
-                {
-                    <ul class="comment-list comment-children">
-                        @foreach (var child in comment.Children)
-                        {
-                            <li>
-                                @RenderComment(child)
-                            </li>
-                        }
-                    </ul>
-                }
-            </div>
+            foreach (var child in comment.Children)
+            {
+                GetCommentColors(child, parents, colors);
+            }
+            return;
         }
-    </li>;
+        if (!colors.ContainsKey(author) && parents.Contains(author))
+        {
+            colors[author] = colors.Count;
+        }
+        parents.Push(author);
+        foreach (var child in comment.Children)
+        {
+            GetCommentColors(child, parents, colors);
+        }
+        parents.Pop();
+    }
 }
