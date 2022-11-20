@@ -1,5 +1,6 @@
 ﻿namespace Phetch.Tests.Endpoint;
 
+using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -89,6 +90,40 @@ public class InvalidateTests
             query2.IsFetching.Should().BeFalse();
 
             queryFnCalls.Should().Equal(1, 2);
+        }
+    }
+
+    [UIFact]
+    public async Task Invalidate_should_mark_invalidated_if_query_not_observed()
+    {
+        var (queryFn, queryFnCalls) = TestHelpers.MakeTrackedQueryFn();
+        var endpoint = new Endpoint<int, string>(queryFn);
+
+        var query1 = endpoint.Use(new()
+        {
+            StaleTime = TimeSpan.MaxValue,
+        });
+
+        await query1.SetArgAsync(1);
+
+        query1.Detach();
+
+        endpoint.Invalidate(1);
+        queryFnCalls.Should().Equal(1);
+
+        var query2 = endpoint.Use();
+        var setArgTask = query2.SetArgAsync(1);
+
+        using (new AssertionScope())
+        {
+            setArgTask.IsCompleted.Should().BeFalse();
+            query2.IsFetching.Should().BeTrue();
+            query2.Data.Should().Be("1");
+
+            await setArgTask;
+            query2.IsFetching.Should().BeFalse();
+            query2.Data.Should().Be("1");
+            queryFnCalls.Should().Equal(1, 1);
         }
     }
 }
