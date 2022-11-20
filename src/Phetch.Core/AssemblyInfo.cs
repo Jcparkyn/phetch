@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // In SDK-style projects such as this one, several assembly attributes that were historically
@@ -18,3 +19,5 @@ using System.Runtime.InteropServices;
 [assembly: Guid("e5db72e5-76df-4cff-ae1e-630dbe39aaff")]
 
 [assembly: CLSCompliant(true)]
+
+[assembly: InternalsVisibleTo("Phetch.Tests")]
