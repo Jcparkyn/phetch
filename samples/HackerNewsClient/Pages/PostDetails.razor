@@ -5,41 +5,28 @@
     @if (query.HasData)
     {
         var post = query.Data;
-        <MudText Typo="Typo.h4" GutterBottom="true">@post.Title</MudText>
-        <MudText Typo="Typo.body1">@((MarkupString)(post.Text ?? ""))</MudText>
-        <MudText Typo="Typo.subtitle1">@post.Children.Count comments</MudText>
-        <MudTreeView Items="@(post.Children?.ToHashSet())">
-            <ItemTemplate Context="comment">
-                @{
-                    var isExpanded = GetExpanded(comment);
-                }
-                <MudTreeViewItem Items="@(isExpanded ? comment.Children?.ToHashSet() : null)"
-                             Expanded="isExpanded"
-                             Value="@comment">
-                    <Content>
-                        <div style="display: flex; align-items: flex-start; cursor: text">
-                            <MudTreeViewItemToggleButton Expanded="isExpanded" ExpandedChanged="e => SetExpanded(comment, e)" Visible="@comment.HasChildren" />
-                            <div>
-                                <MudText Typo="Typo.subtitle2">@comment.Author</MudText>
-                                <MudText Typo="Typo.body1">@((MarkupString)(comment.Text ?? ""))</MudText>
-                            </div>
-                        </div>
-                    </Content>
-                 </MudTreeViewItem>
-             </ItemTemplate>
-        </MudTreeView>
+        <PageTitle>@post.Title</PageTitle>
+        <h1>@post.Title</h1>
+        <p>@((MarkupString)(post.Text ?? ""))</p>
+        <p><strong>@post.Children.Count comments</strong></p>
+
+        <ul class="comment-list">
+            @foreach (var comment in post.Children)
+            {
+                @RenderComment(comment)
+            }
+        </ul>
     }
     else if (query.IsLoading)
     {
-        <MudSkeleton Height="60px" Width="50%" />
-        <MudSkeleton Height="200px" />
+        <h1>Loading...</h1>
     }
     else if (query.IsError)
     {
-        <MudAlert Severity="Severity.Error">
+        <strong>
             There was an error loading the selected post.
             <p>@query.Error.Message</p>
-        </MudAlert>
+        </strong>
     }
 </UseEndpoint>
 
@@ -47,9 +34,43 @@
     [Parameter]
     public int PostId { get; set; }
 
-    private Dictionary<HnItemDetails, bool> expandedItems = new();
+    private HashSet<HnItemDetails> collapsedItems = new();
 
-    private bool GetExpanded(HnItemDetails item) => expandedItems.GetValueOrDefault(item, false);
+    private void ToggleExpanded(HnItemDetails item){
+        if (collapsedItems.Contains(item))
+        {
+            collapsedItems.Remove(item);
+        }
+        else
+        {
+            collapsedItems.Add(item);
+        }
+    }
 
-    private void SetExpanded(HnItemDetails item, bool expanded) => expandedItems[item] = expanded;
+    private RenderFragment RenderComment(HnItemDetails comment) =>
+    @<li class="comment">
+        <div class="comment-content">
+            <div style="color: var(--col-primary)">@comment.Author</div>
+            <p>@((MarkupString)(comment.Text ?? ""))</p>
+        </div>
+        @if (comment.HasChildren)
+        {
+            <div style="display: flex">
+                <button @onclick="() => ToggleExpanded(comment)" class="collapse-toggle">
+                    @(collapsedItems.Contains(comment) ? "▼ expand" : "▲")
+                </button>
+                @if (!collapsedItems.Contains(comment))
+                {
+                    <ul class="comment-list comment-children">
+                        @foreach (var child in comment.Children)
+                        {
+                            <li>
+                                @RenderComment(child)
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        }
+    </li>;
 }

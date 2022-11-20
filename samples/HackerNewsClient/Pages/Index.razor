@@ -1,34 +1,34 @@
 ﻿@page "/"
 @inject HackerNewsApi Api
 
-<PageTitle>Hacker News Demo</PageTitle>
+<PageTitle>Hacker News</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Front Page</MudText>
+<h1>Front Page</h1>
 
 <UseEndpoint Endpoint="Api.GetTopStories"
              Arg="@new(Page: 0, PageSize: 100, Tag: "front_page")"
              Context="query">
     @if (query.HasData)
     {
-        <MudList>
+        <ul class="post-list">
             @foreach (var post in query.Data.Hits)
             {
-                <MudListItem>
+                <li>
                     <PostPreview @key="post.Id" Post="post" />
-                </MudListItem>
+                </li>
             }
-        </MudList>
+        </ul>
     }
     else if (query.IsLoading)
     {
-        <MudProgressLinear Indeterminate />
+        <strong>Loading...</strong>
     }
     else
     {
-        <MudAlert Severity="Severity.Error">
+        <strong>
             Something went wrong!
             @query.Error?.Message
-            <MudButton OnClick="query.Refetch">Retry</MudButton>
-        </MudAlert>
+            <button @onclick="query.Refetch">Retry</button>
+        </strong>
     }
 </UseEndpoint>

@@ -1,18 +1,23 @@
 ﻿
 
-<MudCard>
-    <MudCardContent>
-        <div style="margin-bottom: 8px">
-            <MudLink Href="@TitleUrl" Typo="Typo.h6" Style="line-height: 1">
-                @Post.Title <span style="opacity: 0.5">@TitleSuffix(Post.UrlDomain)</span>
-            </MudLink>
-        </div>
-        <MudText Typo="Typo.subtitle1">
-            @Post.Points points by @Post.Author |
-            <MudLink Href=@($"/post/{Post.Id}")>@CommentText(Post.NumComments)</MudLink>
-        </MudText>
-    </MudCardContent>
-</MudCard>
+<div style="display: flex; align-items: center">
+    <div style="flex: 1">
+        <a href="@TitleUrl" class="post-title">
+            @Post.Title
+        </a>
+        <a href="@TitleUrl" class="post-title" style="opacity: 0.7; font-weight: 300">
+            @TitleSuffix(Post.UrlDomain)
+        </a>
+        <br/>
+        <span>
+            @Post.Author | @Post.CreatedAt.ToString()
+        </span>
+    </div>
+    <div style="display: flex; flex-direction: column">
+        <span style="text-align: right">@Post.Points points</span>
+        <a href=@($"/post/{Post.Id}") style="text-align: right">@CommentText(Post.NumComments)</a>
+    </div>
+</div>
 
 @code {
     [Parameter, EditorRequired]

@@ -33,7 +33,8 @@ public class HackerNewsApi
                 {
                     url += $"&numericFilters=created_at_i>{dto.ToUnixTimeSeconds()}";
                 }
-                return (await httpClient.GetFromJsonAsync<SearchResponse<HnItem>>(url, ct))!;
+                var result = await httpClient.GetFromJsonAsync<SearchResponse<HnItem>>(url, ct);
+                return result!;
             },
             options: new()
             {

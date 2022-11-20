@@ -1,31 +1,28 @@
 ﻿@page "/search"
 @inject HackerNewsApi Api
 
-<PageTitle>Hacker News Demo</PageTitle>
+<PageTitle>Search | Hacker News</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom>Search</MudText>
+<h1>Search</h1>
 
-<div style="display: flex; gap: 16px">
-    <MudTextField @bind-Value=_searchText
-                  Label="Search"
-                  Clearable
-                  Variant="Variant.Outlined"
-                  DebounceInterval="500"
-                  Adornment="Adornment.End"
-                  AdornmentIcon="@Icons.Filled.Search"
-                  AdornmentColor="Color.Secondary" />
-    <MudSelect T="DateTimeOffset?" @bind-Value="_startDate" Variant="Variant.Outlined" Label="Time range" Placeholder="All">
-        <MudSelectItem T="DateTimeOffset?" Value="null"><div>All</div></MudSelectItem>
-        <MudSelectItem T="DateTimeOffset?" Value="now.AddHours(-24)"><div>Last 24h</div></MudSelectItem>
-        <MudSelectItem T="DateTimeOffset?" Value="now.AddDays(-7)"><div>Last 7 days</div></MudSelectItem>
-    </MudSelect>
+<div style="display: flex; gap: 32px">
+    <label>Search
+        <input type="search" placeholder="Search" @bind-value="_searchText"/>
+    </label>
+    <label>Time range
+        <InputSelect TValue="TimeRange" @bind-Value="_timeRange">
+            <option value="@TimeRange.Last7Days">Last 7 days</option>
+            <option value="@TimeRange.Last24Hours">Last 24h</option>
+            <option value="@TimeRange.All">All</option>
+        </InputSelect>
+    </label>
 </div>
 
 <UseEndpointInfinite
     Endpoint="Api.GetTopStories"
-    Arg="@new(Page: 0, PageSize: 30, Query: _searchText, Tag: "story", StartDate: _startDate)"
+    Arg="@new(Page: 0, PageSize: 30, Query: _searchText, Tag: "story", StartDate: StartDate)"
     GetNextPageArg="(q, pageCount) => pageCount < q.Data?.NbPages ? q.Arg?.GetNextPageArgs() : null">
-    <MudList>
+    <ul class="post-list">
         @foreach(var query in context.Pages)
         {
             @if (query.HasData)
@@ -33,36 +30,50 @@
                 var posts = query.Data;
                 foreach (var post in posts.Hits)
                 {
-                    <MudListItem Style="padding-inline: 0">
+                    <li>
                         <PostPreview @key="post.Id" Post="post" />
-                    </MudListItem>
+                    </li>
                 }
             }
             else if (query.IsLoading)
             {
-                <MudProgressLinear Indeterminate Style="margin-bottom: 200px" />
+                <strong style="margin-bottom: 200px" >Loading...</strong>
             }
             else
             {
-                <MudAlert Severity="Severity.Error">
+                <strong>
                     Something went wrong!
                     @query.Error?.Message
-                    <MudButton OnClick="query.Refetch">Retry</MudButton>
-                </MudAlert>
+                    <button @onclick="query.Refetch">Retry</button>
+                </strong>
             }
         }
-    </MudList>
+    </ul>
     @if (context.HasNextPage)
     {
-        <div style="display: flex; justify-content: center">
-            <MudButton OnClick="context.LoadNextPage">Load More</MudButton>
+        <div style="display: flex; justify-content: center; margin: 2em">
+            <button @onclick="context.LoadNextPage">Load More</button>
         </div>
     }
 </UseEndpointInfinite>
 
 @code {
+    enum TimeRange
+    {
+        All,
+        Last7Days,
+        Last24Hours,
+    }
+
     string _searchText = "";
-    DateTimeOffset? _startDate = null;
+    TimeRange _timeRange = TimeRange.All;
 
     readonly DateTimeOffset now = DateTimeOffset.Now;
+
+    private DateTimeOffset? StartDate => _timeRange switch
+    {
+        TimeRange.Last7Days => now.AddDays(-7),
+        TimeRange.Last24Hours => now.AddDays(-1),
+        TimeRange.All or _ => null,
+    };
 }
