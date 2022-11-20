@@ -168,6 +168,26 @@ public class Endpoint<TArg, TResult>
     /// because otherwise the key and arguments are equivalent.
     /// </summary>
     public FixedQuery<TArg, TResult>? GetCachedQueryByKey(object? key) => Cache.GetCachedQueryByKey(key);
+
+    /// <summary>
+    /// Attempts to retrieve a cached result for the given query argument.
+    /// </summary>
+    /// <param name="arg">The query argument</param>
+    /// <param name="result">
+    /// The cached data for the given query argument, or <c>default</c> if the data wasn't in the cache.
+    /// </param>
+    /// <returns>True if the data existed in the cache.</returns>
+    public bool TryGetCachedResult(TArg arg, out TResult result)
+    {
+        var query = Cache.GetCachedQuery(arg);
+        if (query is not null && query.Status == QueryStatus.Success)
+        {
+            result = query.Data!;
+            return true;
+        }
+        result = default!;
+        return false;
+    }
 }
 
 /// <summary>
