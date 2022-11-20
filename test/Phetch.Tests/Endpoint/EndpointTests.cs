@@ -53,32 +53,6 @@
         }
 
         [UIFact]
-        public async Task Invalidate_should_rerun_query()
-        {
-            var (queryFn, queryFnCalls) = TestHelpers.MakeTrackedQueryFn();
-            var endpoint = new Endpoint<int, string>(queryFn);
-
-            var query1 = endpoint.Use();
-            var query2 = endpoint.Use();
-
-            await query1.SetArgAsync(1);
-            await query2.SetArgAsync(2);
-
-            queryFnCalls.Should().Equal(1, 2);
-
-            endpoint.Invalidate(1);
-
-            query1.IsFetching.Should().BeTrue();
-            query2.IsFetching.Should().BeFalse();
-
-            queryFnCalls.Should().Equal(1, 2, 1);
-
-            endpoint.InvalidateAll();
-
-            queryFnCalls.Should().Equal(1, 2, 1, 1, 2);
-        }
-
-        [UIFact]
         public async Task Invoke_should_work()
         {
             var endpoint = new Endpoint<int, string>(
