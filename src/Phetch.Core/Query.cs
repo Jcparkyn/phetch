@@ -59,6 +59,7 @@ public class Query<TArg, TResult>
     /// <summary>
     /// Creates a new Query from a query function.
     /// </summary>
+    [Obsolete("Instead of creating a query directly, create an Endpoint and use endpoint.Use()")]
     public Query(
         Func<TArg, CancellationToken, Task<TResult>> queryFn,
         QueryOptions<TArg, TResult>? options = null
@@ -327,6 +328,7 @@ public class Query<TResult> : Query<Unit, TResult>
     /// <summary>
     /// Creates a new Query from a query function with no parameters.
     /// </summary>
+    [Obsolete("Instead of creating a query directly, create an Endpoint and use endpoint.Use()")]
     public Query(
         Func<CancellationToken, Task<TResult>> queryFn,
         QueryOptions<Unit, TResult>? options = null
@@ -367,6 +369,7 @@ public class Mutation<TArg> : Query<TArg, Unit>
     /// <summary>
     /// Creates a new Mutation from a query function with no return value.
     /// </summary>
+    [Obsolete("Instead of creating a mutation directly, create an Endpoint and use endpoint.Use()")]
     public Mutation(
         Func<TArg, CancellationToken, Task> mutationFn,
         QueryOptions<TArg, Unit>? endpointOptions = null

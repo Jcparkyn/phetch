@@ -12,9 +12,9 @@
         public async Task Should_set_loading_states_correctly()
         {
             var tcs = new TaskCompletionSource<int>();
-            var mut = new Query<int, int>(
+            var mut = new Endpoint<int, int>(
                 (val, _) => tcs.Task
-            );
+            ).Use();
 
             mut.Status.Should().Be(QueryStatus.Idle);
             mut.IsUninitialized.Should().BeTrue();
@@ -56,9 +56,9 @@
         public async Task Should_handle_query_error()
         {
             var error = new IndexOutOfRangeException("message");
-            var query = new Mutation<string>(
+            var query = new MutationEndpoint<string>(
                 (_, _) => Task.FromException(error)
-            );
+            ).Use();
 
             await query.Invoking(x => x.TriggerAsync("test"))
                 .Should().ThrowExactlyAsync<IndexOutOfRangeException>();
@@ -77,9 +77,9 @@
         [InlineData(false)]
         public async Task Should_reset_state_after_cancel(bool awaitBeforeCancel)
         {
-            var query = new Mutation<string>(
+            var query = new MutationEndpoint<string>(
                 (val, ct) => Task.Delay(1000, ct)
-            );
+            ).Use();
 
             var task = query.Invoking(x => x.TriggerAsync("test"))
                 .Should().ThrowExactlyAsync<TaskCanceledException>();

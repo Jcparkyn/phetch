@@ -13,9 +13,9 @@
         [UIFact]
         public async Task Should_work_with_basic_query()
         {
-            var query = new Query<string>(
+            var query = new ParameterlessEndpoint<string>(
                 _ => TestHelpers.ReturnAsync("test")
-            );
+            ).Use();
             var result = await query.SetArgAsync(default);
             result.Should().Be("test");
 
@@ -32,9 +32,9 @@
         public async Task SetArg_should_set_loading_states_correctly()
         {
             var tcs = new TaskCompletionSource<string>();
-            var query = new Query<string>(
+            var query = new ParameterlessEndpoint<string>(
                 _ => tcs.Task
-            );
+            ).Use();
 
             query.Status.Should().Be(QueryStatus.Idle);
             query.IsUninitialized.Should().BeTrue();
@@ -77,9 +77,9 @@
         public async Task SetArg_should_reset_state_after_cancel_with_cancelable_query(bool awaitBeforeCancel)
         {
             var tcs = new TaskCompletionSource<string>();
-            var query = new Query<int, string>(
+            var query = new Endpoint<int, string>(
                 (val, ct) => tcs.Task.WaitAsync(ct)
-            );
+            ).Use();
 
             using var mon = query.Monitor();
 
@@ -108,9 +108,9 @@
         public async Task SetArg_should_reset_state_after_cancel_with_uncancelable_query(bool awaitBeforeCancel)
         {
             var tcs = new TaskCompletionSource<string>();
-            var query = new Query<int, string>(
+            var query = new Endpoint<int, string>(
                 (val, _) => tcs.Task
-            );
+            ).Use();
 
             using var mon = query.Monitor();
 
@@ -137,9 +137,9 @@
         public async Task Should_handle_query_error()
         {
             var error = new IndexOutOfRangeException("message");
-            var query = new Query<string>(
+            var query = new ParameterlessEndpoint<string>(
                 _ => Task.FromException<string>(error)
-            );
+            ).Use();
 
             await query.Invoking(x => x.SetArgAsync(default))
                 .Should().ThrowExactlyAsync<IndexOutOfRangeException>();
@@ -164,9 +164,9 @@
             //        ^ refetch
 
             var (queryFn, sources) = MakeCustomQueryFn(2);
-            var query = new Query<string>(
+            var query = new ParameterlessEndpoint<string>(
                 queryFn
-            );
+            ).Use();
 
             query.Status.Should().Be(QueryStatus.Idle);
 
@@ -204,9 +204,9 @@
             //        ^ refetch
 
             var (queryFn, sources) = MakeCustomQueryFn(2);
-            var query = new Query<string>(
+            var query = new ParameterlessEndpoint<string>(
                 queryFn
-            );
+            ).Use();
 
             query.Status.Should().Be(QueryStatus.Idle);
 
