@@ -26,7 +26,7 @@
     @if (Item.HasChildren && !collapsed)
     {
         <ul class="comment-list comment-children">
-            @foreach (var (child, index) in Item.ValidChilden.Select((c, i) => (c, i)))
+            @foreach (var (child, index) in Item.ValidChildren.Select((c, i) => (c, i)))
             {
                 <Comment Item=child CommentColors=CommentColors CollapseCallback=thisCollapseCallback Index="index" />
             }

@@ -49,7 +49,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     /// </summary>
     public bool IsFetching => _lastActionCall is { IsCompleted: false };
 
-    internal Task<TResult>? LastInvokation { get; private set; }
+    internal Task<TResult>? LastInvocation { get; private set; }
 
     internal FixedQuery(
         QueryCache<TArg, TResult> queryCache,
@@ -69,8 +69,8 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     /// </summary>
     public void UpdateQueryData(TResult resultData)
     {
-        // Updating LastInvokation makes the API a bit more consistent
-        LastInvokation = Task.FromResult(resultData);
+        // Updating LastInvocation makes the API a bit more consistent
+        LastInvocation = Task.FromResult(resultData);
         SetSuccessState(resultData);
         foreach (var observer in _observers)
         {
@@ -140,7 +140,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     internal Task<TResult> RefetchAsync(IRetryHandler? retryHandler)
     {
         var task = RefetchAsyncImpl(retryHandler);
-        LastInvokation = task;
+        LastInvocation = task;
         return task;
     }
 

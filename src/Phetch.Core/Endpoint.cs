@@ -136,15 +136,15 @@ public class Endpoint<TArg, TResult>
         {
             return await query.RefetchAsync(retryHandler: null);
         }
-        Debug.Assert(query.LastInvokation is not null, "query should always be invoked before this point.");
-        return await query.LastInvokation;
+        Debug.Assert(query.LastInvocation is not null, "query should always be invoked before this point.");
+        return await query.LastInvocation;
     }
 
     /// <inheritdoc cref="PrefetchAsync(TArg)"/>
     public void Prefetch(TArg arg) => _ = PrefetchAsync(arg);
 
     /// <summary>
-    /// Runs the original query function once, completely bypassing caching and other extra behaviour
+    /// Runs the original query function once, completely bypassing caching and other extra behavior
     /// </summary>
     /// <param name="arg">The argument passed to the query function</param>
     /// <param name="ct">An optional cancellation token</param>

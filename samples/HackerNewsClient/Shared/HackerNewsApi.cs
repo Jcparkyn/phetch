@@ -120,7 +120,7 @@ public record HnItemDetails(
 {
     public bool HasChildren => Children.Count > 0;
 
-    public IEnumerable<HnItemDetails> ValidChilden { get; } = Children.Where(c => !string.IsNullOrEmpty(c.Text));
+    public IEnumerable<HnItemDetails> ValidChildren { get; } = Children.Where(c => !string.IsNullOrEmpty(c.Text));
 
     private int? _totalChildCount;
 

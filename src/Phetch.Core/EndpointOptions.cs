@@ -7,7 +7,7 @@ using System;
 /// be used to share endpoint settings across multiple endpoints.
 /// </summary>
 /// <remarks>
-/// This can be customised for each endpoint using the <see cref="EndpointOptions{TArg, TResult}"/> constructor.
+/// This can be customized for each endpoint using the <see cref="EndpointOptions{TArg, TResult}"/> constructor.
 /// <para/>
 /// <code>
 /// var defaultEndpointOptions = new EndpointOptions
@@ -41,7 +41,7 @@ public sealed record EndpointOptions
     /// When set to a negative value, queries will never be considered stale (unless they are
     /// manually invalidated).
     /// </summary>
-    /// <remarks>This can be overriden by <see cref="QueryOptions{TArg, TResult}.StaleTime"/></remarks>
+    /// <remarks>This can be overridden by <see cref="QueryOptions{TArg, TResult}.StaleTime"/></remarks>
     public TimeSpan DefaultStaleTime { get; init; } = TimeSpan.Zero;
 
     /// <summary>
@@ -118,7 +118,7 @@ public sealed record EndpointOptions<TArg, TResult>()
     public IRetryHandler? RetryHandler { get; init; }
 
     /// <summary>
-    /// A function that can be used to override the default behaviour for determining which query
+    /// A function that can be used to override the default behavior for determining which query
     /// arguments are the same. The object returned by this function will be used as the dictionary
     /// keys for the query cache. This is useful if your query argument type is not suitable to use
     /// a dictionary key, because it doesn't implement GetHashCode and Equals.

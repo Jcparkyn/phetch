@@ -14,11 +14,11 @@ public enum QueryStatus
     /// </summary>
     Loading,
     /// <summary>
-    /// The most recent invokation of the query has failed.
+    /// The most recent invocation of the query has failed.
     /// </summary>
     Error,
     /// <summary>
-    /// The most recent invokation of the query has succeeded.
+    /// The most recent invocation of the query has succeeded.
     /// </summary>
     Success,
 }

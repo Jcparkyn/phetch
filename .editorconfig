@@ -44,6 +44,13 @@ indent_size = 2
 end_of_line = lf
 indent_size = 2
 
+# Spell checking
+[*.{cs,razor,md}]
+spelling_exclusion_path = ./exclusion.dic
+
+[*.dic]
+charset = utf-16le # Required by VS
+
 # Dotnet code style settings:
 [*.{cs,vb}]
 

@@ -73,7 +73,7 @@ public class Query<TArg, TResult>
     { }
 
     /// <summary>
-    /// The current argument passed to this query, or <c>default</c> if the query is unititialized.
+    /// The current argument passed to this query, or <c>default</c> if the query is uninitialized.
     /// </summary>
     public TArg? Arg => _currentQuery is { } query ? query.Arg : default;
 
@@ -184,7 +184,7 @@ public class Query<TArg, TResult>
     }
 
     /// <summary>
-    /// Runs the original query function once, completely bypassing caching and other extra behaviour
+    /// Runs the original query function once, completely bypassing caching and other extra behavior
     /// </summary>
     /// <param name="arg">The argument passed to the query function</param>
     /// <param name="ct">An optional cancellation token</param>
@@ -209,7 +209,7 @@ public class Query<TArg, TResult>
     public void Refetch()
     {
         if (_currentQuery is null)
-            throw new InvalidOperationException("Cannot refetch an unititialized query");
+            throw new InvalidOperationException("Cannot refetch an uninitialized query");
         _currentQuery.Refetch(_options?.RetryHandler);
     }
 
@@ -221,7 +221,7 @@ public class Query<TArg, TResult>
     public Task<TResult> RefetchAsync()
     {
         if (_currentQuery is null)
-            throw new InvalidOperationException("Cannot refetch an unititialized query");
+            throw new InvalidOperationException("Cannot refetch an uninitialized query");
 
         return _currentQuery.RefetchAsync(_options?.RetryHandler);
     }
@@ -252,15 +252,15 @@ public class Query<TArg, TResult>
             _currentQuery?.RemoveObserver(this);
             newQuery.AddObserver(this);
             _currentQuery = newQuery;
-            // TODO: Is this the best behaviour?
+            // TODO: Is this the best behavior?
 
             if (!newQuery.IsFetching && newQuery.IsStaleByTime(_staleTime, DateTime.Now))
             {
                 return await newQuery.RefetchAsync(_options?.RetryHandler).ConfigureAwait(false);
             }
         }
-        Debug.Assert(newQuery.LastInvokation is not null, "newQuery should have been invoked before this point");
-        if (newQuery.LastInvokation is { } task)
+        Debug.Assert(newQuery.LastInvocation is not null, "newQuery should have been invoked before this point");
+        if (newQuery.LastInvocation is { } task)
         {
             return await task!;
         }
@@ -348,7 +348,7 @@ public class Query<TResult> : Query<Unit, TResult>
     /// Causes this query to fetch if it has not already.
     /// </summary>
     /// <remarks>
-    /// This is equivalent to <see cref="Query{TArg, TResult}.SetArg(TArg)"/>, but for paramterless queries.
+    /// This is equivalent to <see cref="Query{TArg, TResult}.SetArg(TArg)"/>, but for parameterless queries.
     /// </remarks>
     public void Fetch() => _ = SetArgAsync(default);
 

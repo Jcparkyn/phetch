@@ -28,7 +28,7 @@
         <ul class="comment-list">
             @* Defer rendering of the comments, so that the title and body text loads faster, without waiting for comments at end. *@
             @* This has less scrolling artifacts than using Virtualize. *@
-            <DeferList Items="post.ValidChilden.Select((comment,i) => (comment,i))" Context=comment ChunkSize="20">
+            <DeferList Items="post.ValidChildren.Select((comment,i) => (comment,i))" Context=comment ChunkSize="20">
                 <Comment
                     Item=comment.comment
                     CommentColors="GetCommentColors(comment.comment, post.Author)"

@@ -114,7 +114,7 @@ public abstract class UseEndpointWithArg<TArg, TResult> : UseEndpointBase<TArg, 
 
     /// <summary>
     /// If true, the query will not be run automatically.
-    /// This does not affect manual query invokations using methods on the Query object.
+    /// This does not affect manual query invocations using methods on the Query object.
     /// </summary>
     /// <remarks>
     /// This is useful for delaying queries until the data they depend on is available.
