@@ -25,7 +25,6 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     private bool _isInvalidated;
     private Timer? _gcTimer;
     private DateTime? _dataUpdatedAt;
-    private DateTime? _lastCompletedTaskStartTime;
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "Undisposed CTSs are safe, and disposing would potentially cause issues with ongoing queries.")]
     private CancellationTokenSource _cts = new();
 
@@ -48,7 +47,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     /// True if the query is currently running, either for the initial load or for subsequent
     /// fetches once the data is stale.
     /// </summary>
-    public bool IsFetching => _lastActionCall is not null && !_lastActionCall.IsCompleted;
+    public bool IsFetching => _lastActionCall is { IsCompleted: false };
 
     internal Task<TResult>? LastInvokation { get; private set; }
 
@@ -72,7 +71,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     {
         // Updating LastInvokation makes the API a bit more consistent
         LastInvokation = Task.FromResult(resultData);
-        SetSuccessState(resultData, DateTime.Now);
+        SetSuccessState(resultData);
         foreach (var observer in _observers)
         {
             observer.OnQueryUpdate();
@@ -145,7 +144,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         return task;
     }
 
-    // This is a separate method to allow the resulting Task to be stored and poten
+    // This is a separate method to allow the resulting Task to be stored and used by other methods
     private async Task<TResult> RefetchAsyncImpl(IRetryHandler? retryHandler)
     {
         if (Status != QueryStatus.Success)
@@ -162,16 +161,16 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
             var token = thisCts.Token;
             thisActionCall = (retryHandler ?? _endpointOptions.RetryHandler) switch
             {
-                { } handler when handler is not NoRetryHandler => handler.ExecuteAsync(ct => _queryFn(Arg, ct), token),
-                _ => _queryFn(Arg, thisCts.Token),
+                null or NoRetryHandler => _queryFn(Arg, thisCts.Token),
+                IRetryHandler handler => handler.ExecuteAsync(ct => _queryFn(Arg, ct), token),
             };
 
             _lastActionCall = thisActionCall;
             var newData = await thisActionCall;
-            // Only update if no more recent tasks have finished.
-            if (IsMostRecent(startTime) && !thisCts.IsCancellationRequested)
+            // Ignore results from cancelled calls, these have already been handled.
+            if (!thisCts.IsCancellationRequested)
             {
-                SetSuccessState(newData, startTime);
+                SetSuccessState(newData);
                 var eventArgs = new QuerySuccessEventArgs<TArg, TResult>(Arg, newData);
                 _endpointOptions.OnSuccess?.Invoke(eventArgs);
                 foreach (var observer in _observers)
@@ -187,21 +186,16 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
             // The state change has already been handled by Cancel()
             throw;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!thisCts.IsCancellationRequested)
         {
-            if (IsMostRecent(startTime) && !thisCts.IsCancellationRequested)
+            Error = ex;
+            Status = QueryStatus.Error;
+            var eventArgs = new QueryFailureEventArgs<TArg>(Arg, ex);
+            _endpointOptions.OnFailure?.Invoke(eventArgs);
+            foreach (var observer in _observers)
             {
-                Error = ex;
-                Status = QueryStatus.Error;
-                _lastCompletedTaskStartTime = startTime;
-                var eventArgs = new QueryFailureEventArgs<TArg>(Arg, ex);
-                _endpointOptions.OnFailure?.Invoke(eventArgs);
-                foreach (var observer in _observers)
-                {
-                    observer.OnQueryFailure(eventArgs);
-                }
+                observer.OnQueryFailure(eventArgs);
             }
-
             throw;
         }
     }
@@ -220,16 +214,10 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
             ScheduleGc();
     }
 
-    // We only want to use the "most recent" data, based on the time that the request was made.
-    // This avoids race conditions when queries return in a different order than they were made.
-    private bool IsMostRecent(DateTime startTime) =>
-        _lastCompletedTaskStartTime == null || startTime > _lastCompletedTaskStartTime;
-
-    private void SetSuccessState(TResult? newData, DateTime startTime)
+    private void SetSuccessState(TResult? newData)
     {
         _isInvalidated = false;
         _dataUpdatedAt = DateTime.Now;
-        _lastCompletedTaskStartTime = startTime;
         Status = QueryStatus.Success;
         Data = newData;
         Error = null;

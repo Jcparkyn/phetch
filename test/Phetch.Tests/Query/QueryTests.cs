@@ -195,11 +195,13 @@ public class QueryTests
         query.Data.Should().Be("test1");
     }
 
+    // This test exists because the previous implementation used to intentionally ignore the second result.
+    // This was later decided to be unnecessary, so now we keep both results (when the arguments are the same).
     [UIFact]
-    public async Task Should_ignore_outdated_data()
+    public async Task Should_keep_newer_return_from_same_arg()
     {
         // Timing:
-        // t0 ------------------- [ignore]
+        // t0 ------------------- [keep]
         // t1     --------- [keep]
         //        ^ refetch
 
@@ -232,7 +234,7 @@ public class QueryTests
         query.Status.Should().Be(QueryStatus.Success);
         query.IsLoading.Should().BeFalse();
         query.IsFetching.Should().BeFalse();
-        query.Data.Should().Be("test1");
+        query.Data.Should().Be("test0");
     }
 
     private static void AssertIsIdleState<TArg, TResult>(Query<TArg, TResult> query)

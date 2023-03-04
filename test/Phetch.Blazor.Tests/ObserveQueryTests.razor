@@ -31,25 +31,28 @@
 
         cut.MarkupMatches("");
 
-        query.SetArg(1);
+        cut.InvokeAsync(() => query.SetArg(1));
 
         onChangedCalls.Should().HaveCount(0);
         onSuccessCalls.Should().HaveCount(0);
-
-        sources[0].SetResult("1");
-
-        cut.WaitForAssertion(() => onChangedCalls.Should().HaveCount(1), timeout);
-        cut.WaitForAssertion(() => onSuccessCalls.Should().HaveCount(1), timeout);
-
-        onSuccessCalls.Should().SatisfyRespectively(
-            e =>
-            {
-                e.Result.Should().Be("1");
-                e.Arg.Should().Be(1);
-            }
-        );
         cut.RenderCount.Should().Be(1);
-        cut.FindComponent<ObserveQuery<int, string>>().RenderCount.Should().Be(1);
+
+        cut.InvokeAsync(() => sources[0].SetResult("1"));
+        using (new AssertionScope())
+        {
+            cut.WaitForAssertion(() => onChangedCalls.Should().HaveCount(1), timeout);
+            cut.WaitForAssertion(() => onSuccessCalls.Should().HaveCount(1), timeout);
+
+            onSuccessCalls.Should().SatisfyRespectively(
+                e =>
+                {
+                    e.Result.Should().Be("1");
+                    e.Arg.Should().Be(1);
+                }
+            );
+            cut.RenderCount.Should().Be(2);
+            cut.FindComponent<ObserveQuery<int, string>>().RenderCount.Should().Be(1);
+        }
     }
 
     [Fact]
