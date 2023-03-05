@@ -111,17 +111,17 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         {
             Status = QueryStatus.Idle;
         }
+        RequestCancellation();
+        _lastActionCall = null;
         foreach (var observer in _observers)
         {
             observer.OnQueryUpdate();
         }
-        RequestCancellation();
-        _lastActionCall = null;
     }
 
     private void RequestCancellation()
     {
-        if (_lastActionCall is not null && !_lastActionCall.IsCompleted)
+        if (IsFetching)
         {
             try
             {
@@ -171,12 +171,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
             if (!thisCts.IsCancellationRequested)
             {
                 SetSuccessState(newData);
-                var eventArgs = new QuerySuccessEventArgs<TArg, TResult>(Arg, newData);
-                _endpointOptions.OnSuccess?.Invoke(eventArgs);
-                foreach (var observer in _observers)
-                {
-                    observer.OnQuerySuccess(eventArgs);
-                }
+                NotifySuccess(newData);
             }
             return newData;
         }
@@ -190,12 +185,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         {
             Error = ex;
             Status = QueryStatus.Error;
-            var eventArgs = new QueryFailureEventArgs<TArg>(Arg, ex);
-            _endpointOptions.OnFailure?.Invoke(eventArgs);
-            foreach (var observer in _observers)
-            {
-                observer.OnQueryFailure(eventArgs);
-            }
+            NotifyFailure(ex);
             throw;
         }
     }
@@ -221,6 +211,53 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         Status = QueryStatus.Success;
         Data = newData;
         Error = null;
+    }
+
+    private void NotifySuccess(TResult newData)
+    {
+        var eventArgs = new QuerySuccessEventArgs<TArg, TResult>(Arg, newData);
+
+#pragma warning disable CA1031 // Do not catch general exception types
+        // There isn't much we can do if these callbacks throw, so we just swallow any exceptions,
+        // to ensure that all callbacks are called.
+        // Otherwise, they are caught in RefetchAsyncImpl and treated as a query failure (incorrectly).
+        try
+        {
+            _endpointOptions.OnSuccess?.Invoke(eventArgs);
+        }
+        catch { }
+        foreach (var observer in _observers)
+        {
+            try
+            {
+                observer.OnQuerySuccess(eventArgs);
+            }
+            catch { }
+        }
+#pragma warning restore CA1031 // Do not catch general exception types
+    }
+
+    private void NotifyFailure(Exception ex)
+    {
+        var eventArgs = new QueryFailureEventArgs<TArg>(Arg, ex);
+
+#pragma warning disable CA1031 // Do not catch general exception types
+        // There isn't much we can do if these callbacks throw, so we just swallow any exceptions,
+        // to ensure that all callbacks are called.
+        try
+        {
+            _endpointOptions.OnFailure?.Invoke(eventArgs);
+        }
+        catch { }
+        foreach (var observer in _observers)
+        {
+            try
+            {
+                observer.OnQueryFailure(eventArgs);
+            }
+            catch { }
+        }
+#pragma warning restore CA1031 // Do not catch general exception types
     }
 
     private void ScheduleGc()

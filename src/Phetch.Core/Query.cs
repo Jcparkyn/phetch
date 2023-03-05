@@ -195,8 +195,14 @@ public class Query<TArg, TResult>
     }
 
     /// <summary>
-    /// Cancel the currently running query using the <see cref="CancellationToken"/> that was passed to it.
+    /// Cancels the currently running query, along with the <see cref="CancellationToken"/> that was
+    /// passed to it.
     /// </summary>
+    /// <remarks>
+    /// If the query function does not use the CancellationToken, the query state will be reset, but
+    /// the underlying operation will continue to run.
+    /// You should not rely on this to cancel operations with side effects.
+    /// </remarks>
     public void Cancel() => _currentQuery?.Cancel();
 
     /// <summary>

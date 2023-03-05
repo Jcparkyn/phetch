@@ -14,18 +14,12 @@ public class QueryTests
     public async Task Should_work_with_basic_query()
     {
         var query = new ParameterlessEndpoint<string>(
-            _ => TestHelpers.ReturnAsync("test")
+            _ => ReturnAsync("test")
         ).Use();
         var result = await query.SetArgAsync(default);
         result.Should().Be("test");
-
         query.Data.Should().Be("test");
-        query.Status.Should().Be(QueryStatus.Success);
-        query.IsSuccess.Should().BeTrue();
-        query.IsLoading.Should().BeFalse();
-        query.IsFetching.Should().BeFalse();
-        query.IsError.Should().BeFalse();
-        query.Error.Should().BeNull();
+        AssertIsSuccessState(query);
     }
 
     [UIFact]
@@ -35,6 +29,7 @@ public class QueryTests
         var query = new ParameterlessEndpoint<string>(
             _ => tcs.Task
         ).Use();
+        using var mon = query.Monitor();
 
         query.Status.Should().Be(QueryStatus.Idle);
         query.IsUninitialized.Should().BeTrue();
@@ -56,6 +51,12 @@ public class QueryTests
         query.IsFetching.Should().BeFalse();
         query.HasData.Should().BeTrue();
 
+        mon.OccurredEvents.Should().SatisfyRespectively(
+            e => e.EventName.Should().Be("Succeeded"),
+            e => e.EventName.Should().Be("StateChanged")
+        );
+        mon.Clear();
+
         tcs = new();
         // Fetch again
         var refetchTask2 = query.RefetchAsync();
@@ -69,6 +70,12 @@ public class QueryTests
 
         query.IsLoading.Should().BeFalse();
         query.IsFetching.Should().BeFalse();
+
+        mon.OccurredEvents.Should().SatisfyRespectively(
+            e => e.EventName.Should().Be("Succeeded"),
+            e => e.EventName.Should().Be("StateChanged")
+        );
+        mon.Clear();
     }
 
     [UITheory]
@@ -136,10 +143,11 @@ public class QueryTests
     [UIFact]
     public async Task Should_handle_query_error()
     {
-        var error = new IndexOutOfRangeException("message");
+        var error = new IndexOutOfRangeException("BOOM!");
         var query = new ParameterlessEndpoint<string>(
             _ => Task.FromException<string>(error)
         ).Use();
+        using var mon = query.Monitor();
 
         await query.Invoking(x => x.SetArgAsync(default))
             .Should().ThrowExactlyAsync<IndexOutOfRangeException>();
@@ -152,7 +160,61 @@ public class QueryTests
             query.IsError.Should().BeTrue();
             query.IsSuccess.Should().BeFalse();
             query.IsLoading.Should().BeFalse();
+            mon.OccurredEvents.Should().SatisfyRespectively(
+                e => e.EventName.Should().Be("Failed"),
+                e => e.EventName.Should().Be("StateChanged")
+            );
         }
+    }
+
+    [UIFact]
+    public async Task Should_handle_exception_in_success_callbacks()
+    {
+        var query = new Endpoint<int, string>(
+            val => ReturnAsync(val.ToString()),
+            options: new()
+            {
+                OnSuccess = _ => throw new Exception("endpoint"),
+            }
+        ).Use(
+            new()
+            {
+                OnSuccess = _ => throw new Exception("query"),
+            }
+        );
+
+        var result = await query.SetArgAsync(1);
+        result.Should().Be("1");
+        AssertIsSuccessState(query);
+        // TODO: We can't easily assert event calls here, because FluentAssertions doesn't handle exceptions properly yet.
+        // See https://github.com/fluentassertions/fluentassertions/pull/1954
+    }
+
+    [UIFact]
+    public async Task Should_handle_exception_in_failure_callbacks()
+    {
+        var query = new Endpoint<int, string>(
+            val => Task.FromException<string>(new IndexOutOfRangeException("BOOM!")),
+            options: new()
+            {
+                OnFailure = _ => throw new Exception("endpoint"),
+            }
+        ).Use(
+            new()
+            {
+                OnFailure = _ => throw new Exception("query"),
+            }
+        );
+
+        await query.Invoking(x => x.SetArgAsync(1))
+           .Should().ThrowExactlyAsync<IndexOutOfRangeException>();
+
+        query.Status.Should().Be(QueryStatus.Error);
+        query.IsError.Should().BeTrue();
+        query.IsSuccess.Should().BeFalse();
+        query.IsLoading.Should().BeFalse();
+        // TODO: We can't easily assert event calls here, because FluentAssertions doesn't handle exceptions properly yet.
+        // See https://github.com/fluentassertions/fluentassertions/pull/1954
     }
 
     [UIFact]
@@ -246,5 +308,15 @@ public class QueryTests
         query.IsSuccess.Should().BeFalse();
         query.IsLoading.Should().BeFalse();
         query.IsFetching.Should().BeFalse();
+    }
+
+    private static void AssertIsSuccessState<TArg, TResult>(Query<TArg, TResult> query)
+    {
+        query.Status.Should().Be(QueryStatus.Success);
+        query.IsSuccess.Should().BeTrue();
+        query.IsLoading.Should().BeFalse();
+        query.IsFetching.Should().BeFalse();
+        query.IsError.Should().BeFalse();
+        query.Error.Should().BeNull();
     }
 }
