@@ -6,9 +6,9 @@ using Phetch.Core;
 
 public sealed class ObserveQuery<TArg, TResult> : ComponentBase, IDisposable
 {
-    private Query<TArg, TResult>? _target;
+    private IQuery<TArg, TResult>? _target;
     [Parameter, EditorRequired]
-    public Query<TArg, TResult>? Target
+    public IQuery<TArg, TResult>? Target
     {
         get => _target;
         set
@@ -55,7 +55,7 @@ public sealed class ObserveQuery<TArg, TResult> : ComponentBase, IDisposable
         }
     }
 
-    private void TryUnsubscribe(Query<TArg, TResult>? query)
+    private void TryUnsubscribe(IQuery<TArg, TResult>? query)
     {
         if (query is not null)
         {
