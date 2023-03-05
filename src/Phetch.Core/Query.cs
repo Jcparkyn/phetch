@@ -22,7 +22,8 @@ public interface IQuery
     public QueryStatus Status { get; }
 
     /// <summary>
-    /// The exception returned by the last query failure, or <c>null</c> if the query has never failed.
+    /// The exception thrown the last time the query failed with this arg, or <c>null</c> if the
+    /// query has never failed with this arg.
     /// </summary>
     [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "Only conflicts with VB.NET")]
     public Exception? Error { get; }
