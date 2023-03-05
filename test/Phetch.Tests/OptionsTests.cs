@@ -59,4 +59,13 @@ public class OptionsTests
             options2.CacheTime.Should().Be(TimeSpan.FromSeconds(2));
         }
     }
+
+    [Fact]
+    public void Default_options_should_exist()
+    {
+        QueryOptions.Default.Should().NotBeNull();
+        QueryOptions<int, string>.Default.Should().NotBeNull();
+
+        EndpointOptions<int, string>.Default.Should().NotBeNull();
+    }
 }

@@ -98,4 +98,30 @@ public class TriggerTests
         query.IsSuccess.Should().BeFalse();
         query.IsLoading.Should().BeFalse();
     }
+
+    [UIFact]
+    public async Task Should_not_share_cache_between_triggered_queries()
+    {
+        var (queryFn, sources, queryFnCalls) = TestHelpers.MakeCustomTrackedQueryFn(2);
+        var endpoint = new Endpoint<int, string>(queryFn);
+
+        var options = new QueryOptions<int, string>()
+        {
+            StaleTime = TimeSpan.FromMinutes(100),
+        };
+        var query1 = endpoint.Use(options);
+        var query2 = endpoint.Use(options);
+        sources[0].SetResult("10-1");
+        sources[1].SetResult("10-2");
+        var result1 = await query1.TriggerAsync(10);
+        var result2 = await query2.TriggerAsync(10);
+
+        result1.Should().Be("10-1");
+        result2.Should().Be("10-2");
+
+        query1.Data.Should().Be("10-1");
+        query2.Data.Should().Be("10-2");
+
+        queryFnCalls.Should().Equal(10, 10);
+    }
 }

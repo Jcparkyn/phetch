@@ -23,7 +23,7 @@ public class QueryTests
     }
 
     [UIFact]
-    public async Task SetArg_should_set_loading_states_correctly()
+    public async Task SetArg_should_set_loading_states_correctly_for_same_arg()
     {
         var tcs = new TaskCompletionSource<string>();
         var query = new ParameterlessEndpoint<string>(
@@ -34,15 +34,17 @@ public class QueryTests
         query.Status.Should().Be(QueryStatus.Idle);
         query.IsUninitialized.Should().BeTrue();
         query.HasData.Should().BeFalse();
+        query.Data.Should().BeNull();
+        query.LastData.Should().BeNull();
 
         // Fetch once
-        var refetchTask = query.SetArgAsync(default);
+        var fetchTask = query.SetArgAsync(default);
 
         query.IsLoading.Should().BeTrue();
         query.IsFetching.Should().BeTrue();
 
         tcs.SetResult("test");
-        var result = await refetchTask;
+        var result = await fetchTask;
         result.Should().Be("test");
 
         query.Status.Should().Be(QueryStatus.Success);
@@ -50,6 +52,8 @@ public class QueryTests
         query.IsLoading.Should().BeFalse();
         query.IsFetching.Should().BeFalse();
         query.HasData.Should().BeTrue();
+        query.Data.Should().Be("test");
+        query.LastData.Should().Be("test");
 
         mon.OccurredEvents.Should().SatisfyRespectively(
             e => e.EventName.Should().Be("Succeeded"),
@@ -59,17 +63,76 @@ public class QueryTests
 
         tcs = new();
         // Fetch again
-        var refetchTask2 = query.RefetchAsync();
+        var refetchTask = query.RefetchAsync();
 
         query.Status.Should().Be(QueryStatus.Success);
         query.IsLoading.Should().BeFalse();
         query.IsFetching.Should().BeTrue();
 
         tcs.SetResult("test");
-        await refetchTask2;
+        await refetchTask;
 
         query.IsLoading.Should().BeFalse();
         query.IsFetching.Should().BeFalse();
+
+        mon.OccurredEvents.Should().SatisfyRespectively(
+            e => e.EventName.Should().Be("Succeeded"),
+            e => e.EventName.Should().Be("StateChanged")
+        );
+    }
+
+    [UIFact]
+    public async Task SetArg_should_set_loading_states_correctly_for_different_arg()
+    {
+        var tcs = new TaskCompletionSource<string>();
+        var query = new Endpoint<int, string>(
+            val => tcs.Task
+        ).Use();
+        using var mon = query.Monitor();
+
+        query.Arg.Should().Be(0);
+
+        // Fetch once
+        var fetchTask = query.SetArgAsync(1);
+        query.Arg.Should().Be(1);
+        query.IsLoading.Should().BeTrue();
+        query.IsFetching.Should().BeTrue();
+
+        tcs.SetResult("one");
+        var result = await fetchTask;
+        result.Should().Be("one");
+
+        query.Status.Should().Be(QueryStatus.Success);
+        query.IsSuccess.Should().BeTrue();
+        query.IsLoading.Should().BeFalse();
+        query.IsFetching.Should().BeFalse();
+        query.HasData.Should().BeTrue();
+        query.Data.Should().Be("one");
+        query.LastData.Should().Be("one");
+
+        mon.OccurredEvents.Should().SatisfyRespectively(
+            e => e.EventName.Should().Be("Succeeded"),
+            e => e.EventName.Should().Be("StateChanged")
+        );
+        mon.Clear();
+
+        tcs = new();
+        // Fetch again
+        var refetchTask = query.SetArgAsync(2);
+
+        query.Arg.Should().Be(2);
+        query.IsLoading.Should().BeTrue();
+        query.IsFetching.Should().BeTrue();
+        query.Data.Should().BeNull();
+        query.LastData.Should().Be("one");
+
+        tcs.SetResult("two");
+        await refetchTask;
+
+        query.IsLoading.Should().BeFalse();
+        query.IsFetching.Should().BeFalse();
+        query.Data.Should().Be("two");
+        query.LastData.Should().Be("two");
 
         mon.OccurredEvents.Should().SatisfyRespectively(
             e => e.EventName.Should().Be("Succeeded"),
@@ -297,6 +360,32 @@ public class QueryTests
         query.IsLoading.Should().BeFalse();
         query.IsFetching.Should().BeFalse();
         query.Data.Should().Be("test0");
+    }
+
+    [UIFact]
+    public async Task Refetch_should_throw_if_uninitialized()
+    {
+        var query = new ParameterlessEndpoint<string>(
+            _ => ReturnAsync("test")
+        ).Use();
+
+        query.Invoking(q => q.Refetch())
+            .Should()
+            .ThrowExactly<InvalidOperationException>();
+
+        await query.Invoking(q => q.RefetchAsync())
+            .Should()
+            .ThrowExactlyAsync<InvalidOperationException>();
+    }
+
+    [UIFact]
+    public async Task Invoke_should_work()
+    {
+        var query = new Endpoint<int, string>(
+            val => ReturnAsync(val.ToString())
+        ).Use();
+        var result = await query.Invoke(2);
+        result.Should().Be("2");
     }
 
     private static void AssertIsIdleState<TArg, TResult>(Query<TArg, TResult> query)
