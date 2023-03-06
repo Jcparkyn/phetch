@@ -97,7 +97,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     {
         if (_observers.Count > 0)
         {
-            Refetch(retryHandler: null);
+            _ = RefetchAsync(retryHandler: null);
         }
         else
         {
@@ -133,8 +133,6 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
             }
         }
     }
-
-    internal void Refetch(IRetryHandler? retryHandler) => _ = RefetchAsync(retryHandler);
 
     [DebuggerStepThrough]
     internal Task<TResult> RefetchAsync(IRetryHandler? retryHandler)

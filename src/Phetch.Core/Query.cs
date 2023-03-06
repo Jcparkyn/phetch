@@ -159,15 +159,6 @@ public interface IQuery<TArg, TResult> : IQuery
     public Task<TResult> Invoke(TArg arg, CancellationToken ct = default);
 
     /// <summary>
-    /// Re-runs the query using the most recent argument, without waiting for the result.
-    /// </summary>
-    /// <remarks>
-    /// To also return the result of the query, use <see cref="RefetchAsync"/>.
-    /// </remarks>
-    /// <inheritdoc cref="RefetchAsync" path="/exception"/>
-    public void Refetch();
-
-    /// <summary>
     /// Re-runs the query using the most recent argument and returns the result asynchronously.
     /// </summary>
     /// <returns>The value returned by the query function</returns>
@@ -178,24 +169,13 @@ public interface IQuery<TArg, TResult> : IQuery
     /// Updates the argument for this query, and re-run the query if the argument has changed.
     /// </summary>
     /// <remarks>
-    /// If you need to <c>await</c> the completion of the query, use <see cref="SetArgAsync"/> instead.
-    /// </remarks>
-    public void SetArg(TArg arg) => _ = SetArgAsync(arg);
-
-    /// <summary>
-    /// Updates the argument for this query, and re-run the query if the argument has changed.
-    /// </summary>
-    /// <remarks>
-    /// If you do not need to <c>await</c> the completion of the query, use <see cref="SetArg"/> instead.
+    /// If you do not need to <c>await</c> the completion of the query, use <see cref="QueryExtensions.SetArg"/> instead.
     /// </remarks>
     /// <returns>
     /// A <see cref="Task"/> which completes when the query returns, or immediately if there is a
     /// non-stale cached value for this argument.
     /// </returns>
     public Task<TResult> SetArgAsync(TArg arg);
-
-    /// <inheritdoc cref="TriggerAsync"/>
-    public void Trigger(TArg arg) => _ = TriggerAsync(arg);
 
     /// <summary>
     /// Run the query function without sharing state or cache with other queries.
@@ -334,14 +314,6 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
     public void Cancel() => _currentQuery?.Cancel();
 
     /// <inheritdoc/>
-    public void Refetch()
-    {
-        if (_currentQuery is null)
-            throw new InvalidOperationException("Cannot refetch an uninitialized query");
-        _currentQuery.Refetch(_options?.RetryHandler);
-    }
-
-    /// <inheritdoc/>
     public Task<TResult> RefetchAsync()
     {
         if (_currentQuery is null)
@@ -349,9 +321,6 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
 
         return _currentQuery.RefetchAsync(_options?.RetryHandler);
     }
-
-    /// <inheritdoc/>
-    public void SetArg(TArg arg) => _ = SetArgAsync(arg);
 
     /// <inheritdoc/>
     public async Task<TResult> SetArgAsync(TArg arg)
@@ -380,9 +349,6 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
             return newQuery.Data!;
         }
     }
-
-    /// <inheritdoc cref="TriggerAsync"/>
-    public void Trigger(TArg arg) => _ = TriggerAsync(arg);
 
     /// <inheritdoc/>
     public async Task<TResult> TriggerAsync(TArg arg)
@@ -442,14 +408,14 @@ public class Query<TResult> : Query<Unit, TResult>
     /// Causes this query to fetch if it has not already.
     /// </summary>
     /// <remarks>
-    /// This is equivalent to <see cref="Query{TArg, TResult}.SetArg(TArg)"/>, but for parameterless queries.
+    /// This is equivalent to <see cref="Query{TArg, TResult}.SetArgAsync(TArg)"/>, but for parameterless queries.
     /// </remarks>
     public void Fetch() => _ = SetArgAsync(default);
 
     /// <inheritdoc cref="Fetch"/>
     public Task<TResult> FetchAsync() => SetArgAsync(default);
 
-    /// <inheritdoc cref="Query{TArg, TResult}.Trigger(TArg)"/>
+    /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
     public void Trigger() => _ = TriggerAsync(default);
 
     /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
@@ -486,5 +452,49 @@ public class Mutation<TArg> : Query<TArg, Unit>
         EndpointOptions<TArg, Unit> endpointOptions
     ) : base(cache, options, endpointOptions)
     {
+    }
+}
+
+/// <summary>
+/// A collection of helpers to simplify working with <see cref="IQuery"/> objects.
+/// </summary>
+public static class QueryExtensions
+{
+    /// <summary>
+    /// Updates the argument for this query, and re-run the query if the argument has changed.
+    /// </summary>
+    /// <remarks>
+    /// If you need to <c>await</c> the completion of the query, use <see cref="Query{TArg, TResult}.SetArgAsync(TArg)"/> instead.
+    /// </remarks>
+    [ExcludeFromCodeCoverage]
+    public static void SetArg<TArg, TResult>(this IQuery<TArg, TResult> self, TArg arg)
+    {
+        _ = self ?? throw new ArgumentNullException(nameof(self));
+        _ = self.SetArgAsync(arg);
+    }
+
+    /// <summary>
+    /// Re-runs the query using the most recent argument, without waiting for the result.
+    /// </summary>
+    /// <remarks>
+    /// To also return the result of the query, use <see cref="Query{TArg, TResult}.RefetchAsync"/>.
+    /// </remarks>
+    /// <inheritdoc cref="Query{TArg, TResult}.RefetchAsync" path="/exception"/>
+    [ExcludeFromCodeCoverage]
+    public static void Refetch<TArg, TResult>(this IQuery<TArg, TResult> self)
+    {
+        _ = self ?? throw new ArgumentNullException(nameof(self));
+        _ = self.RefetchAsync();
+    }
+
+    /// <remarks>
+    /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
+    /// To also return the result of the query, use <see cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>.
+    /// </remarks>
+    [ExcludeFromCodeCoverage]
+    public static void Trigger<TArg, TResult>(this IQuery<TArg, TResult> self, TArg arg)
+    {
+        _ = self ?? throw new ArgumentNullException(nameof(self));
+        _ = self.TriggerAsync(arg);
     }
 }

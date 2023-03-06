@@ -158,7 +158,7 @@ public class Endpoint<TArg, TResult>
     /// Gets the cached query instance for the given argument if it exists in the cache, otherwise <c>null</c>.
     /// </summary>
     /// <remarks>
-    /// This does not return queries created by <see cref="Query{TArg, TResult}.Trigger(TArg)"/>.
+    /// This does not return queries created by <see cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>.
     /// </remarks>
     public FixedQuery<TArg, TResult>? GetCachedQuery(TArg arg) => Cache.GetCachedQuery(arg);
 
