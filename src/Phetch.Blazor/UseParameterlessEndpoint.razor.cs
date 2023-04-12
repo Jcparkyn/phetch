@@ -3,8 +3,15 @@
 using Microsoft.AspNetCore.Components;
 using Phetch.Core;
 
+/// <summary>
+/// An alternative to <see cref="UseEndpoint{TArg, TResult}"/> for endpoints that don't take any arguments.
+/// This fetches the query automatically, unless <see cref="AutoFetch"/> is set to false.
+/// </summary>
 public sealed partial class UseParameterlessEndpoint<TResult> : UseEndpointBase<Unit, TResult>
 {
+    /// <summary>
+    /// The endpoint to use.
+    /// </summary>
     [Parameter, EditorRequired]
     public ParameterlessEndpoint<TResult> Endpoint
     {

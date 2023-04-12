@@ -240,8 +240,9 @@ In the case of queries without a return value, these are called **Mutations**.
 There is also a corresponding class called `MutationEndpoint` (as opposed to the normal `Endpoint`), and a `<UseMutationEndpoint/>` component (as opposed to `<UseEndpoint/>`), which are all designed to work with mutations.
 
 > :information_source: Unlike some other libraries (e.g., React Query and RTK Query), mutations in Phetch behave exactly the same as queries (except for having no return value).
+To get the same behavior as these libraries, use the `query.Trigger()` method.
 
-Equivalently, you can use the `ParameterlessEndpoint` class for query functions with no parameters.
+Equivalently, you can use the `ParameterlessEndpoint` class (and corresponding `<UseParameterlessEndpoint/>` component) for query functions with no parameters.
 
 ### Invoking queries manually
 

@@ -214,6 +214,10 @@ public sealed class ParameterlessEndpoint<TResult> : Endpoint<Unit, TResult>
     { }
 
     /// <inheritdoc cref="Endpoint{TArg, TResult}.Use"/>
+    /// <remarks>
+    /// This does <b>not</b> fetch the query immediately. Instead, you should call <see
+    /// cref="Query{TResult}.Fetch"/> on the returned query.
+    /// </remarks>
     public new Query<TResult> Use(QueryOptions<Unit, TResult>? options = null) =>
         new(Cache, options, Options);
 }

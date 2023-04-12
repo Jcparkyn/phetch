@@ -3,6 +3,13 @@
 using Microsoft.AspNetCore.Components;
 using Phetch.Core;
 
+/// <summary>
+/// A component that can be used to call an endpoint and access the result.
+/// </summary>
+/// <remarks>
+/// If you're calling a <see cref="Phetch.Core.ParameterlessEndpoint{TResult}"/>, you should use <see
+/// cref="UseParameterlessEndpoint{TResult}"/> instead.
+/// </remarks>
 public sealed partial class UseEndpoint<TArg, TResult> : UseEndpointWithArg<TArg, TResult>
 {
     /// <summary>
