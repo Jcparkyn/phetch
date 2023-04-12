@@ -85,11 +85,9 @@ Any contributions are welcome, but ideally start by creating an [issue](https://
 
 ## Usage
 
-There are a few different ways to define and use queries, depending on your use case.
+### Defining Query Endpoints
 
-### Defining Query Endpoints (Recommended)
-
-In most cases, the best way to define queries is to use the `Endpoint` class.
+Start by defining a query using the `Endpoint` class.
 All components that use the same endpoint will share the same cache automatically.
 
 ```cs
@@ -144,23 +142,13 @@ builder.Services.AddScoped<MyApi>();
 
 </details>
 
-### Creating Queries without Endpoints
-
-If you just need to run a query in a single component and don't want to create an `Endpoint`, another option is to create a `Query` object directly.
-
-```cs
-var query = new Query<string, int>((id, cancellationToken) => ...);
-```
-
-> :warning: Unlike with Endpoints, you generally shouldn't share a single instance of `Query` across multiple components.
-
 ### Using Query Endpoints with `<UseEndpoint/>`
 
-Once you've defined a query endpoint, the best way to use it (in most cases) is with the `<UseEndpoint />` Blazor component. This will handle re-rending the component automatically when the data changes.
+Once you've defined a query endpoint, the best way to use it (in most cases) is with the `<UseEndpoint/>` Blazor component. This will handle re-rending the component automatically when the data changes.
 
-If you provide the `Arg` parameter, this will also automatically request new data when the argument changes.
+If you provide the `Arg` parameter (the value to pass to the endpoint), this will also automatically fetch the data, and request new data when the argument changes. Without an `Arg` parameter (or with `AutoFetch="false"`), the data will not be fetched automatically.
 
-> :information_source: With `<UseParameterlessEndpoint/>`, use the  `AutoFetch` parameter instead of passing an `Arg`.
+> :information_source: With `<UseParameterlessEndpoint/>`, `AutoFetch` defaults to `true`.
 
 ```cshtml
 // This assumes you have created a class called MyApi containing your endpoints,
@@ -231,7 +219,9 @@ var endpoint = new Endpoint<(string searchTerm, int page), List<string>>(
 )
 ```
 
-For cases with lots of parameters, it is recommended to combine them into a [record](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) instead. This will allow you to define default values and other functionality.
+For cases with lots of parameters, it is usually better to combine them into a [record](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) instead. This will allow you to define default values and other functionality.
+
+> :warning: Be careful when using classes or other mutable types as query parameters. Phetch uses the object's `GetHashCode()` and `Equals()` methods to determine whether the query needs to be re-fetched, so mutating a query argument after using it can have unexpected results.
 
 ### Mutations and Parameterless Queries
 
