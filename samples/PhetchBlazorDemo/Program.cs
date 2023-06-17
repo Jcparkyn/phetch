@@ -15,5 +15,6 @@ builder.Services
     .AddBlazoredLocalStorage();
 builder.Services.AddScoped<IsEvenApi>();
 builder.Services.AddScoped<CoinbaseApi>();
+builder.Services.AddScoped<LocalStorageCounterApi>();
 
 await builder.Build().RunAsync();

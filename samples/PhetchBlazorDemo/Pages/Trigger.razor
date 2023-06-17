@@ -1,0 +1,59 @@
+﻿@page "/trigger"
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject LocalStorageCounterApi Api
+
+<PageTitle>Counter</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Counter</MudText>
+
+<div style="display: flex">
+    <div style="flex: 1">
+        <UseMutationEndpoint Endpoint="Api.SetCounterValue" Context="query">
+            <MudText Class="mb-4">Current count: @currentCount</MudText>
+            <div style="margin-bottom: 12px">
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="() => currentCount++">Increment</MudButton>
+                <MudButton Color="Color.Secondary" Variant="Variant.Filled" @onclick="() => query.Trigger(currentCount)">
+                    Save to local storage
+                </MudButton>
+            </div>
+            @if (query.IsLoading)
+            {
+                <MudProgressLinear Indeterminate />
+            }
+            else if (query.IsError)
+            {
+                <MudAlert Severity="Severity.Error">
+                    @query.Error.Message
+                </MudAlert>
+            }
+            else if (query.IsSuccess)
+            {
+                <MudAlert Severity="Severity.Success">
+                    Saved count = @query.Arg to local storage
+                </MudAlert>
+            }
+        </UseMutationEndpoint>
+    </div>
+    <div style="flex: 1">
+        <UseParameterlessEndpoint Endpoint="Api.GetCounterValue" Context="query">
+            @if (query.IsLoading)
+            {
+                <MudProgressLinear Indeterminate />
+            }
+            else if (query.IsError)
+            {
+                <MudAlert Severity="Severity.Error">
+                    @query.Error.Message
+                </MudAlert>
+            }
+            else if (query.IsSuccess)
+            {
+                <MudText Class="mt-24">Stored count: @query.Data</MudText>
+            }
+        </UseParameterlessEndpoint>
+    </div>
+</div>
+
+@code {
+    private int currentCount = 0;
+}
