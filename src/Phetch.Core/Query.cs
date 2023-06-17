@@ -32,8 +32,8 @@ public interface IQuery
     /// True if the query is currently loading and has not previously succeeded with the same argument.
     /// </summary>
     /// <remarks>
-    /// This will return <c>false</c> if the query is currently re-fetching due to the current data
-    /// being stale. Use <see cref="IsFetching"/> for these cases (e.g., to show a loading indicator).
+    /// This will return <c>false</c> if the query is currently re-fetching in the background, and
+    /// already has data. Use <see cref="IsFetching"/> for these cases (e.g., to show a loading indicator).
     /// </remarks>
     public bool IsLoading { get; }
 
