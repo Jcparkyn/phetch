@@ -230,22 +230,6 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
         Failed += options?.OnFailure;
     }
 
-    /// <summary>
-    /// Creates a new Query from a query function.
-    /// </summary>
-    [Obsolete("Instead of creating a query directly, create an Endpoint and use endpoint.Use()")]
-    [ExcludeFromCodeCoverage]
-    public Query(
-        Func<TArg, CancellationToken, Task<TResult>> queryFn,
-        QueryOptions<TArg, TResult>? options = null
-    ) : this(
-        new QueryCache<TArg, TResult>(
-            queryFn ?? throw new ArgumentNullException(nameof(queryFn)),
-            EndpointOptions<TArg, TResult>.Default),
-        options,
-        EndpointOptions<TArg, TResult>.Default)
-    { }
-
     /// <inheritdoc/>
     public TArg? Arg => _currentQuery is { } query ? query.Arg : default;
 
@@ -386,17 +370,6 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
 /// <remarks>Aside from having no parameters, this functions identically to a normal Query</remarks>
 public class Query<TResult> : Query<Unit, TResult>
 {
-    /// <summary>
-    /// Creates a new Query from a query function with no parameters.
-    /// </summary>
-    [Obsolete("Instead of creating a query directly, create an Endpoint and use endpoint.Use()")]
-    [ExcludeFromCodeCoverage]
-    public Query(
-        Func<CancellationToken, Task<TResult>> queryFn,
-        QueryOptions<Unit, TResult>? options = null
-    ) : base((_, ct) => queryFn(ct), options)
-    { }
-
     internal Query(
         QueryCache<Unit, TResult> cache,
         QueryOptions<Unit, TResult>? options,
@@ -428,24 +401,6 @@ public class Query<TResult> : Query<Unit, TResult>
 /// <remarks>Aside from having no return value, this functions identically to a normal Query</remarks>
 public class Mutation<TArg> : Query<TArg, Unit>
 {
-    /// <summary>
-    /// Creates a new Mutation from a query function with no return value.
-    /// </summary>
-    [Obsolete("Instead of creating a mutation directly, create an Endpoint and use endpoint.Use()")]
-    [ExcludeFromCodeCoverage]
-    public Mutation(
-        Func<TArg, CancellationToken, Task> mutationFn,
-        QueryOptions<TArg, Unit>? endpointOptions = null
-    ) : base(
-        async (arg, ct) =>
-        {
-            await mutationFn(arg, ct);
-            return new Unit();
-        },
-        endpointOptions)
-    {
-    }
-
     internal Mutation(
         QueryCache<TArg, Unit> cache,
         QueryOptions<TArg, Unit>? options,
