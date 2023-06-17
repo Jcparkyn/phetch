@@ -197,7 +197,7 @@ public interface IQuery<TArg, TResult> : IQuery
     public Task<TResult> TriggerAsync(TArg arg);
 }
 
-/// <inheritdoc/>
+/// <inheritdoc cref="IQuery{TArg, TResult}"/>
 public class Query<TArg, TResult> : IQuery<TArg, TResult>
 {
     private readonly QueryCache<TArg, TResult> _cache;
