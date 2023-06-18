@@ -7,11 +7,51 @@ using Phetch.Core;
 /// A component that can be used to call an endpoint and access the result.
 /// </summary>
 /// <remarks>
-/// If you're calling a <see cref="Phetch.Core.ParameterlessEndpoint{TResult}"/>, you should use <see
+/// If you're calling a <see cref="ParameterlessEndpoint{TResult}"/>, you should use <see
 /// cref="UseParameterlessEndpoint{TResult}"/> instead.
 /// </remarks>
-public partial class UseEndpoint<TArg, TResult> : UseEndpointWithArg<TArg, TResult>
+public partial class UseEndpoint<TArg, TResult> : UseEndpointBase<TArg, TResult>
 {
+    private bool _hasSetArg;
+    private TArg? _arg;
+    private bool _skip;
+
+    /// <summary>
+    /// The argument to supply to the query. If not supplied, the query will not be run automatically.
+    /// </summary>
+    [Parameter]
+    public TArg Arg
+    {
+        get => _arg!;
+        set
+        {
+            _arg = value;
+            _hasSetArg = true;
+            if (IsInitialized && !Skip)
+                CurrentQuery?.SetArg(value);
+        }
+    }
+
+    /// <summary>
+    /// If true, the query will not be run automatically.
+    /// This does not affect manual query invocations using methods on the Query object.
+    /// </summary>
+    /// <remarks>
+    /// This is useful for delaying queries until the data they depend on is available.
+    /// If no value for <see cref="Arg"/> is provided, this has no effect.
+    /// </remarks>
+    [Parameter]
+    public bool Skip
+    {
+        get => _skip;
+        set
+        {
+            _skip = value;
+            if (IsInitialized && _hasSetArg && !value)
+                CurrentQuery?.SetArg(_arg!);
+        }
+    }
+
     /// <summary>
     /// The endpoint to use.
     /// </summary>
@@ -35,7 +75,7 @@ public partial class UseEndpoint<TArg, TResult> : UseEndpointWithArg<TArg, TResu
     {
         _ = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
         var query = endpoint.Use(Options);
-        if (HasSetArg && !Skip)
+        if (_hasSetArg && !Skip)
         {
             query.SetArg(Arg);
         }
