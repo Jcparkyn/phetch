@@ -322,7 +322,6 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
                 return await newQuery.RefetchAsync(_options?.RetryHandler).ConfigureAwait(false);
             }
         }
-        Debug.Assert(newQuery.LastInvocation is not null, "newQuery should have been invoked before this point");
         if (newQuery.LastInvocation is { } task)
         {
             return await task!;
@@ -330,6 +329,7 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
         else
         {
             // Probably not possible to get here, but just in case
+            Debug.Fail("newQuery should have been invoked before this point");
             return newQuery.Data!;
         }
     }
@@ -365,6 +365,22 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
 }
 
 /// <summary>
+/// An alternate version of <see cref="Query{TArg, TResult}"/> for queries with no return value.
+/// </summary>
+/// <remarks>Aside from having no return value, this functions identically to a normal Query</remarks>
+[Obsolete("Use Query<TArg, Unit> instead, which is equivalent.", true)]
+public class Mutation<TArg> : Query<TArg, Unit>
+{
+    internal Mutation(
+        QueryCache<TArg, Unit> cache,
+        QueryOptions<TArg, Unit>? options,
+        EndpointOptions<TArg, Unit> endpointOptions
+    ) : base(cache, options, endpointOptions)
+    {
+    }
+}
+
+/// <summary>
 /// An alternate version of <see cref="Query{TArg, TResult}"/> for queries with no parameters.
 /// </summary>
 /// <remarks>Aside from having no parameters, this functions identically to a normal Query</remarks>
@@ -393,21 +409,6 @@ public class Query<TResult> : Query<Unit, TResult>
 
     /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
     public Task<TResult> TriggerAsync() => TriggerAsync(default);
-}
-
-/// <summary>
-/// An alternate version of <see cref="Query{TArg, TResult}"/> for queries with no return value.
-/// </summary>
-/// <remarks>Aside from having no return value, this functions identically to a normal Query</remarks>
-public class ResultlessQuery<TArg> : Query<TArg, Unit>
-{
-    internal ResultlessQuery(
-        QueryCache<TArg, Unit> cache,
-        QueryOptions<TArg, Unit>? options,
-        EndpointOptions<TArg, Unit> endpointOptions
-    ) : base(cache, options, endpointOptions)
-    {
-    }
 }
 
 /// <summary>

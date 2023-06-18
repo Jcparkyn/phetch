@@ -258,8 +258,4 @@ public sealed class ResultlessEndpoint<TArg> : Endpoint<TArg, Unit>
         options
     )
     { }
-
-    /// <inheritdoc cref="Endpoint{TArg, TResult}.Use"/>
-    public new ResultlessQuery<TArg> Use(QueryOptions<TArg, Unit>? options = null) =>
-        new(Cache, options, Options);
 }

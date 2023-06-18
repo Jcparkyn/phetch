@@ -10,7 +10,7 @@ using Phetch.Core;
 /// If you're calling a <see cref="Phetch.Core.ParameterlessEndpoint{TResult}"/>, you should use <see
 /// cref="UseParameterlessEndpoint{TResult}"/> instead.
 /// </remarks>
-public sealed partial class UseEndpoint<TArg, TResult> : UseEndpointWithArg<TArg, TResult>
+public partial class UseEndpoint<TArg, TResult> : UseEndpointWithArg<TArg, TResult>
 {
     /// <summary>
     /// The endpoint to use.
@@ -33,6 +33,7 @@ public sealed partial class UseEndpoint<TArg, TResult> : UseEndpointWithArg<TArg
 
     protected override Query<TArg, TResult> CreateQuery(Endpoint<TArg, TResult> endpoint)
     {
+        _ = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
         var query = endpoint.Use(Options);
         if (HasSetArg && !Skip)
         {
@@ -41,3 +42,6 @@ public sealed partial class UseEndpoint<TArg, TResult> : UseEndpointWithArg<TArg
         return query;
     }
 }
+
+[Obsolete("Use <UseEndpoint/> instead, which functions identically. This will be removed in a future version of Phetch.")]
+public sealed class UseMutationEndpoint<TArg> : UseEndpoint<TArg, Unit> { }

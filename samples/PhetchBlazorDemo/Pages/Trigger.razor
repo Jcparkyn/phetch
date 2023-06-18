@@ -8,7 +8,7 @@
 
 <div style="display: flex">
     <div style="flex: 1">
-        <UseResultlessEndpoint Endpoint="Api.SetCounterValue" Context="query">
+        <UseEndpoint Endpoint="Api.SetCounterValue" Context="query">
             <MudText Class="mb-4">Current count: @currentCount</MudText>
             <div style="margin-bottom: 12px">
                 <MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="() => currentCount++">Increment</MudButton>
@@ -32,7 +32,7 @@
                     Saved count = @query.Arg to local storage
                 </MudAlert>
             }
-        </UseResultlessEndpoint>
+        </UseEndpoint>
     </div>
     <div style="flex: 1">
         <UseParameterlessEndpoint Endpoint="Api.GetCounterValue" Context="query">
