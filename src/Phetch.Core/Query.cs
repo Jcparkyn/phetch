@@ -181,8 +181,8 @@ public interface IQuery<TArg, TResult> : IQuery
     /// Run the query function without sharing state or cache with other queries.
     /// </summary>
     /// <remarks>
-    /// This is typically used for "mutations", which are queries that have side effects (e.g., POST
-    /// requests). This has the following differences from <see cref="SetArgAsync(TArg)"/>:
+    /// This is typically used for queries that have side effects (e.g., POST requests). This has
+    /// the following differences from <see cref="SetArgAsync(TArg)"/>:
     /// <list type="bullet">
     /// <item>
     /// This will always run the query function, even if it was previously run with the same query argument.
@@ -399,9 +399,9 @@ public class Query<TResult> : Query<Unit, TResult>
 /// An alternate version of <see cref="Query{TArg, TResult}"/> for queries with no return value.
 /// </summary>
 /// <remarks>Aside from having no return value, this functions identically to a normal Query</remarks>
-public class Mutation<TArg> : Query<TArg, Unit>
+public class ResultlessQuery<TArg> : Query<TArg, Unit>
 {
-    internal Mutation(
+    internal ResultlessQuery(
         QueryCache<TArg, Unit> cache,
         QueryOptions<TArg, Unit>? options,
         EndpointOptions<TArg, Unit> endpointOptions

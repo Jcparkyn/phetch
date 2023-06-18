@@ -10,7 +10,7 @@ Currently, Phetch is only designed for use with Blazor WebAssembly. However, the
 ## Features
 - Automatically handles loading and error states, and updates your components whenever the state changes
 - Automatically caches data returned by queries, and makes it easy to invalidate or update this cached data when needed.
-- Supports any async method as a query or mutation (not restricted just to HTTP requests)
+- Supports calling any async method as a query (not restricted just to HTTP requests)
 - Built-in support for CancellationTokens
 - Supports mutations, dependent queries, pagination, prefetching, and request de-duplication
 - 100% strongly typed, with nullability annotations
@@ -211,7 +211,7 @@ This automatically un-subscribes from query events when the component is unmount
 
 ### Multiple Parameters
 
-You will often need to define queries or mutations that accept multiple parameters (e.g., a search term and a page number). To do this, you can combine all the parameters into a [tuple](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/value-tuples), like so:
+You will often need to define endpoints that accept multiple parameters (e.g., a search term and a page number). To do this, you can combine all the parameters into a [tuple](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/value-tuples), like so:
 
 ```cs
 var endpoint = new Endpoint<(string searchTerm, int page), List<string>>(
@@ -223,33 +223,37 @@ For cases with lots of parameters, it is usually better to combine them into a [
 
 > :warning: Be careful when using classes or other mutable types as query parameters. Phetch uses the object's `GetHashCode()` and `Equals()` methods to determine whether the query needs to be re-fetched, so mutating a query argument after using it can have unexpected results.
 
-### Mutations and Parameterless Queries
+### Queries without parameters or return values
 
 Sometimes you will need to use query functions that either have no parameters, or no return value.
-In the case of queries without a return value, these are called **Mutations**.
-There is also a corresponding class called `MutationEndpoint` (as opposed to the normal `Endpoint`), and a `<UseMutationEndpoint/>` component (as opposed to `<UseEndpoint/>`), which are all designed to work with mutations.
 
-> :information_source: Unlike some other libraries (e.g., React Query and RTK Query), mutations in Phetch behave exactly the same as queries (except for having no return value).
-To get the same behavior as these libraries, use the `query.Trigger()` method.
+For endpoints without parameters, you can use the `ParameterlessEndpoint` class, which is a subclass of `Endpoint` that accepts no parameters.
+In your components, use the `<UseParameterlessEndpoint/>` to call these endpoints.
+Similarly, use the `ResultlessEndpoint` class (and `<UseResultlessEndpoint/>` component) for endpoints that return no value.
 
 Equivalently, you can use the `ParameterlessEndpoint` class (and corresponding `<UseParameterlessEndpoint/>` component) for query functions with no parameters.
 
 ### Invoking queries manually
 
-When you use `<UseEndpoint/>` or `<UseMutationEndpoint/>` endpoint and provide an `Arg`, the query will be fetched automatically, using data from the cache if available (see [documentation](#using-query-endpoints-with-useendpoint)).
+When you use `<UseEndpoint/>` and provide an `Arg`, the query will be fetched automatically, using data from the cache if available (see [documentation](#using-query-endpoints-with-useendpoint)).
 
 However, you will sometimes need to control exactly when a query is run. A common use case for this is making requests that modify data on the server (e.g., PUT/POST requests).
 
 The `Query` class contains four different methods for manually invoking queries, depending on your needs:
 
-1. **`SetArg`**: This updates the query argument, and automatically re-fetches the query if the argument has changed. If the same argument is passed multiple times in a row, the query will not be re-fetched.
-1. **`Refetch`**: This re-fetches the query using the last query argument passed via `SetArg`.
-1. **`Trigger`**: This always runs the query using the passed argument, regardless of whether cached data is available. Importantly, this will **not** share cached data with other components. This is the recommended way to run mutations in most cases.
+1. **`SetArg`**: This updates the query argument, and automatically re-fetches the query if the argument has changed. If the same argument is passed multiple times in a row, the query will not be re-fetched. This is what `<UseEndpoint/>` calls internally.
+1. **`Refetch`**: This re-fetches the query in the background, using the last query argument passed via `SetArg`.
+1. **`Trigger`**: This always runs the query using the passed argument, regardless of whether cached data is available. Importantly, this will **not** share cached data with other components. This is the recommended way to call endpoints with side-effects (e.g. PUT, POST, or DELETE endpoints) in most cases, and works a lot like mutations in React Query.
 1. **`Invoke`**: This simply calls the original query function, completely ignoring all Phetch functionality (caching and state management).
+
+> :information_source: If you are coming from React Query, you may be used to "queries" and "mutations" being different things.
+In Phetch, these have been combined, so that everything is just a query.
+To get the same behavior as a mutation in React Query or RTK Query, use the `query.Trigger()` method.
+
 
 ### Invalidation and Pessimistic Updates
 
-Often, it will be useful to invalidate or update the data from other queries when a query or mutation completes.
+Often, it will be useful to invalidate or update the data from other queries when a query completes.
 
 To invalidate query data, you can use the `Invalidate()` methods on an `Endpoint`.
 This will cause the affected queries to be automatically re-fetched if they are currently being used.
@@ -264,7 +268,7 @@ public class ExampleApi
     public Endpoint<int, Thing> GetThingEndpoint { get; }
 
     // An endpoint with one parameter (the updated thing) and no return
-    public MutationEndpoint<Thing> UpdateThingEndpoint { get; }
+    public ResultlessEndpoint<Thing> UpdateThingEndpoint { get; }
 
     public ExampleApi()
     {
@@ -273,7 +277,7 @@ public class ExampleApi
         UpdateThingEndpoint = new(UpdateThingAsync, options: new()
         {
             // Automatically invalidate the cached value for this Thing in GetThingEndpoint,
-            // every time this mutation succeeds.
+            // every time this query succeeds.
             OnSuccess = eventArgs => GetThingEndpoint.Invalidate(eventArgs.Arg.Id)
         });
     }

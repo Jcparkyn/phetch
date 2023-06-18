@@ -3,15 +3,15 @@
 using Microsoft.AspNetCore.Components;
 using Phetch.Core;
 
-public sealed partial class UseMutationEndpoint<TArg> : UseEndpointWithArg<TArg, Unit>
+public sealed partial class UseResultlessEndpoint<TArg> : UseEndpointWithArg<TArg, Unit>
 {
     /// <summary>
     /// The endpoint to use.
     /// </summary>
     [Parameter, EditorRequired]
-    public MutationEndpoint<TArg> Endpoint
+    public ResultlessEndpoint<TArg> Endpoint
     {
-        get => (MutationEndpoint<TArg>)base.EndpointInternal!;
+        get => (ResultlessEndpoint<TArg>)base.EndpointInternal!;
         set
         {
             if (ReferenceEquals(base.EndpointInternal, value))
@@ -22,11 +22,11 @@ public sealed partial class UseMutationEndpoint<TArg> : UseEndpointWithArg<TArg,
     }
 
     [Parameter, EditorRequired]
-    public RenderFragment<Mutation<TArg>> ChildContent { get; set; } = null!;
+    public RenderFragment<ResultlessQuery<TArg>> ChildContent { get; set; } = null!;
 
     protected override Query<TArg, Unit> CreateQuery(Endpoint<TArg, Unit> endpoint)
     {
-        var query = ((MutationEndpoint<TArg>)endpoint).Use(Options);
+        var query = ((ResultlessEndpoint<TArg>)endpoint).Use(Options);
         if (HasSetArg && !Skip)
         {
             query.SetArg(Arg);

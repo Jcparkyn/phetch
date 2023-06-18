@@ -56,7 +56,7 @@ public class TriggerTests
     public async Task Should_handle_query_error()
     {
         var error = new IndexOutOfRangeException("message");
-        var query = new MutationEndpoint<string>(
+        var query = new ResultlessEndpoint<string>(
             (_, _) => Task.FromException(error)
         ).Use();
 
@@ -77,7 +77,7 @@ public class TriggerTests
     [InlineData(false)]
     public async Task Should_reset_state_after_cancel(bool awaitBeforeCancel)
     {
-        var query = new MutationEndpoint<string>(
+        var query = new ResultlessEndpoint<string>(
             (val, ct) => Task.Delay(1000, ct)
         ).Use();
 

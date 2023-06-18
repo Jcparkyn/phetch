@@ -5,13 +5,13 @@ using FluentAssertions;
 using Phetch.Core;
 using Xunit;
 
-public class MutationEndpointTests
+public class ResultlessEndpointTests
 {
     [UIFact]
-    public async Task MutationEndpoint_should_work()
+    public async Task ResultlessEndpoint_should_work()
     {
         var (queryFn, queryFnCalls) = TestHelpers.MakeTrackedQueryFn();
-        var endpoint = new MutationEndpoint<int>(queryFn);
+        var endpoint = new ResultlessEndpoint<int>(queryFn);
         var mut = endpoint.Use();
 
         mut.IsUninitialized.Should().BeTrue();

@@ -225,12 +225,12 @@ public sealed class ParameterlessEndpoint<TResult> : Endpoint<Unit, TResult>
 /// <summary>
 /// An alternate version of <see cref="Endpoint{TArg, TResult}"/> for queries that have no return value.
 /// </summary>
-public sealed class MutationEndpoint<TArg> : Endpoint<TArg, Unit>
+public sealed class ResultlessEndpoint<TArg> : Endpoint<TArg, Unit>
 {
     /// <summary>
     /// Creates a new Endpoint from a query function with no return value.
     /// </summary>
-    public MutationEndpoint(
+    public ResultlessEndpoint(
         Func<TArg, CancellationToken, Task> queryFn,
         EndpointOptions<TArg, Unit>? options = null
     ) : base(
@@ -246,7 +246,7 @@ public sealed class MutationEndpoint<TArg> : Endpoint<TArg, Unit>
     /// <summary>
     /// Creates a new Endpoint from a query function with no return value and no CancellationToken.
     /// </summary>
-    public MutationEndpoint(
+    public ResultlessEndpoint(
         Func<TArg, Task> queryFn,
         EndpointOptions<TArg, Unit>? options = null
     ) : base(
@@ -260,6 +260,6 @@ public sealed class MutationEndpoint<TArg> : Endpoint<TArg, Unit>
     { }
 
     /// <inheritdoc cref="Endpoint{TArg, TResult}.Use"/>
-    public new Mutation<TArg> Use(QueryOptions<TArg, Unit>? options = null) =>
+    public new ResultlessQuery<TArg> Use(QueryOptions<TArg, Unit>? options = null) =>
         new(Cache, options, Options);
 }

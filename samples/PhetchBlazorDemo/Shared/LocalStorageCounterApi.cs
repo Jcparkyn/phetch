@@ -26,7 +26,7 @@ public class LocalStorageCounterApi
         );
     }
 
-    public MutationEndpoint<int> SetCounterValue { get; }
+    public ResultlessEndpoint<int> SetCounterValue { get; }
     public ParameterlessEndpoint<int> GetCounterValue { get; }
 }
 

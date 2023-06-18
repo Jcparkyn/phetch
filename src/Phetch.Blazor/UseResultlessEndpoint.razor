@@ -7,5 +7,5 @@
     {
         throw CurrentQuery.Error;
     }
-    @ChildContent((Mutation<TArg>)CurrentQuery)
+    @ChildContent((ResultlessQuery<TArg>)CurrentQuery)
 }
