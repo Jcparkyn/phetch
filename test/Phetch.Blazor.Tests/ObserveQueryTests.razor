@@ -62,26 +62,24 @@
         var query = new Endpoint<int, string>(queryFn)
             .Use();
 
-        var cut = Render<TestWrapper>(
-            @<TestWrapper>
-                <ObserveQuery Target="query">
-                    @(query.IsLoading ? "Loading" : @query.Data)
-                </ObserveQuery>
-            </TestWrapper>
+        var cut = Render(
+            @<ObserveQuery Target="query">
+                @(query.IsLoading ? "Loading" : @query.Data)
+            </ObserveQuery>
         );
 
         var component = cut.FindComponent<ObserveQuery<int, string>>();
 
         cut.MarkupMatches("");
-        cut.Instance.RenderCount.Should().Be(1);
+        component.RenderCount.Should().Be(1);
+        cut.RenderCount.Should().Be(1);
 
         cut.InvokeAsync(() => query.SetArg(1));
-        cut.Render(); // Currently required because setArg doesn't trigger change event
+        component.Render(); // Currently required because setArg doesn't trigger change event
 
         using (new AssertionScope())
         {
             cut.WaitForAssertion(() => cut.MarkupMatches("Loading"), timeout);
-            cut.Instance.RenderCount.Should().Be(2);
             component.RenderCount.Should().Be(2);
         }
         cut.InvokeAsync(() => sources[0].SetResult("1"));
@@ -89,7 +87,6 @@
         using (new AssertionScope())
         {
             cut.WaitForAssertion(() => cut.MarkupMatches("1"), timeout);
-            cut.Instance.RenderCount.Should().Be(2);
             component.RenderCount.Should().Be(3);
         }
     }

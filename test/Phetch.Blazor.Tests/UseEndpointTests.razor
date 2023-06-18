@@ -1,0 +1,67 @@
+﻿@using FluentAssertions.Execution;
+@inherits TestContext
+
+@code {
+    [Fact]
+    public void Should_render_loading_states()
+    {
+        var (queryFn, sources, queryFnCalls) = MakeCustomTrackedQueryFn(1);
+        var endpoint = new Endpoint<int, string>(queryFn);
+
+        var cut = Render<TestWrapper>(
+            @<TestWrapper>
+                <UseEndpoint Endpoint="endpoint" Arg="1" Context="query">
+                    @(query.IsLoading ? "Loading" : @query.Data)
+                </UseEndpoint>
+            </TestWrapper>
+        );
+        var component = cut.FindComponent<UseEndpoint<int, string>>();
+
+        using (new AssertionScope())
+        {
+            cut.MarkupMatches("Loading");
+            component.RenderCount.Should().Be(1);
+            cut.Instance.RenderCount.Should().Be(1);
+        }
+        using (new AssertionScope())
+        {
+            cut.InvokeAsync(() => sources[0].SetResult("1"));
+            cut.MarkupMatches("1");
+            component.RenderCount.Should().Be(2);
+            cut.Instance.RenderCount.Should().Be(1);
+            queryFnCalls.Should().Equal(1);
+        }
+    }
+
+    [Fact]
+    public void Should_not_fetch_if_no_Arg_supplied()
+    {
+        var (queryFn, sources, queryFnCalls) = MakeCustomTrackedQueryFn(1);
+        var endpoint = new Endpoint<int, string>(queryFn);
+
+        var cut = Render(
+            @<UseEndpoint Endpoint="endpoint" Context="query">
+                IsUninitialized: @query.IsUninitialized
+            </UseEndpoint>
+        );
+        var component = cut.FindComponent<UseEndpoint<int, string>>();
+        cut.MarkupMatches("IsUninitialized: True");
+        queryFnCalls.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Should_not_fetch_if_Skip_is_true()
+    {
+        var (queryFn, sources, queryFnCalls) = MakeCustomTrackedQueryFn(1);
+        var endpoint = new Endpoint<int, string>(queryFn);
+
+        using var cut = Render(
+            @<UseEndpoint Endpoint="endpoint" Arg="0" Skip Context="query">
+                @query.IsUninitialized, @query.IsLoading, @(query.Data ?? "null")
+             </UseEndpoint>
+        );
+        var component = cut.FindComponent<UseEndpoint<int, string>>();
+        cut.MarkupMatches("True, False, null");
+        queryFnCalls.Should().BeEmpty();
+    }
+}

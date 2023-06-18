@@ -2,8 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
-internal class BlazorTestHelpers
+internal static class BlazorTestHelpers
 {
     public static (Action<T>, List<T>) MakeMonitoredAction<T>()
     {
@@ -23,5 +24,10 @@ internal class BlazorTestHelpers
             actionCalls.Add(null);
         };
         return (action, actionCalls);
+    }
+
+    public static T[] ReverseIf<T>(this T[] array, bool reverse)
+    {
+        return reverse ? array.Reverse().ToArray() : array;
     }
 }
