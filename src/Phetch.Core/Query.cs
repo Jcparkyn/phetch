@@ -98,7 +98,7 @@ public interface IQuery
 /// </summary>
 /// <remarks>
 /// <para>For queries with no parameters, you can use the <see cref="Query{TResult}"/> class.</para>
-/// <para>For queries with multiple parameters, you can use a tuple in place of <c>TArg</c>:
+/// <para>For queries with multiple parameters, you can use a tuple or record in place of <c>TArg</c>:
 /// <code>Query&lt;(int, string), string&gt;</code>
 /// </para>
 /// </remarks>
@@ -392,23 +392,6 @@ public class Query<TResult> : Query<Unit, TResult>
         EndpointOptions<Unit, TResult> endpointOptions
     ) : base(cache, options, endpointOptions)
     { }
-
-    /// <summary>
-    /// Causes this query to fetch if it has not already.
-    /// </summary>
-    /// <remarks>
-    /// This is equivalent to <see cref="Query{TArg, TResult}.SetArgAsync(TArg)"/>, but for parameterless queries.
-    /// </remarks>
-    public void Fetch() => _ = SetArgAsync(default);
-
-    /// <inheritdoc cref="Fetch"/>
-    public Task<TResult> FetchAsync() => SetArgAsync(default);
-
-    /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
-    public void Trigger() => _ = TriggerAsync(default);
-
-    /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
-    public Task<TResult> TriggerAsync() => TriggerAsync(default);
 }
 
 /// <summary>
@@ -452,5 +435,42 @@ public static class QueryExtensions
     {
         _ = self ?? throw new ArgumentNullException(nameof(self));
         _ = self.TriggerAsync(arg);
+    }
+
+    /// <summary>
+    /// Causes this query to fetch if it has not already.
+    /// </summary>
+    /// <remarks>
+    /// This is equivalent to <see cref="Query{TArg, TResult}.SetArgAsync(TArg)"/>, but for parameterless queries.
+    /// </remarks>
+    [ExcludeFromCodeCoverage]
+    public static void Fetch<TResult>(this Query<Unit, TResult> self)
+    {
+        _ = self ?? throw new ArgumentNullException(nameof(self));
+        _ = self.SetArgAsync(default);
+    }
+
+    /// <inheritdoc cref="Fetch"/>
+    [ExcludeFromCodeCoverage]
+    public static Task<TResult> FetchAsync<TResult>(this Query<Unit, TResult> self)
+    {
+        _ = self ?? throw new ArgumentNullException(nameof(self));
+        return self.SetArgAsync(default);
+    }
+
+    /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
+    [ExcludeFromCodeCoverage]
+    public static void Trigger<TResult>(this Query<Unit, TResult> self)
+    {
+        _ = self ?? throw new ArgumentNullException(nameof(self));
+        _ = self.TriggerAsync(default);
+    }
+
+    /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
+    [ExcludeFromCodeCoverage]
+    public static Task<TResult> TriggerAsync<TResult>(this Query<Unit, TResult> self)
+    {
+        _ = self ?? throw new ArgumentNullException(nameof(self));
+        return self.TriggerAsync(default);
     }
 }
