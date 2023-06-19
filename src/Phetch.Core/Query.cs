@@ -324,7 +324,7 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
         }
         if (newQuery.LastInvocation is { } task)
         {
-            return await task!;
+            return await task;
         }
         else
         {
