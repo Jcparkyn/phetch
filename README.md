@@ -148,7 +148,8 @@ Once you've defined a query endpoint, the best way to use it (in most cases) is 
 
 If you provide the `Arg` parameter (the value to pass to the endpoint), this will also automatically fetch the data, and request new data when the argument changes. Without an `Arg` parameter (or with `AutoFetch="false"`), the data will not be fetched automatically.
 
-> :information_source: With `<UseParameterlessEndpoint/>`, `AutoFetch` defaults to `true`.
+> :information_source: With `<UseParameterlessEndpoint/>`, you don't need to supply an `Arg`.
+If you don't want the query to be fetched automatically, you can set `AutoFetch="false"`.
 
 ```cshtml
 // This assumes you have created a class called MyApi containing your endpoints,
@@ -232,7 +233,7 @@ In your components, use the `<UseParameterlessEndpoint/>` to call these endpoint
 
 Similarly, use the `ResultlessEndpoint` class for endpoints that return no value. This can be used with the normal `<UseEndpoint/>` component.
 
-> :information_source: If you use these classes, you may notice that some methods and types use the `Unit` type. This is a type used by Phetch to represent the absence of a value, which allows all classes to derive from the base `Query<TArg, TResult> and Endpoint<TArg, TResult> types.
+> :information_source: If you use these classes, you may notice that some methods and types use the `Unit` type. This is a type used by Phetch to represent the absence of a value, which allows all classes to derive from the base `Query<TArg, TResult>` and `Endpoint<TArg, TResult>` types.
 
 ### Invoking queries manually
 
@@ -304,7 +305,7 @@ Queries that are currently running can be cancelled by calling `query.Cancel()`.
 This also cancels the `CancellationToken` that was passed to the query function, but this **only has an effect if you used the `CancellationToken` in your query function**.
 If you pass the `CancellationToken` to the HTTP client (see the code sample in [Defining Query Endpoints](#defining-query-endpoints-recommended)), the browser will automatically cancel the in-flight request when you call `query.Cancel`.
 
-It is still up to your API to correctly handle the cancellation, so you should not rely on this to cancel requests that modify data on the server.
+It is still up to your API to correctly handle the cancellation, so you should not rely on this to cancel requests that modify data on the server, without also checking whether the cancellation succeeded.
 
 ### Pre-fetching
 
