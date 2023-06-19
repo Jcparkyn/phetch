@@ -51,13 +51,13 @@
     }
 
     [Fact]
-    public void Should_not_fetch_if_Skip_is_true()
+    public void Should_not_fetch_if_AutoFetch_is_false()
     {
         var (queryFn, sources, queryFnCalls) = MakeCustomTrackedQueryFn(1);
         var endpoint = new Endpoint<int, string>(queryFn);
 
         using var cut = Render(
-            @<UseEndpoint Endpoint="endpoint" Arg="0" Skip Context="query">
+            @<UseEndpoint Endpoint="endpoint" Arg="0" AutoFetch="false" Context="query">
                 @query.IsUninitialized, @query.IsLoading, @(query.Data ?? "null")
              </UseEndpoint>
         );
@@ -69,13 +69,13 @@
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void Should_fetch_when_Skip_changes(bool reverseParamOrder)
+    public void Should_fetch_when_AutoFetch_changes(bool reverseParamOrder)
     {
         var (queryFn, sources, queryFnCalls) = MakeCustomTrackedQueryFn(1);
         var endpoint = new Endpoint<int, string>(queryFn);
 
         using var cut = Render(
-            @<UseEndpoint Endpoint="endpoint" Skip Arg="0" Context="query">
+            @<UseEndpoint Endpoint="endpoint" AutoFetch="false" Arg="0" Context="query">
                  @query.IsUninitialized, @query.IsLoading, @(query.Data ?? "null")
             </UseEndpoint>
         );
@@ -84,14 +84,14 @@
         queryFnCalls.Should().BeEmpty();
         component.RenderCount.Should().Be(1);
 
-        // Test that it fetches once Skip is false.
+        // Test that it fetches once AutoFetch is true.
         // If we're not careful, the order of the parameters affects the result, which we don't want.
         // This order we use here technically should not have a deterministic effect on the resulting order
         // that the setters get called, but at the time of writing, it does.
         component.SetParametersAndRender(
             reverseParamOrder
-                ? new ComponentParameter[] { ("Skip", false), ("Arg", 1) }
-                : new ComponentParameter[] { ("Arg", 1), ("Skip", false) }
+                ? new ComponentParameter[] { ("AutoFetch", true), ("Arg", 1) }
+                : new ComponentParameter[] { ("Arg", 1), ("AutoFetch", true) }
         );
 
         using (new AssertionScope())
@@ -100,15 +100,15 @@
             cut.MarkupMatches("False, True, null");
             component.RenderCount.Should().Be(2);
 
-            // Also test when Skip is changed back to true
+            // Also test when AutoFetch is changed back to false
             component.SetParametersAndRender(
                 reverseParamOrder
-                    ? new ComponentParameter[] { ("Skip", false), ("Arg", 1) }
-                    : new ComponentParameter[] { ("Arg", 1), ("Skip", false) }
+                    ? new ComponentParameter[] { ("AutoFetch", false), ("Arg", 1) }
+                    : new ComponentParameter[] { ("Arg", 1), ("AutoFetch", false) }
             );
             queryFnCalls.Should().Equal(1);
             // TODO: It might make more sense to revert to an "uninitialized" state here?
-            // Or maybe Skip/AutoFetch should be handled directly in Query<>?
+            // Or maybe AutoFetch should be handled directly in Query<>?
             cut.MarkupMatches("False, True, null");
         }
     }

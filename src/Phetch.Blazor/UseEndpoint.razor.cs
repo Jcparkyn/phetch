@@ -39,7 +39,19 @@ public partial class UseEndpoint<TArg, TResult> : UseEndpointBase<TArg, TResult>
     /// If no value for <see cref="Arg"/> is provided, this has no effect.
     /// </remarks>
     [Parameter]
-    public bool Skip { get; set; }
+    [Obsolete("Use AutoFetch instead. This will be removed in a future version of Phetch.")]
+    public bool Skip { get => !AutoFetch; set => AutoFetch = !value; }
+
+    /// <summary>
+    /// If set to true (the default) and the <see cref="Arg">Arg</see> has been set, the query will be run automatically when the component is initialized.
+    /// This does not affect manual query invocations using methods on the Query object.
+    /// </summary>
+    /// <remarks>
+    /// This is useful for delaying queries until the data they depend on is available.
+    /// If no value for <see cref="Arg"/> is provided, this has no effect.
+    /// </remarks>
+    [Parameter]
+    public bool AutoFetch { get; set; } = true;
 
     /// <summary>
     /// The endpoint to use.
@@ -64,7 +76,7 @@ public partial class UseEndpoint<TArg, TResult> : UseEndpointBase<TArg, TResult>
     {
         _ = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
         var query = endpoint.Use(Options);
-        if (_hasSetArg && !Skip)
+        if (_hasSetArg && AutoFetch)
         {
             query.SetArg(Arg);
         }
@@ -74,7 +86,7 @@ public partial class UseEndpoint<TArg, TResult> : UseEndpointBase<TArg, TResult>
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-        if (IsInitialized && _hasSetArg && !Skip)
+        if (IsInitialized && _hasSetArg && AutoFetch)
         {
             CurrentQuery?.SetArg(_arg!);
         }
