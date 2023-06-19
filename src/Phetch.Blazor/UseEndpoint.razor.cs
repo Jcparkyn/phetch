@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Components;
 using Phetch.Core;
+using System.Threading.Tasks;
 
 /// <summary>
 /// A component that can be used to call an endpoint and access the result.
@@ -14,7 +15,6 @@ public partial class UseEndpoint<TArg, TResult> : UseEndpointBase<TArg, TResult>
 {
     private bool _hasSetArg;
     private TArg? _arg;
-    private bool _skip;
 
     /// <summary>
     /// The argument to supply to the query. If not supplied, the query will not be run automatically.
@@ -27,8 +27,6 @@ public partial class UseEndpoint<TArg, TResult> : UseEndpointBase<TArg, TResult>
         {
             _arg = value;
             _hasSetArg = true;
-            if (IsInitialized && !Skip)
-                CurrentQuery?.SetArg(value);
         }
     }
 
@@ -41,16 +39,7 @@ public partial class UseEndpoint<TArg, TResult> : UseEndpointBase<TArg, TResult>
     /// If no value for <see cref="Arg"/> is provided, this has no effect.
     /// </remarks>
     [Parameter]
-    public bool Skip
-    {
-        get => _skip;
-        set
-        {
-            _skip = value;
-            if (IsInitialized && _hasSetArg && !value)
-                CurrentQuery?.SetArg(_arg!);
-        }
-    }
+    public bool Skip { get; set; }
 
     /// <summary>
     /// The endpoint to use.
@@ -80,6 +69,15 @@ public partial class UseEndpoint<TArg, TResult> : UseEndpointBase<TArg, TResult>
             query.SetArg(Arg);
         }
         return query;
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (IsInitialized && _hasSetArg && !Skip)
+        {
+            CurrentQuery?.SetArg(_arg!);
+        }
     }
 }
 

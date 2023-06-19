@@ -25,9 +25,4 @@ internal static class BlazorTestHelpers
         };
         return (action, actionCalls);
     }
-
-    public static T[] ReverseIf<T>(this T[] array, bool reverse)
-    {
-        return reverse ? array.Reverse().ToArray() : array;
-    }
 }
