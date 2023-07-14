@@ -431,7 +431,10 @@ public static class QueryExtensions
     /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
     /// <param name="self">The query to trigger.</param>
     /// <param name="arg">The argument to pass to the query.</param>
-    /// <param name="onFailure">An optional callback which will be fired if the query fails.</param>
+    /// <param name="onFailure">
+    /// An optional callback which will be fired if the query fails. This is not fired if the query
+    /// is cancelled.
+    /// </param>
     /// <param name="onSuccess">An optional callback which will be fired if the query succeeds.</param>
     public static async Task<TResult> TriggerAsync<TArg, TResult>(
         this IQuery<TArg, TResult> self,
