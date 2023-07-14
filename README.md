@@ -191,13 +191,15 @@ This automatically un-subscribes from query events when the component is unmount
 ```cshtml
 @inject MyApi Api
 
-@{ query.SetArg(ThingId) }
-<ObserveQuery Query="query" OnChanged="StateHasChanged">
+@{ query.SetArg(ThingId); }
 
-@if (query.HasData)
-{
-    // etc...
-}
+<ObserveQuery Target="query">
+    @* Put content that depends on the query here. *@
+    @if (query.HasData)
+    {
+        // etc...
+    }
+</ObserveQuery>
 
 @code {
     private Query<int, Thing> query = null!;
@@ -208,6 +210,12 @@ This automatically un-subscribes from query events when the component is unmount
         query = Api.GetThing.Use();
     }
 }
+```
+
+Content outside of the `<ObserveQuery/>` component will not be re-rendered when the query state changes. If you need the whole component to re-render, you can call `StateHasChanged`:
+
+```cshtml
+<ObserveQuery Target="query" OnChanged="StateHasChanged">
 ```
 
 ### Multiple Parameters

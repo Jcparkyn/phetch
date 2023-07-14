@@ -25,19 +25,25 @@ public sealed class ObserveQuery<TArg, TResult> : ComponentBase, IDisposable
         }
     }
 
+    /// <summary>
+    /// Callback function to call whenever the query state changes. This is usually used to trigger
+    /// component re-renders using <c>StateHasChanged</c>.
+    /// </summary>
     [Parameter]
     public Action OnChanged { get; set; } = null!;
 
     /// <summary>
     /// Callback function to call when the query succeeds. This will only be called if this
-    /// component is still mounted when the query succeeds.
+    /// component is still mounted when the query succeeds. If you make multiple requests at the
+    /// same time, this will only be called for the last request.
     /// </summary>
     [Parameter]
     public Action<QuerySuccessEventArgs<TArg, TResult>>? OnSuccess { get; set; }
 
     /// <summary>
     /// Callback function to call when the query fails. This will only be called if this component
-    /// is still mounted when the query fails.
+    /// is still mounted when the query fails. If you make multiple requests at the
+    /// same time, this will only be called for the last request.
     /// </summary>
     [Parameter]
     public Action<QueryFailureEventArgs<TArg>>? OnFailure { get; set; }
