@@ -56,6 +56,7 @@ public class QueryTests
         query.LastData.Should().Be("test");
 
         mon.OccurredEvents.Should().SatisfyRespectively(
+            e => e.EventName.Should().Be("StateChanged"),
             e => e.EventName.Should().Be("Succeeded"),
             e => e.EventName.Should().Be("StateChanged")
         );
@@ -76,6 +77,7 @@ public class QueryTests
         query.IsFetching.Should().BeFalse();
 
         mon.OccurredEvents.Should().SatisfyRespectively(
+            e => e.EventName.Should().Be("StateChanged"),
             e => e.EventName.Should().Be("Succeeded"),
             e => e.EventName.Should().Be("StateChanged")
         );
@@ -111,6 +113,7 @@ public class QueryTests
         query.LastData.Should().Be("one");
 
         mon.OccurredEvents.Should().SatisfyRespectively(
+            e => e.EventName.Should().Be("StateChanged"),
             e => e.EventName.Should().Be("Succeeded"),
             e => e.EventName.Should().Be("StateChanged")
         );
@@ -135,6 +138,7 @@ public class QueryTests
         query.LastData.Should().Be("two");
 
         mon.OccurredEvents.Should().SatisfyRespectively(
+            e => e.EventName.Should().Be("StateChanged"),
             e => e.EventName.Should().Be("Succeeded"),
             e => e.EventName.Should().Be("StateChanged")
         );
@@ -165,6 +169,7 @@ public class QueryTests
         {
             AssertIsIdleState(query);
             mon.OccurredEvents.Should().SatisfyRespectively(
+                e => e.EventName.Should().Be("StateChanged"),
                 e => e.EventName.Should().Be("StateChanged")
             );
         }
@@ -195,6 +200,7 @@ public class QueryTests
         {
             AssertIsIdleState(query);
             mon.OccurredEvents.Should().SatisfyRespectively(
+                e => e.EventName.Should().Be("StateChanged"),
                 e => e.EventName.Should().Be("StateChanged")
             );
         }

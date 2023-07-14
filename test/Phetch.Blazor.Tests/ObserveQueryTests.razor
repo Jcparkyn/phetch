@@ -33,14 +33,14 @@
 
         cut.InvokeAsync(() => query.SetArg(1));
 
-        onChangedCalls.Should().HaveCount(0);
+        onChangedCalls.Should().HaveCount(1);
         onSuccessCalls.Should().HaveCount(0);
-        cut.RenderCount.Should().Be(1);
+        cut.RenderCount.Should().Be(2);
 
         cut.InvokeAsync(() => sources[0].SetResult("1"));
         using (new AssertionScope())
         {
-            cut.WaitForAssertion(() => onChangedCalls.Should().HaveCount(1), timeout);
+            cut.WaitForAssertion(() => onChangedCalls.Should().HaveCount(2), timeout);
             cut.WaitForAssertion(() => onSuccessCalls.Should().HaveCount(1), timeout);
 
             onSuccessCalls.Should().SatisfyRespectively(
@@ -50,7 +50,7 @@
                     e.Arg.Should().Be(1);
                 }
             );
-            cut.RenderCount.Should().Be(2);
+            cut.RenderCount.Should().Be(3);
             cut.FindComponent<ObserveQuery<int, string>>().RenderCount.Should().Be(1);
         }
     }
@@ -75,7 +75,6 @@
         cut.RenderCount.Should().Be(1);
 
         cut.InvokeAsync(() => query.SetArg(1));
-        component.Render(); // Currently required because setArg doesn't trigger change event
 
         using (new AssertionScope())
         {

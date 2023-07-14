@@ -164,6 +164,13 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
             };
 
             _lastActionCall = thisActionCall;
+            if (!thisActionCall.IsCompleted)
+            {
+                foreach (var observer in _observers)
+                {
+                    observer.OnQueryUpdate();
+                }
+            }
             var newData = await thisActionCall;
             // Ignore results from cancelled calls, these have already been handled.
             if (!thisCts.IsCancellationRequested)
