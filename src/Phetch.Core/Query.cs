@@ -1,6 +1,7 @@
 ﻿namespace Phetch.Core;
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -194,6 +195,7 @@ public interface IQuery<TArg, TResult> : IQuery
     /// </list>
     /// </remarks>
     /// <param name="arg">The argument to pass to the query function</param>
+    /// <returns>The value returned by the query function</returns>
     public Task<TResult> TriggerAsync(TArg arg);
 }
 
@@ -426,15 +428,45 @@ public static class QueryExtensions
         _ = self.RefetchAsync();
     }
 
+    /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
+    /// <param name="self">The query to trigger.</param>
+    /// <param name="arg">The argument to pass to the query.</param>
+    /// <param name="onFailure">An optional callback which will be fired if the query fails.</param>
+    /// <param name="onSuccess">An optional callback which will be fired if the query succeeds.</param>
+    public static async Task<TResult> TriggerAsync<TArg, TResult>(
+        this IQuery<TArg, TResult> self,
+        TArg arg,
+        Action<QuerySuccessEventArgs<TArg, TResult>>? onSuccess = null,
+        Action<QueryFailureEventArgs<TArg>>? onFailure = null)
+    {
+        _ = self ?? throw new ArgumentNullException(nameof(self));
+        try
+        {
+            var result = await self.TriggerAsync(arg);
+            onSuccess?.Invoke(new(arg, result));
+            return result;
+        }
+        // OperationCancelledException is generally not considered a failure
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            onFailure?.Invoke(new(arg, ex));
+            throw;
+        }
+    }
+
     /// <remarks>
     /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
     /// To also return the result of the query, use <see cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>.
     /// </remarks>
     [ExcludeFromCodeCoverage]
-    public static void Trigger<TArg, TResult>(this IQuery<TArg, TResult> self, TArg arg)
+    public static void Trigger<TArg, TResult>(
+        this IQuery<TArg, TResult> self,
+        TArg arg,
+        Action<QuerySuccessEventArgs<TArg, TResult>>? onSuccess = null,
+        Action<QueryFailureEventArgs<TArg>>? onFailure = null)
     {
         _ = self ?? throw new ArgumentNullException(nameof(self));
-        _ = self.TriggerAsync(arg);
+        _ = self.TriggerAsync(arg, onSuccess, onFailure);
     }
 
     /// <summary>
@@ -460,10 +492,13 @@ public static class QueryExtensions
 
     /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
     [ExcludeFromCodeCoverage]
-    public static void Trigger<TResult>(this Query<Unit, TResult> self)
+    public static void Trigger<TResult>(
+        this Query<Unit, TResult> self,
+        Action<QuerySuccessEventArgs<Unit, TResult>>? onSuccess = null,
+        Action<QueryFailureEventArgs<Unit>>? onFailure = null)
     {
         _ = self ?? throw new ArgumentNullException(nameof(self));
-        _ = self.TriggerAsync(default);
+        _ = self.TriggerAsync(default, onSuccess, onFailure);
     }
 
     /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>

@@ -124,4 +124,59 @@ public class TriggerTests
 
         queryFnCalls.Should().Equal(10, 10);
     }
+
+    [UIFact]
+    public async Task Should_inkove_success_callback()
+    {
+        var endpoint = new Endpoint<int, string>(
+            x => TestHelpers.ReturnAsync(x.ToString())
+        );
+
+        var query = endpoint.Use();
+        QuerySuccessEventArgs<int, string>? args = null;
+        _ = await query.TriggerAsync(10, onSuccess: e => args = e);
+
+        args.Should().NotBeNull();
+        args!.Result.Should().Be("10");
+        args.Arg.Should().Be(10);
+    }
+
+    [UIFact]
+    public async Task Should_inkove_failure_callback()
+    {
+        var endpoint = new Endpoint<int, string>(
+            x => throw new Exception("boom")
+        );
+
+        var query = endpoint.Use();
+        QueryFailureEventArgs<int>? args = null;
+        await query.Invoking(q => q.TriggerAsync(10, onFailure: e => args = e)).Should()
+            .ThrowAsync<Exception>().WithMessage("boom");
+
+        args.Should().NotBeNull();
+        args!.Exception.Message.Should().Be("boom");
+        args.Arg.Should().Be(10);
+    }
+
+    [UIFact]
+    public async Task Should_not_inkove_failure_callback_when_cancelled()
+    {
+        var endpoint = new Endpoint<int, string>(
+            async (x, ct) =>
+            {
+                await Task.Delay(1000, ct);
+                return x.ToString();
+            }
+        );
+
+        var query = endpoint.Use();
+        int calls = 0;
+
+        var task = query.Invoking(q => q.TriggerAsync(10, onFailure: _ => calls++)).Should()
+            .ThrowAsync<OperationCanceledException>();
+        query.Cancel();
+        await task;
+
+        calls.Should().Be(0);
+    }
 }
