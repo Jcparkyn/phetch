@@ -260,6 +260,51 @@ The `Query` class contains four different methods for manually invoking queries,
 In Phetch, these have been combined, so that everything is just a query.
 To get the same behavior as a mutation in React Query or RTK Query, use the `query.Trigger()` method.
 
+### CacheTime and StaleTime
+Sometime you want to control how long it can be used before it is considered stale.
+You can do this by setting the `StaleTime` properties on the `QueryOptions` class.
+If `StaleTime` is not set it will default to `EndpointOptions{TArg, TResult}.DefaultStaleTime` which is zero.
+
+#### Things to note:
+If a cached query is used <b>before</b> it becomes stale, the component will receive the
+cached result and won't re-fetch the data. If a cached query is used <b>after</b> it becomes
+stale, the cached data will be used initially, but new data will be re-fetched in the background automatically.
+
+When set to a negative value, queries will never be considered stale (unless they are
+manually invalidated).
+
+```cshtml
+@inject MyApi Api
+
+@{ query.SetArg(ThingId); }
+
+<ObserveQuery Target="query">
+    @* Put content that depends on the query here. *@
+    @if (query.HasData)
+    {
+        // etc...
+    }
+</ObserveQuery>
+
+@code {
+    private Query<int, Thing> query = null!;
+    [Parameter] public int ThingId { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // The QueryOptions will require the same TArgs and TResult types as the query.
+        // This StaleTime will make the query never be considered stale.
+        var defaultOptions = new QueryOptions<int, Thing> { StaleTime = TimeSpan.MaxValue};
+        query = Api.GetThing.Use(defaultOptions);
+    }
+}
+```
+#### Handy use case:
+Sometimes you have the same query (with the same arguments) in multiple components at potentially different levels of the render tree.
+Some might be disposed and get rendered back in later depending on the user's actions. 
+By default the component that gets rendered back in will refetch the data even if the query in another component has cached data.
+This might not be desirable if the data is still fresh. By setting the `StaleTime` to a high value e.g. `TimeSpan.MaxValue`, 
+the component will receive the cached result and won't re-fetch the data, but this is only the case if the query has cached data otherwise it will still fetch the data.
 
 ### Invalidation and Pessimistic Updates
 
