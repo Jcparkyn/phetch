@@ -245,7 +245,7 @@ Similarly, use the `ResultlessEndpoint` class for endpoints that return no value
 
 ### Invoking queries manually
 
-When you use `<UseEndpoint/>` and provide an `Arg`, the query will be fetched automatically, using data from the cache if available (see [documentation](#using-query-endpoints-with-useendpoint)).
+When you use `<UseEndpoint/>` and provide an `Arg`, the query will be fetched automatically, using data from the cache if available (see [Using query endpoints with UseEndpoint](#using-query-endpoints-with-useendpoint)).
 
 However, you will sometimes need to control exactly when a query is run. A common use case for this is making requests that modify data on the server (e.g., PUT/POST requests).
 
@@ -260,51 +260,24 @@ The `Query` class contains four different methods for manually invoking queries,
 In Phetch, these have been combined, so that everything is just a query.
 To get the same behavior as a mutation in React Query or RTK Query, use the `query.Trigger()` method.
 
-### CacheTime and StaleTime
-Sometime you want to control how long it can be used before it is considered stale.
-You can do this by setting the `StaleTime` properties on the `QueryOptions` class.
-If `StaleTime` is not set it will default to `EndpointOptions{TArg, TResult}.DefaultStaleTime` which is zero.
+### StaleTime
 
-#### Things to note:
-If a cached query is used <b>before</b> it becomes stale, the component will receive the
-cached result and won't re-fetch the data. If a cached query is used <b>after</b> it becomes
-stale, the cached data will be used initially, but new data will be re-fetched in the background automatically.
+Phetch uses the concept of "staleness" to determine when to re-fetch data.
+If a query requests data that is already cached (e.g. because another component requested it) and the cached data is **not** stale, the query will receive the cached result and won't re-fetch the data. 
+If the cached data **is** stale, the cached data will be used initially, but new data will be re-fetched in the background automatically.
+This is known as the stale-while-revalidate pattern.
 
-When set to a negative value, queries will never be considered stale (unless they are
-manually invalidated).
+By default, queries in Phetch are marked as stale as soon as they return, so subsequent requests will always cause a refetch in the background.
+You can customise this behaviour by setting the `StaleTime` option when creating an endpoint, or when calling `endpoint.Use(...)` to override the endpoint setting.
+This controls the amount of time between when a query returns, and when the result is marked as stale.
 
-```cshtml
-@inject MyApi Api
+To stop cached data from ever becoming stale, set the `StaleTime` to `TimeSpan.MaxValue`. If you also want cached responses to last indefinitely, see [CacheTime](#cachetime).
 
-@{ query.SetArg(ThingId); }
+### CacheTime
 
-<ObserveQuery Target="query">
-    @* Put content that depends on the query here. *@
-    @if (query.HasData)
-    {
-        // etc...
-    }
-</ObserveQuery>
-
-@code {
-    private Query<int, Thing> query = null!;
-    [Parameter] public int ThingId { get; set; }
-
-    protected override void OnInitialized()
-    {
-        // The QueryOptions will require the same TArgs and TResult types as the query.
-        // This StaleTime will make the query never be considered stale.
-        var defaultOptions = new QueryOptions<int, Thing> { StaleTime = TimeSpan.MaxValue};
-        query = Api.GetThing.Use(defaultOptions);
-    }
-}
-```
-#### Handy use case:
-Sometimes you have the same query (with the same arguments) in multiple components at potentially different levels of the render tree.
-Some might be disposed and get rendered back in later depending on the user's actions. 
-By default the component that gets rendered back in will refetch the data even if the query in another component has cached data.
-This might not be desirable if the data is still fresh. By setting the `StaleTime` to a high value e.g. `TimeSpan.MaxValue`, 
-the component will receive the cached result and won't re-fetch the data, but this is only the case if the query has cached data otherwise it will still fetch the data.
+By default, cached results will be removed from the cache if they are not used for more than 5 minutes.
+You can customize this using the `CacheTime` option when creating an endpoint.
+To make cached values last forever, set this to `TimeSpan.MaxValue`.
 
 ### Invalidation and Pessimistic Updates
 

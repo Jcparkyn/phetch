@@ -85,7 +85,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
             || staleTime == TimeSpan.Zero
             // Comparison order is important to avoid overflow with TimeSpan.MaxValue
             // Note: This is safe even if (now < _dataUpdatedAt)
-            || staleTime > TimeSpan.Zero && (now - _dataUpdatedAt > staleTime);
+            || (staleTime > TimeSpan.Zero && staleTime != TimeSpan.MaxValue && (now - _dataUpdatedAt > staleTime));
     }
 
     /// <summary>

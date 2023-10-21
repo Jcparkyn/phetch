@@ -30,7 +30,7 @@ public sealed record EndpointOptions
     /// When set to <see cref="TimeSpan.Zero"/>, queries will be removed from the cache as soon as
     /// they have no observers.
     /// <para/>
-    /// When set to a negative value, queries will never be removed from the cache.
+    /// When set to <see cref="TimeSpan.MaxValue"/>, queries will never be removed from the cache.
     /// </remarks>
     public TimeSpan CacheTime { get; init; } = TimeSpan.FromMinutes(5);
 
@@ -38,8 +38,8 @@ public sealed record EndpointOptions
     /// Default stale time to be used if not supplied when using the endpoint. This defaults to
     /// zero, so queries are considered stale as soon as they finish fetching.
     /// <para/>
-    /// When set to a negative value, queries will never be considered stale (unless they are
-    /// manually invalidated).
+    /// When set to <see cref="TimeSpan.MaxValue"/>, queries will never be considered stale (unless
+    /// they are manually invalidated).
     /// </summary>
     /// <remarks>This can be overridden by <see cref="QueryOptions{TArg, TResult}.StaleTime"/></remarks>
     public TimeSpan DefaultStaleTime { get; init; } = TimeSpan.Zero;
