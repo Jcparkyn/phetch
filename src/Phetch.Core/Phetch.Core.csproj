@@ -11,7 +11,7 @@
     <Description>The core logic for Phetch.Blazor</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
-    <AnalysisLevel>6.0-all</AnalysisLevel>
+    <AnalysisLevel>8.0-all</AnalysisLevel>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <IncludeSymbols>true</IncludeSymbols>
