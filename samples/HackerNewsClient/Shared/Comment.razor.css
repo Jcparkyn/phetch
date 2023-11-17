@@ -12,6 +12,7 @@
     grid-template-columns: min-content fit-content(100%);
     grid-template-rows: auto auto;
     align-items: baseline;
+    scroll-margin-top: 100px;
 }
 
 .comment-content {

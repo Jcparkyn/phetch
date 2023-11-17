@@ -37,8 +37,8 @@
     <script src="_framework/blazor.webassembly.js"></script>
     <script>
         function scrollIntoView(element) {
-            window.location.hash = element.id; // Sets the page target
-            element.scrollIntoView({ block: "center" });
+            // Sets the page target. Blazor will automatically scroll to it.
+            window.location.hash = element.id;
         }
     </script>
 </body>

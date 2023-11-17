@@ -12,7 +12,7 @@ public class LocalStorageCounterApi
             {
                 // More artificial delay
                 await Task.Delay(Random.Shared.Next(1000), ct);
-                return await localStorage.GetItemAsync<int>("counterVal");
+                return await localStorage.GetItemAsync<int>("counterVal", ct);
             }
         );
         SetCounterValue = new(
@@ -20,7 +20,7 @@ public class LocalStorageCounterApi
             {
                 // Add artificial delay to make the loading effect visible (don't do this in a real application).
                 await Task.Delay(Random.Shared.Next(1000), ct);
-                await localStorage.SetItemAsync("counterVal", val);
+                await localStorage.SetItemAsync("counterVal", val, ct);
                 GetCounterValue.UpdateQueryData(new Unit(), val);
             }
         );
