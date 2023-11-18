@@ -102,8 +102,8 @@ public class TriggerTests
     [UIFact]
     public async Task Should_not_share_cache_between_triggered_queries()
     {
-        var (queryFn, sources, queryFnCalls) = TestHelpers.MakeCustomTrackedQueryFn(2);
-        var endpoint = new Endpoint<int, string>(queryFn);
+        var qf = new MockQueryFunction<int, string>(2);
+        var endpoint = new Endpoint<int, string>(qf.Query);
 
         var options = new QueryOptions<int, string>()
         {
@@ -111,8 +111,8 @@ public class TriggerTests
         };
         var query1 = endpoint.Use(options);
         var query2 = endpoint.Use(options);
-        sources[0].SetResult("10-1");
-        sources[1].SetResult("10-2");
+        qf.Sources[0].SetResult("10-1");
+        qf.Sources[1].SetResult("10-2");
         var result1 = await query1.TriggerAsync(10);
         var result2 = await query2.TriggerAsync(10);
 
@@ -122,7 +122,7 @@ public class TriggerTests
         query1.Data.Should().Be("10-1");
         query2.Data.Should().Be("10-2");
 
-        queryFnCalls.Should().Equal(10, 10);
+        qf.Calls.Should().Equal(10, 10);
     }
 
     [UIFact]

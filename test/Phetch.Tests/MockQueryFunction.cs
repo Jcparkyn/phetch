@@ -1,6 +1,5 @@
-﻿namespace Phetch.Blazor.Tests;
+﻿namespace Phetch.Core;
 
-using Phetch.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +12,7 @@ using System.Threading.Tasks;
 /// Number of TaskCompletionSources to create, which is usually equal to the number of times this
 /// function will be called.
 /// </param>
-public class MockQueryFn<TArg, TResult>(int numSources)
+public class MockQueryFunction<TArg, TResult>(int numSources)
 {
     public List<TaskCompletionSource<TResult>> Sources { get; } = Enumerable.Range(0, numSources)
         .Select(_ => new TaskCompletionSource<TResult>())
@@ -37,7 +36,7 @@ public class MockQueryFn<TArg, TResult>(int numSources)
     }
 }
 
-public class MockParameterlessQueryFn<TResult>(int numSources) : MockQueryFn<Unit, TResult>(numSources)
+public class MockQueryFunction<TResult>(int numSources) : MockQueryFunction<Unit, TResult>(numSources)
 {
     public async Task<TResult> Query() => await Query(default);
 }

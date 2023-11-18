@@ -6,8 +6,8 @@
     [Fact]
     public void Should_render_loading_states()
     {
-        var (queryFn, sources, queryFnCalls) = MakeCustomTrackedQueryFn(1);
-        var endpoint = new Endpoint<int, string>(queryFn);
+        var qf = new MockQueryFunction<int, string>(1);
+        var endpoint = new Endpoint<int, string>(qf.Query);
 
         var cut = Render<TestWrapper>(
             @<TestWrapper>
@@ -26,19 +26,19 @@
         }
         using (new AssertionScope())
         {
-            cut.InvokeAsync(() => sources[0].SetResult("1"));
+            cut.InvokeAsync(() => qf.Sources[0].SetResult("1"));
             cut.MarkupMatches("1");
             component.RenderCount.Should().Be(2);
             cut.Instance.RenderCount.Should().Be(1);
-            queryFnCalls.Should().Equal(1);
+            qf.Calls.Should().Equal(1);
         }
     }
 
     [Fact]
     public void Should_not_fetch_if_no_Arg_supplied()
     {
-        var (queryFn, sources, queryFnCalls) = MakeCustomTrackedQueryFn(1);
-        var endpoint = new Endpoint<int, string>(queryFn);
+        var qf = new MockQueryFunction<int, string>(1);
+        var endpoint = new Endpoint<int, string>(qf.Query);
 
         var cut = Render(
             @<UseEndpoint Endpoint="endpoint" Context="query">
@@ -47,14 +47,14 @@
         );
         var component = cut.FindComponent<UseEndpoint<int, string>>();
         cut.MarkupMatches("IsUninitialized: True");
-        queryFnCalls.Should().BeEmpty();
+        qf.Calls.Should().BeEmpty();
     }
 
     [Fact]
     public void Should_not_fetch_if_AutoFetch_is_false()
     {
-        var (queryFn, sources, queryFnCalls) = MakeCustomTrackedQueryFn(1);
-        var endpoint = new Endpoint<int, string>(queryFn);
+        var qf = new MockQueryFunction<int, string>(1);
+        var endpoint = new Endpoint<int, string>(qf.Query);
 
         using var cut = Render(
             @<UseEndpoint Endpoint="endpoint" Arg="0" AutoFetch="false" Context="query">
@@ -63,7 +63,7 @@
         );
         var component = cut.FindComponent<UseEndpoint<int, string>>();
         cut.MarkupMatches("True, False, null");
-        queryFnCalls.Should().BeEmpty();
+        qf.Calls.Should().BeEmpty();
     }
 
     [Theory]
@@ -71,17 +71,17 @@
     [InlineData(false)]
     public void Should_fetch_when_AutoFetch_changes(bool reverseParamOrder)
     {
-        var (queryFn, sources, queryFnCalls) = MakeCustomTrackedQueryFn(1);
-        var endpoint = new Endpoint<int, string>(queryFn);
+        var qf = new MockQueryFunction<int, string>(1);
+        var endpoint = new Endpoint<int, string>(qf.Query);
 
         using var cut = Render(
             @<UseEndpoint Endpoint="endpoint" AutoFetch="false" Arg="0" Context="query">
                  @query.IsUninitialized, @query.IsLoading, @(query.Data ?? "null")
             </UseEndpoint>
-        );
+    );
         var component = cut.FindComponent<UseEndpoint<int, string>>();
         cut.MarkupMatches("True, False, null");
-        queryFnCalls.Should().BeEmpty();
+        qf.Calls.Should().BeEmpty();
         component.RenderCount.Should().Be(1);
 
         // Test that it fetches once AutoFetch is true.
@@ -96,7 +96,7 @@
 
         using (new AssertionScope())
         {
-            queryFnCalls.Should().Equal(1);
+            qf.Calls.Should().Equal(1);
             cut.MarkupMatches("False, True, null");
             component.RenderCount.Should().Be(2);
 
@@ -106,10 +106,15 @@
                     ? new ComponentParameter[] { ("AutoFetch", false), ("Arg", 1) }
                     : new ComponentParameter[] { ("Arg", 1), ("AutoFetch", false) }
             );
-            queryFnCalls.Should().Equal(1);
+            qf.Calls.Should().Equal(1);
             // TODO: It might make more sense to revert to an "uninitialized" state here?
             // Or maybe AutoFetch should be handled directly in Query<>?
             cut.MarkupMatches("False, True, null");
         }
+    }
+
+    private void Should_fetch_when_Arg_changes()
+    {
+        //TODO
     }
 }

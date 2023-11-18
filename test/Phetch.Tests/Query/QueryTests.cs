@@ -294,9 +294,9 @@ public class QueryTests
         // t1     --------- [keep]
         //        ^ refetch
 
-        var (queryFn, sources) = MakeCustomQueryFn(2);
+        var qf = new MockQueryFunction<string>(2);
         var query = new ParameterlessEndpoint<string>(
-            queryFn
+            qf.Query
         ).Use();
 
         query.Status.Should().Be(QueryStatus.Idle);
@@ -308,7 +308,7 @@ public class QueryTests
 
         query.Refetch();
 
-        sources[0].SetResult("test0");
+        qf.Sources[0].SetResult("test0");
         await Task.Yield();
 
         query.Status.Should().Be(QueryStatus.Success);
@@ -317,7 +317,7 @@ public class QueryTests
         query.IsFetching.Should().BeTrue();
         query.Data.Should().Be("test0");
 
-        sources[1].SetResult("test1");
+        qf.Sources[1].SetResult("test1");
         await Task.Yield();
 
         query.Status.Should().Be(QueryStatus.Success);
@@ -336,9 +336,9 @@ public class QueryTests
         // t1     --------- [keep]
         //        ^ refetch
 
-        var (queryFn, sources) = MakeCustomQueryFn(2);
+        var qf = new MockQueryFunction<string>(2);
         var query = new ParameterlessEndpoint<string>(
-            queryFn
+            qf.Query
         ).Use();
 
         query.Status.Should().Be(QueryStatus.Idle);
@@ -350,7 +350,7 @@ public class QueryTests
 
         query.Refetch();
 
-        sources[1].SetResult("test1");
+        qf.Sources[1].SetResult("test1");
         await Task.Yield();
 
         query.Status.Should().Be(QueryStatus.Success);
@@ -359,7 +359,7 @@ public class QueryTests
         query.IsFetching.Should().BeFalse();
         query.Data.Should().Be("test1");
 
-        sources[0].SetResult("test0");
+        qf.Sources[0].SetResult("test0");
         await Task.Yield();
 
         query.Status.Should().Be(QueryStatus.Success);

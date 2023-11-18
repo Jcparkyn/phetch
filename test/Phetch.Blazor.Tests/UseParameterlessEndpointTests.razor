@@ -6,7 +6,7 @@
     [Fact]
     public void Should_render_loading_states()
     {
-        var qf = new MockParameterlessQueryFn<string>(1);
+        var qf = new MockQueryFunction<string>(1);
         var endpoint = new ParameterlessEndpoint<string>(qf.Query);
 
         using var cut = Render<TestWrapper>(
@@ -37,7 +37,7 @@
     [Fact]
     public void Should_not_fetch_if_AutoFetch_is_false()
     {
-        var qf = new MockParameterlessQueryFn<string>(1);
+        var qf = new MockQueryFunction<string>(1);
         var endpoint = new ParameterlessEndpoint<string>(qf.Query);
 
         using var cut = Render(

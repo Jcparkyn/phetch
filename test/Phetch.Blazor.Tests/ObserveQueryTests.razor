@@ -18,8 +18,8 @@
     [Fact]
     public void Should_call_correct_callbacks()
     {
-        var (queryFn, sources, queryFnCalls) = MakeCustomTrackedQueryFn(1);
-        var query = new Endpoint<int, string>(queryFn)
+        var qf = new MockQueryFunction<int, string>(1);
+        var query = new Endpoint<int, string>(qf.Query)
             .Use();
 
         var (onChanged, onChangedCalls) = MakeMonitoredAction();
@@ -37,7 +37,7 @@
         onSuccessCalls.Should().HaveCount(0);
         cut.RenderCount.Should().Be(2);
 
-        cut.InvokeAsync(() => sources[0].SetResult("1"));
+        cut.InvokeAsync(() => qf.Sources[0].SetResult("1"));
         using (new AssertionScope())
         {
             cut.WaitForAssertion(() => onChangedCalls.Should().HaveCount(2), timeout);
@@ -58,8 +58,8 @@
     [Fact]
     public void Should_render_child_content()
     {
-        var (queryFn, sources, queryFnCalls) = MakeCustomTrackedQueryFn(1);
-        var query = new Endpoint<int, string>(queryFn)
+        var qf = new MockQueryFunction<int, string>(1);
+        var query = new Endpoint<int, string>(qf.Query)
             .Use();
 
         var cut = Render(
@@ -81,7 +81,7 @@
             cut.WaitForAssertion(() => cut.MarkupMatches("Loading"), timeout);
             component.RenderCount.Should().Be(2);
         }
-        cut.InvokeAsync(() => sources[0].SetResult("1"));
+        cut.InvokeAsync(() => qf.Sources[0].SetResult("1"));
 
         using (new AssertionScope())
         {
