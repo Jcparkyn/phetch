@@ -47,11 +47,19 @@ public sealed record EndpointOptions
     /// <summary>
     /// A function that gets run whenever this query succeeds.
     /// </summary>
+    /// <remarks>
+    /// Unlike <see cref="QueryOptions.OnSuccess"/>, this will be called even if the query is not
+    /// being observed.
+    /// </remarks>
     public Action<EventArgs>? OnSuccess { get; init; }
 
     /// <summary>
     /// A function that gets run whenever this query fails.
     /// </summary>
+    /// <remarks>
+    /// Unlike <see cref="QueryOptions.OnFailure"/>, this will be called even if the query is not
+    /// being observed.
+    /// </remarks>
     public Action<QueryFailureEventArgs>? OnFailure { get; init; }
 
     /// <summary>

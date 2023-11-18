@@ -30,13 +30,43 @@ public sealed record QueryOptions()
     public TimeSpan? StaleTime { get; init; }
 
     /// <summary>
-    /// A function that gets run whenever this query succeeds.
+    /// A function that gets run when this query succeeds.
     /// </summary>
+    /// <remarks>
+    /// This is only called when the query is currently being observed, which means:
+    /// <list type="number">
+    /// <item>
+    /// If a query arg is changed while it is still fetching a previous arg, <c>OnSuccess</c> will
+    /// only be called for the latest arg.
+    /// </item>
+    /// <item>
+    /// If the observing component is unmounted before the query finishes, <c>OnSuccess</c> will not
+    /// be called.
+    /// </item>
+    /// </list>
+    /// If you want to call a function <b>every</b> time a query succeeds, use <see
+    /// cref="EndpointOptions.OnSuccess"/> when creating an endpoint.
+    /// </remarks>
     public Action<EventArgs>? OnSuccess { get; init; }
 
     /// <summary>
-    /// A function that gets run whenever this query fails.
+    /// A function that gets run when this query fails.
     /// </summary>
+    /// <remarks>
+    /// This is only called when the query is currently being observed, which means:
+    /// <list type="number">
+    /// <item>
+    /// If a query arg is changed while it is still fetching a previous arg, <c>OnFailure</c> will
+    /// only be called for the latest arg.
+    /// </item>
+    /// <item>
+    /// If the observing component is unmounted before the query finishes, <c>OnFailure</c> will not
+    /// be called.
+    /// </item>
+    /// </list>
+    /// If you want to call a function <b>every</b> time a query fails, use <see
+    /// cref="EndpointOptions.OnFailure"/> when creating an endpoint.
+    /// </remarks>
     public Action<QueryFailureEventArgs>? OnFailure { get; init; }
 
     /// <summary>
@@ -76,14 +106,10 @@ public sealed record QueryOptions<TArg, TResult>()
     /// <inheritdoc cref="QueryOptions.StaleTime"/>
     public TimeSpan? StaleTime { get; init; }
 
-    /// <summary>
-    /// A function that gets run whenever this query succeeds.
-    /// </summary>
+    /// <inheritdoc cref="QueryOptions.OnSuccess"/>
     public Action<QuerySuccessEventArgs<TArg, TResult>>? OnSuccess { get; init; }
 
-    /// <summary>
-    /// A function that gets run whenever this query fails.
-    /// </summary>
+    /// <inheritdoc cref="QueryOptions.OnFailure"/>
     public Action<QueryFailureEventArgs<TArg>>? OnFailure { get; init; }
 
     /// <summary>
