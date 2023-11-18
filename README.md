@@ -4,7 +4,7 @@ Phetch is a small Blazor library for handling async query state, in the style of
 
 Currently, Phetch is only designed for use with Blazor WebAssembly. However, the core package (Phetch.Core) has no dependencies on Blazor or ASP.NET Core, so in theory it can be used anywhere that supports .NET Standard 2.1.
 
-| :information_source: Status: All core features are mostly finished, but there may be some minor breaking changes before a v1.0.0 release. |
+| :information_source: Status: All core features are finished, but there may be some minor breaking changes before a v1.0.0 release. |
 |:-|
 
 ## Features
@@ -212,7 +212,7 @@ This automatically un-subscribes from query events when the component is unmount
 }
 ```
 
-Content outside of the `<ObserveQuery/>` component will not be re-rendered when the query state changes. If you need the whole component to re-render, you can call `StateHasChanged`:
+Content outside of the `<ObserveQuery/>` component will not be re-rendered when the query state changes. If you need the whole component to re-render, you can call `StateHasChanged` without adding child content:
 
 ```cshtml
 <ObserveQuery Target="query" OnChanged="StateHasChanged">
