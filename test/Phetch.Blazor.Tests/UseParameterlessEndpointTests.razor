@@ -1,0 +1,52 @@
+﻿@using FluentAssertions.Execution;
+@using System.Collections.Specialized;
+@inherits TestContext
+
+@code {
+    [Fact]
+    public void Should_render_loading_states()
+    {
+        var qf = new MockParameterlessQueryFn<string>(1);
+        var endpoint = new ParameterlessEndpoint<string>(qf.Query);
+
+        using var cut = Render<TestWrapper>(
+            @<TestWrapper>
+                <UseParameterlessEndpoint Endpoint="endpoint" Context="query">
+                    @(query.IsLoading ? "Loading" : @query.Data)
+                </UseParameterlessEndpoint>
+            </TestWrapper>
+        );
+        var component = cut.FindComponent<UseParameterlessEndpoint<string>>();
+
+        using (new AssertionScope())
+        {
+            cut.MarkupMatches("Loading");
+            component.RenderCount.Should().Be(1);
+            cut.Instance.RenderCount.Should().Be(1);
+        }
+        using (new AssertionScope())
+        {
+            cut.InvokeAsync(() => qf.Sources[0].SetResult("1"));
+            cut.MarkupMatches("1");
+            component.RenderCount.Should().Be(2);
+            cut.Instance.RenderCount.Should().Be(1);
+            qf.Calls.Should().Equal(new Unit());
+        }
+    }
+
+    [Fact]
+    public void Should_not_fetch_if_AutoFetch_is_false()
+    {
+        var qf = new MockParameterlessQueryFn<string>(1);
+        var endpoint = new ParameterlessEndpoint<string>(qf.Query);
+
+        using var cut = Render(
+            @<UseParameterlessEndpoint Endpoint="endpoint" AutoFetch="false" Context="query">
+                @query.IsUninitialized, @query.IsLoading, @(query.Data ?? "null")
+             </UseParameterlessEndpoint>
+        );
+        var component = cut.FindComponent<UseParameterlessEndpoint<string>>();
+        cut.MarkupMatches("True, False, null");
+        qf.Calls.Should().BeEmpty();
+    }
+}
