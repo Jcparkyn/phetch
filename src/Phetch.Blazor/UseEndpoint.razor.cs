@@ -2,7 +2,7 @@
 
 using Microsoft.AspNetCore.Components;
 using Phetch.Core;
-using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 
 /// <summary>
 /// A component that can be used to call an endpoint and access the result.
@@ -39,6 +39,7 @@ public partial class UseEndpoint<TArg, TResult> : UseEndpointBase<TArg, TResult>
     /// If no value for <see cref="Arg"/> is provided, this has no effect.
     /// </remarks>
     [Parameter]
+    [ExcludeFromCodeCoverage]
     [Obsolete("Use AutoFetch instead. This will be removed in a future version of Phetch.")]
     public bool Skip { get => !AutoFetch; set => AutoFetch = !value; }
 

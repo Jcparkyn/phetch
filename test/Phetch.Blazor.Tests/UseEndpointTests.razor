@@ -1,5 +1,6 @@
 ﻿@using FluentAssertions.Execution;
 @using System.Collections.Specialized;
+@using Phetch.Tests
 @inherits TestContext
 
 @code {
@@ -78,7 +79,7 @@
             @<UseEndpoint Endpoint="endpoint" AutoFetch="false" Arg="0" Context="query">
                  @query.IsUninitialized, @query.IsLoading, @(query.Data ?? "null")
             </UseEndpoint>
-    );
+        );
         var component = cut.FindComponent<UseEndpoint<int, string>>();
         cut.MarkupMatches("True, False, null");
         qf.Calls.Should().BeEmpty();
@@ -113,8 +114,99 @@
         }
     }
 
-    private void Should_fetch_when_Arg_changes()
+    [Fact]
+    public void Should_refetch_when_Arg_changes()
     {
-        //TODO
+        var qf = new MockQueryFunction<int, string>(2);
+        var endpoint = new Endpoint<int, string>(qf.Query);
+
+        using var cut = Render(
+            @<UseEndpoint Endpoint="endpoint" Arg="0" Context="query">
+                @query.IsUninitialized, @query.IsLoading, @(query.Data ?? "null")
+            </UseEndpoint>
+        );
+
+        var component = cut.FindComponent<UseEndpoint<int, string>>();
+        cut.MarkupMatches("False, True, null");
+        cut.InvokeAsync(() => qf.Sources[0].SetResult("0"));
+        cut.WaitForAssertion(() => cut.MarkupMatches("False, False, 0"));
+
+        // Refetch after previous query finished
+        component.SetParametersAndRender(p => p.Add(x => x.Arg, 1));
+        cut.MarkupMatches("False, True, null");
+        cut.InvokeAsync(() => qf.Sources[1].SetResult("1"));
+        cut.WaitForAssertion(() => cut.MarkupMatches("False, False, 1"));
+        qf.Calls.Should().Equal(0, 1);
+    }
+
+    [Fact]
+    public void Should_refetch_when_Arg_changes_while_loading()
+    {
+        var qf = new MockQueryFunction<int, string>(2);
+        var endpoint = new Endpoint<int, string>(qf.Query);
+
+        using var cut = Render(
+            @<UseEndpoint Endpoint="endpoint" Arg="0" Context="query">
+                @query.IsUninitialized, @query.IsLoading, @(query.Data ?? "null")
+            </UseEndpoint>
+        );
+
+        var component = cut.FindComponent<UseEndpoint<int, string>>();
+        cut.MarkupMatches("False, True, null");
+        cut.RenderCount.Should().Be(1);
+
+        // Refetch while previous query is still loading
+        component.SetParametersAndRender(p => p.Add(x => x.Arg, 1));
+        cut.MarkupMatches("False, True, null");
+        cut.RenderCount.Should().Be(2);
+
+        // Complete queries
+        cut.InvokeAsync(() => qf.Sources[0].SetResult("0"));
+        cut.InvokeAsync(() => qf.Sources[1].SetResult("1"));
+        cut.WaitForAssertion(() => cut.MarkupMatches("False, False, 1"));
+        cut.RenderCount.Should().Be(3);
+
+        qf.Calls.Should().Equal(0, 1);
+    }
+
+    [Fact]
+    public void Should_use_Options()
+    {
+        var qf = new MockQueryFunction<int, string>(1);
+        var endpoint = new Endpoint<int, string>(qf.Query);
+        var (onSuccess, onSuccessCalls) = MakeMonitoredAction<QuerySuccessEventArgs<int, string>>();
+
+        using var cut = Render(
+            @<UseEndpoint Endpoint="endpoint" Arg="0" Options="new() { OnSuccess = onSuccess }" Context="query">
+                @query.IsUninitialized, @query.IsLoading, @(query.Data ?? "null")
+            </UseEndpoint>
+        );
+        var component = cut.FindComponent<UseEndpoint<int, string>>();
+        cut.InvokeAsync(() => qf.Sources[0].SetResult("0"));
+
+        cut.WaitForAssertion(() => onSuccessCalls.Should().HaveCount(1));
+    }
+
+    [Fact]
+    public void Should_dispose_Query_when_disposed()
+    {
+        var endpoint = new Endpoint<int, string>(
+            val => TestHelpers.ReturnAsync(val.ToString()),
+            options: new()
+                {
+                    CacheTime = TimeSpan.Zero,
+                }
+        );
+
+        var cut = Render(
+            @<UseEndpoint Endpoint="endpoint" Arg="0" Context="query">
+                @query.IsUninitialized, @query.IsLoading, @(query.Data ?? "null")
+            </UseEndpoint>
+        );
+        endpoint.GetCachedQuery(0).Should().NotBeNull();
+
+        DisposeComponents();
+
+        endpoint.GetCachedQuery(0).Should().BeNull();
     }
 }
