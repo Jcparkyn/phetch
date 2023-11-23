@@ -74,7 +74,9 @@ public sealed class ObserveQuery<TArg, TResult> : ComponentBase, IDisposable
     {
         if (query is not null)
         {
-            query.StateChanged -= StateHasChanged;
+            query.StateChanged -= OnStateChanged;
+            query.Succeeded -= SuccessCallback;
+            query.Failed -= FailureCallback;
             if (DetachWhenDisposed) query.Detach();
         }
     }

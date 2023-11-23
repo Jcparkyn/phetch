@@ -3,8 +3,6 @@
 @inherits TestContext
 
 @code {
-    static TimeSpan timeout = TimeSpan.FromSeconds(0.5);
-
     [Fact]
     public void Should_render_with_no_callbacks()
     {
@@ -17,42 +15,73 @@
     }
 
     [Fact]
-    public void Should_call_correct_callbacks()
+    public async Task Should_call_correct_callbacks()
     {
-        var qf = new MockQueryFunction<int, string>(1);
-        var query = new Endpoint<int, string>(qf.Query)
-            .Use();
+        var qf = new MockQueryFunction<int, string>(3);
+        var query = new Endpoint<int, string>(qf.Query).Use();
 
         var (onChanged, onChangedCalls) = MakeMonitoredAction();
         var (onSuccess, onSuccessCalls) = MakeMonitoredAction<QuerySuccessEventArgs<int, string>>();
+        var (onFailure, onFailureCalls) = MakeMonitoredAction<QueryFailureEventArgs<int>>();
 
-        var cut = Render(@<ObserveQuery Target="query" OnChanged="onChanged" OnSuccess="onSuccess" />);
+        var cut = Render(@<ObserveQuery Target="query" OnChanged="onChanged" OnSuccess="onSuccess" OnFailure="onFailure" />);
 
         onChangedCalls.Should().HaveCount(0);
 
         cut.MarkupMatches("");
 
-        cut.InvokeAsync(() => query.SetArg(1));
+        // Successful query
+        await cut.InvokeAsync(() => query.SetArg(0));
 
         onChangedCalls.Should().HaveCount(1);
         onSuccessCalls.Should().HaveCount(0);
         cut.RenderCount.Should().Be(2);
 
-        cut.InvokeAsync(() => qf.Sources[0].SetResult("1"));
+        await cut.InvokeAsync(() => qf.Sources[0].SetResult("0"));
         using (new AssertionScope())
         {
-            cut.WaitForAssertion(() => onChangedCalls.Should().HaveCount(2), timeout);
-            cut.WaitForAssertion(() => onSuccessCalls.Should().HaveCount(1), timeout);
+            onChangedCalls.Should().HaveCount(2);
+            onSuccessCalls.Should().HaveCount(1);
+            onFailureCalls.Should().HaveCount(0);
 
             onSuccessCalls.Should().SatisfyRespectively(
                 e =>
                 {
-                    e.Result.Should().Be("1");
-                    e.Arg.Should().Be(1);
+                    e.Result.Should().Be("0");
+                    e.Arg.Should().Be(0);
                 }
             );
             cut.RenderCount.Should().Be(3);
             cut.FindComponent<ObserveQuery<int, string>>().RenderCount.Should().Be(1);
+        }
+
+        // Failed query
+        await cut.InvokeAsync(() => query.SetArg(1));
+        await cut.InvokeAsync(() => qf.Sources[1].SetException(new Exception("boom")));
+        using (new AssertionScope())
+        {
+            onChangedCalls.Should().HaveCount(4);
+            onSuccessCalls.Should().HaveCount(1);
+            onFailureCalls.Should().HaveCount(1);
+
+            onFailureCalls.Should().SatisfyRespectively(
+                e =>
+                {
+                    e.Exception.Message.Should().Be("boom");
+                    e.Arg.Should().Be(1);
+                }
+            );
+        }
+
+        // Dispose and test that callbacks are no longer called
+        DisposeComponents();
+        await cut.InvokeAsync(() => query.SetArg(2));
+        await cut.InvokeAsync(() => qf.Sources[2].SetResult("2"));
+        using (new AssertionScope())
+        {
+            onChangedCalls.Should().HaveCount(4);
+            onSuccessCalls.Should().HaveCount(1);
+            onFailureCalls.Should().HaveCount(1);
         }
     }
 
@@ -67,7 +96,7 @@
             @<ObserveQuery Target="query">
                 @(query.IsLoading ? "Loading" : @query.Data)
             </ObserveQuery>
-    );
+        );
 
         var component = cut.FindComponent<ObserveQuery<int, string>>();
 
@@ -79,14 +108,14 @@
 
         using (new AssertionScope())
         {
-            cut.WaitForAssertion(() => cut.MarkupMatches("Loading"), timeout);
+            cut.WaitForAssertion(() => cut.MarkupMatches("Loading"));
             component.RenderCount.Should().Be(2);
         }
         cut.InvokeAsync(() => qf.Sources[0].SetResult("1"));
 
         using (new AssertionScope())
         {
-            cut.WaitForAssertion(() => cut.MarkupMatches("1"), timeout);
+            cut.WaitForAssertion(() => cut.MarkupMatches("1"));
             component.RenderCount.Should().Be(3);
         }
     }
