@@ -1,0 +1,26 @@
+- name: Getting Started
+  href: getting-started.md
+- name: Defining Query Endpoints
+  href: defining-query-endpoints.md
+- name: Using Query Endpoints with UseEndpoint
+  href: useendpoint.md
+- name: Using Query objects directly
+  href: using-query-objects-directly.md
+- name: Endpoints with multiple parameters
+  href: endpoints-with-multiple-parameters.md
+- name: Endpoints without parameters and/or return values
+  href: endpoints-without-parameters.md
+- name: Invoking queries manually
+  href: invoking-queries-manually.md
+- name: Caching and staleness
+  href: caching-and-staleness.md
+- name: Invalidation and pessimistic updates
+  href: invalidation-and-pessimistic-updates.md
+- name: Cancelling queries
+  href: cancelling-queries.md
+- name: Pre-fetching query data
+  href: pre-fetching.md
+- name: Retries
+  href: retries.md
+- name: Sharing options between endpoints
+  href: sharing-options-between-endpoints.md

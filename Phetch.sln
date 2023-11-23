@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32210.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhetchBlazorDemo", "samples\PhetchBlazorDemo\PhetchBlazorDemo.csproj", "{D02BE3B4-5217-4D30-853D-D0BCBC2694F0}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phetch.Core", "src\Phetch.Core\Phetch.Core.csproj", "{01365911-83BF-4206-8956-CF5B84FFDE44}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phetch.Blazor", "src\Phetch.Blazor\Phetch.Blazor.csproj", "{93BF1454-0250-4678-929F-8B3F842CE2A7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhetchBlazorDemo", "samples\PhetchBlazorDemo\PhetchBlazorDemo.csproj", "{D02BE3B4-5217-4D30-853D-D0BCBC2694F0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8D6D6C9A-40AF-4BDA-AC76-A146E7F117D6}"
 	ProjectSection(SolutionItems) = preProject
@@ -16,8 +18,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phetch.Tests", "test\Phetch.Tests\Phetch.Tests.csproj", "{298B16C5-6AB6-4CB1-A263-F157FC2D8E41}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phetch.Blazor", "src\Phetch.Blazor\Phetch.Blazor.csproj", "{93BF1454-0250-4678-929F-8B3F842CE2A7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HackerNewsClient", "samples\HackerNewsClient\HackerNewsClient.csproj", "{9F157853-311E-49B0-9C39-CF8F7B53538F}"
 EndProject
