@@ -1,9 +1,8 @@
 ﻿namespace HackerNewsClient.Shared;
 
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 
 public sealed class QueryParam
 {

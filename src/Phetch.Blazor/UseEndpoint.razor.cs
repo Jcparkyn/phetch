@@ -1,8 +1,8 @@
 ﻿namespace Phetch.Blazor;
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Components;
 using Phetch.Core;
-using System.Diagnostics.CodeAnalysis;
 
 /// <summary>
 /// A component that can be used to call an endpoint and access the result.

@@ -1,9 +1,9 @@
 ﻿namespace Phetch.Tests;
 
+using System;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Phetch.Core;
-using System;
 using Xunit;
 
 public class OptionsTests

@@ -1,9 +1,9 @@
 ﻿namespace Phetch.Core;
 
 using System;
-using System.Threading.Tasks;
-using System.Threading;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 
 /// <summary>
 /// An interface to allow queries to be retried when they fail.

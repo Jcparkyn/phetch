@@ -64,6 +64,11 @@ csharp_style_namespace_declarations=file_scoped:warning
 csharp_using_directive_placement = inside_namespace:warning
 dotnet_style_namespace_match_folder=true:warning
 
+# IDE0005: Using directive is unnecessary.
+dotnet_diagnostic.IDE0005.severity = warning
+# IDE0130: Namespace does not match folder structure
+dotnet_diagnostic.IDE0130.severity = warning
+
 # Avoid "this." and "Me." if not necessary
 dotnet_style_qualification_for_field = false:refactoring
 dotnet_style_qualification_for_property = false:refactoring
@@ -319,8 +324,3 @@ dotnet_diagnostic.IDE2004.severity = warning
 # CA1822: Make member static
 # There is a risk of accidentally breaking an internal API that partners rely on though IVT.
 dotnet_code_quality.CA1822.api_surface = private
-
-# IDE0005: Using directive is unnecessary.
-dotnet_diagnostic.IDE0005.severity = warning
-# IDE0130: Namespace does not match folder structure
-dotnet_diagnostic.IDE0130.severity = warning

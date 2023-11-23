@@ -1,9 +1,10 @@
-﻿namespace Phetch.Core;
+﻿namespace Phetch.Tests;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Phetch.Core;
 
 /// <summary>
 /// Class for creating query functions for testing.

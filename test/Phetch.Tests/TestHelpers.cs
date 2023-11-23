@@ -1,10 +1,9 @@
 ﻿namespace Phetch.Tests;
 
-using System.Collections.Generic;
 using System;
-using System.Threading.Tasks;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Phetch.Core;
 using Polly;
 
@@ -23,13 +22,13 @@ public class TestHelpers
     public static (Func<int, Task<string>> queryFn, IReadOnlyList<int> queryFnCalls) MakeTrackedQueryFn()
     {
         var queryFnCalls = new List<int>();
-        var queryFn = async (int val) =>
+        async Task<string> QueryFn(int val)
         {
             queryFnCalls.Add(val);
             await Task.Yield();
             return val.ToString();
-        };
-        return (queryFn, queryFnCalls);
+        }
+        return (QueryFn, queryFnCalls);
     }
 }
 

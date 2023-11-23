@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Components.Web;
+﻿using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using PhetchBlazorDemo;
 using MudBlazor.Services;
-using Blazored.LocalStorage;
+using PhetchBlazorDemo;
 using PhetchBlazorDemo.Shared;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);

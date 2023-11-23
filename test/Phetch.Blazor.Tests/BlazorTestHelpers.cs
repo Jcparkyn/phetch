@@ -2,27 +2,26 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 internal static class BlazorTestHelpers
 {
     public static (Action<T>, List<T>) MakeMonitoredAction<T>()
     {
         var actionCalls = new List<T>();
-        var action = (T arg) =>
+        void Action(T arg)
         {
             actionCalls.Add(arg);
-        };
-        return (action, actionCalls);
+        }
+        return (Action, actionCalls);
     }
 
     public static (Action, List<object?>) MakeMonitoredAction()
     {
         var actionCalls = new List<object?>();
-        var action = () =>
+        void Action()
         {
             actionCalls.Add(null);
-        };
-        return (action, actionCalls);
+        }
+        return (Action, actionCalls);
     }
 }
