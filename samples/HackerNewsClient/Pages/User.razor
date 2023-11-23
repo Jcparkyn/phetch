@@ -9,7 +9,7 @@
     {
         var user = query.Data;
         <div style="margin: 1em 0"><strong>Karma: @user.Karma</strong></div>
-        <a href="/search?author=@user.Username">posts</a>
+        <a href="search?author=@user.Username">posts</a>
         @if (string.IsNullOrEmpty(user.About))
         {
             <p>This user has no description.</p>

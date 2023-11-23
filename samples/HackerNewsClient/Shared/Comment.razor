@@ -6,7 +6,7 @@
     <div class="comment-container" @ref=_elementRef tabindex="-1" id="comment-@Item.Id">
         <button class="comment-show-parent-button" @onclick=ShowParents title="Show parents" aria-label="Show parents">◤</button>
         <div class="comment-details">
-            <a href="@($"/user/{Item.Author}")" style="color: @AuthorColor">@Item.Author</a>,
+            <a href="user/@Item.Author" style="color: @AuthorColor">@Item.Author</a>,
             <DateDisplay Date="@Item.CreatedAt" /> |
             <a href="https://news.ycombinator.com/reply?id=@Item.Id" target="_blank" style="color: inherit">reply</a>
             @if (collapsed)
