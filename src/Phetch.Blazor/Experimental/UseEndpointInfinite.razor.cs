@@ -184,7 +184,7 @@ public sealed partial class UseEndpointInfinite<TArg, TResult> : ComponentBase, 
         if (query is not null)
         {
             query.StateChanged -= StateHasChanged;
-            query.Detach();
+            query.Dispose();
         }
     }
 

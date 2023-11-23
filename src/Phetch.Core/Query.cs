@@ -1,7 +1,6 @@
 ﻿namespace Phetch.Core;
 
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -10,7 +9,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// A query with unknown type arguments.
 /// </summary>
-public interface IQuery
+public interface IQuery : IDisposable
 {
     /// <summary>
     /// An event that fires whenever the state of this query changes.
@@ -77,7 +76,9 @@ public interface IQuery
     public bool IsFetching { get; }
 
     /// <summary>
-    /// Stop listening to changes of the current query.
+    /// Stop listening to changes of the current query. This allows the query data to be garbage
+    /// collected after the <c>CacheTime</c> has passed (if there are no other observers for the
+    /// same <c>Arg</c>).
     /// </summary>
     public void Detach();
 
@@ -285,7 +286,6 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
     /// <inheritdoc/>
     public void Detach()
     {
-        // TODO: Consider redesign
         _currentQuery?.RemoveObserver(this);
         _currentQuery = null;
     }
@@ -364,6 +364,36 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
     {
         StateChanged?.Invoke();
     }
+
+    /// <summary>
+    /// Stop listening to changes of the current query.
+    /// </summary>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            Detach();
+        }
+    }
+
+    /// <summary>
+    /// Stop listening to changes of the current query. This is equivalent to calling <see cref="Detach"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// If you created this query with <c>endpoint.Use()</c>, call this when you've finished using
+    /// the query. Most commonly, this should be called in the <c>Dispose</c> method of a component.
+    /// </para>
+    /// <para>
+    /// If this query was created by <c>&lt;UseEndpoint/&gt;</c>, this method will be called automatically.
+    /// </para>
+    /// </remarks>
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
 }
 
 /// <summary>
@@ -371,6 +401,7 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
 /// </summary>
 /// <remarks>Aside from having no return value, this functions identically to a normal Query</remarks>
 [Obsolete("Use Query<TArg, Unit> instead, which is equivalent.", true)]
+[ExcludeFromCodeCoverage]
 public class Mutation<TArg> : Query<TArg, Unit>
 {
     internal Mutation(

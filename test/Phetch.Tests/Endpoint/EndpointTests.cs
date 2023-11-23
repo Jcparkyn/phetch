@@ -151,7 +151,7 @@ public class EndpointTests
 
         await query.SetArgAsync(2);
         endpoint.GetCachedQuery(1).Should().BeNull();
-        query.Detach();
+        query.Dispose();
         endpoint.GetCachedQuery(2).Should().BeNull();
     }
 }

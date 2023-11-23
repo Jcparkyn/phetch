@@ -48,6 +48,15 @@ public sealed class ObserveQuery<TArg, TResult> : ComponentBase, IDisposable
     [Parameter]
     public Action<QueryFailureEventArgs<TArg>>? OnFailure { get; set; }
 
+    /// <summary>
+    /// Automatically detach this query when this component is disposed. Only use this when this is
+    /// the only component using this query instance, and the <c>ObserveQuery</c> is not rendered
+    /// conditionally. Otherwise, implement <see cref="IDisposable"/> and call <see
+    /// cref="Query{TArg, TResult}.Detach"/> to detach the query manually.
+    /// </summary>
+    [Parameter]
+    public bool DetachWhenDisposed { get; set; } = false;
+
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
@@ -66,7 +75,7 @@ public sealed class ObserveQuery<TArg, TResult> : ComponentBase, IDisposable
         if (query is not null)
         {
             query.StateChanged -= StateHasChanged;
-            query.Detach();
+            if (DetachWhenDisposed) query.Detach();
         }
     }
 

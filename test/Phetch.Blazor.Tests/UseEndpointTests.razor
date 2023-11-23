@@ -198,15 +198,16 @@
                 }
         );
 
-        var cut = Render(
+        using var cut = Render(
             @<UseEndpoint Endpoint="endpoint" Arg="0" Context="query">
                 @query.IsUninitialized, @query.IsLoading, @(query.Data ?? "null")
             </UseEndpoint>
         );
+        cut.WaitForAssertion(() => cut.MarkupMatches("False, False, 0"));
+
         endpoint.GetCachedQuery(0).Should().NotBeNull();
 
         DisposeComponents();
-
         endpoint.GetCachedQuery(0).Should().BeNull();
     }
 }

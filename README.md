@@ -184,11 +184,11 @@ In cases where the `<UseEndpoint/>` component doesn't provide enough control, yo
 This is also useful when using endpoints or queries inside DI services.
 
 `Phetch.Blazor` includes the `<ObserveQuery/>` component for this purpose, so that components can automatically be re-rendered when the query state changes.
-This automatically un-subscribes from query events when the component is unmounted (in `Dispose()`), so you don't have to worry about memory leaks.
 
 > :information_source: Alternatively, you can manually subscribe and un-subscribe to a query using the `StateChanged` event.
 
 ```cshtml
+@implements IDisposable
 @inject MyApi Api
 
 @{ query.SetArg(ThingId); }
@@ -209,6 +209,9 @@ This automatically un-subscribes from query events when the component is unmount
     {
         query = Api.GetThing.Use();
     }
+
+    // Disposing the query signals to the cache that the result is no longer being used, and avoids memory leaks.
+    public void Dispose() => query.Dispose();
 }
 ```
 

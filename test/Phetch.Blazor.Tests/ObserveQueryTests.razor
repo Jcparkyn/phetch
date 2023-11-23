@@ -1,4 +1,5 @@
 @using FluentAssertions.Execution;
+@using Phetch.Tests
 @inherits TestContext
 
 @code {
@@ -66,7 +67,7 @@
             @<ObserveQuery Target="query">
                 @(query.IsLoading ? "Loading" : @query.Data)
             </ObserveQuery>
-        );
+    );
 
         var component = cut.FindComponent<ObserveQuery<int, string>>();
 
@@ -88,5 +89,32 @@
             cut.WaitForAssertion(() => cut.MarkupMatches("1"), timeout);
             component.RenderCount.Should().Be(3);
         }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Should_dispose_Query_when_disposed(bool detachWhenDisposed)
+    {
+        var endpoint = new Endpoint<int, string>(
+            val => TestHelpers.ReturnAsync(val.ToString()),
+            options: new() { CacheTime = TimeSpan.Zero }
+        );
+        var query = endpoint.Use();
+        await query.SetArgAsync(0);
+
+        var cut = detachWhenDisposed
+            // Separate calls so we can assert default value
+            ? Render(@<ObserveQuery Target="query" DetachWhenDisposed />)
+            : Render(@<ObserveQuery Target="query" />);
+
+        endpoint.GetCachedQuery(0).Should().NotBeNull();
+
+        DisposeComponents();
+
+        if (detachWhenDisposed)
+            endpoint.GetCachedQuery(0).Should().BeNull();
+        else
+            endpoint.GetCachedQuery(0).Should().NotBeNull();
     }
 }

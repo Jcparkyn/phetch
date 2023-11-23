@@ -1,5 +1,6 @@
 ﻿@page "/dependentQueries"
 @inject HttpClient Http
+@implements IDisposable
 @using PhetchBlazorDemo.Shared
 @using System.Text.Json
 
@@ -94,5 +95,11 @@
                 return val + 1;
             }
         ).Use();
+    }
+
+    public void Dispose()
+    {
+        query1.Dispose();
+        query2.Dispose();
     }
 }
