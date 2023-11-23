@@ -26,8 +26,8 @@
 
     public string Tag => string.IsNullOrEmpty(author.Value) ? "story" : $"story,author_{author.Value}";
 
-    private QueryParam searchQuery = null!;
-    private QueryParam author = null!;
+    private QueryParam<string> searchQuery = null!;
+    private QueryParam<string> author = null!;
 
     protected override void OnInitialized()
     {
