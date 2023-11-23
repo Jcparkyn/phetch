@@ -317,9 +317,10 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
             _currentQuery?.RemoveObserver(this);
             newQuery.AddObserver(this);
             _currentQuery = newQuery;
-            // TODO: Is this the best behavior?
 
-            if (!newQuery.IsFetching && newQuery.IsStaleByTime(_staleTime, DateTime.Now))
+            var shouldRefetch = !newQuery.IsFetching &&
+                (newQuery.Status == QueryStatus.Error || newQuery.IsStaleByTime(_staleTime, DateTime.Now));
+            if (shouldRefetch)
             {
                 return await newQuery.RefetchAsync(_options?.RetryHandler).ConfigureAwait(false);
             }
@@ -328,12 +329,10 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
         {
             return await task;
         }
-        else
-        {
-            // Probably not possible to get here, but just in case
-            Debug.Fail("newQuery should have been invoked before this point");
-            return newQuery.Data!;
-        }
+
+        // Probably not possible to get here, but just in case
+        Debug.Fail("newQuery should have been invoked before this point");
+        return newQuery.Data!;
     }
 
     /// <inheritdoc/>

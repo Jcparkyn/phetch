@@ -27,7 +27,7 @@ public class MockQueryFunction<TArg, TResult>(int numSources)
 
     public async Task<TResult> Query(TArg arg)
     {
-        if (_queryCount > Sources.Count)
+        if (_queryCount >= Sources.Count)
             throw new Exception("Query function called too many times");
         var resultTask = Sources[_queryCount].Task;
         _queryCount++;

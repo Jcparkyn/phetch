@@ -394,6 +394,44 @@ public class QueryTests
         result.Should().Be("2");
     }
 
+    [UIFact]
+    public async Task SetArg_should_always_refetch_if_error()
+    {
+        var qf = new MockQueryFunction<int, string>(4);
+        var endpoint = new Endpoint<int, string>(qf.Query, new()
+        {
+            // Disable automatic refetching
+            DefaultStaleTime = TimeSpan.MaxValue,
+        });
+        var query = endpoint.Use();
+
+        // Trigger an initial success. This ensures that _dataUpdatedAt is set, because otherwise
+        // this test passes "for free".
+        var task1 = query.SetArgAsync(0);
+        qf.Sources[0].SetResult("0");
+        await task1;
+
+        // Refetch with failure
+        var task2 = query.RefetchAsync();
+        qf.Sources[1].SetException(new IndexOutOfRangeException("BOOM!"));
+        await task2.Invoking(t => t)
+            .Should().ThrowExactlyAsync<IndexOutOfRangeException>();
+
+        // Currently, setting the same arg twice will never refetch, which is intentional.
+        // Instead we just change the arg twice.
+        _ = query.SetArgAsync(1);
+        var task3 = query.SetArgAsync(0);
+        qf.Sources[3].SetResult("0 again");
+        await task3;
+
+        using (new AssertionScope())
+        {
+            query.Data.Should().Be("0 again");
+            AssertIsSuccessState(query);
+            qf.Calls.Should().Equal(0, 0, 1, 0);
+        }
+    }
+
     private static void AssertIsIdleState<TArg, TResult>(Query<TArg, TResult> query)
     {
         query.Status.Should().Be(QueryStatus.Idle);
