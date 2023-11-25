@@ -93,6 +93,3 @@ public partial class UseEndpoint<TArg, TResult> : UseEndpointBase<TArg, TResult>
         }
     }
 }
-
-[Obsolete("Use <UseEndpoint/> instead, which functions identically. This will be removed in a future version of Phetch.")]
-public sealed class UseMutationEndpoint<TArg> : UseEndpoint<TArg, Unit> { }
