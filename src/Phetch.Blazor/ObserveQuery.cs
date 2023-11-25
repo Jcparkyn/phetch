@@ -4,6 +4,22 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Phetch.Core;
 
+/// <summary>
+/// Blazor component to subscribe to a query and re-render when it changes.
+/// </summary>
+/// <remarks>
+/// This be used standalone, to trigger re-renders and events:
+/// <code language="cshtml">
+///     &lt;ObserveQuery Target="query" OnChanged="StateHasChanged" /&gt;
+/// </code>
+/// Or, it can be used as a wrapper around other components, to automatically re-render only the wrapped content:
+/// <code language="cshtml">
+///     &lt;ObserveQuery Target="query"&gt;
+///         @* Put content that depends on the query here. *@
+///     &lt;/ObserveQuery&gt;
+/// </code>
+/// See <see href="https://jcparkyn.github.io/phetch/docs/using-query-objects-directly.html"/> for more information.
+/// </remarks>
 public sealed class ObserveQuery<TArg, TResult> : ComponentBase, IDisposable
 {
     private IQuery<TArg, TResult>? _target;

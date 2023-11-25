@@ -4,13 +4,16 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Phetch.Core;
 
+/// <summary>
+/// Base class for variations of UseEndpoint. Do not use directly.
+/// </summary>
 public abstract class UseEndpointBase<TArg, TResult>
     : ComponentBase, IDisposable
 {
     internal UseEndpointBase() { }
 
     protected Query<TArg, TResult>? CurrentQuery { get; private set; }
-    protected Endpoint<TArg, TResult>? EndpointInternal { get; set; }
+    private protected Endpoint<TArg, TResult>? EndpointInternal { get; set; }
     protected bool IsInitialized { get; private set; }
 
     /// <summary>
