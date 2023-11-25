@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Components;
 using Phetch.Core;
+using System.Diagnostics;
 
 /// <summary>
 /// An experimental component for creating "infinite scroll" features.
@@ -39,9 +40,9 @@ public sealed partial class UseEndpointInfinite<TArg, TResult> : ComponentBase, 
     private TArg? _arg;
 
     /// <summary>
-    /// The argument to supply to the query. If not supplied, the query will not be run automatically.
+    /// The argument to supply to the query when fetching the first page. This is required.
     /// </summary>
-    [Parameter]
+    [Parameter, EditorRequired]
     public TArg Arg
     {
         get => _arg!;
@@ -58,11 +59,38 @@ public sealed partial class UseEndpointInfinite<TArg, TResult> : ComponentBase, 
     /// <summary>
     /// A function to choose the Arg for the next page, based on the last page and number of pages.
     /// </summary>
+    /// <remarks>
+    /// When this function is called, the following are guaranteed:
+    /// <list type="bullet">
+    /// <item/>
+    /// The <c>pages</c> list contains at least one page.
+    /// <item/>
+    /// The last page in the list has succeeded.
+    /// </list>
+    /// </remarks>
     [Parameter, EditorRequired]
     public GetNextPageFunc GetNextPageArg { get; set; } = null!;
 
+    /// <summary>
+    /// A function to choose the <see cref="Arg">Arg</see> for the next page, based on the last page
+    /// and number of pages.
+    /// </summary>
+    /// <param name="pages">
+    /// A list of query instances for the previous pages. When <see cref="GetNextPageArg"/> is
+    /// called, the following are guaranteed:
+    /// <list type="bullet">
+    /// <item/>
+    /// This list contains at least one page.
+    /// <item/>
+    /// The last page in the list has succeeded.
+    /// </list>
+    /// </param>
+    /// <returns>
+    /// A tuple containing the <see cref="Arg">Arg</see> for the next page, and a flag for whether
+    /// there are any more pages.
+    /// </returns>
     // Using an explicit delegate here, because otherwise the compiler doesn't understand nullable return type
-    public delegate TArg? GetNextPageFunc(Query<TArg, TResult> lastPage, int pageCount);
+    public delegate (TArg? nextPageArg, bool hasNextPage) GetNextPageFunc(IReadOnlyList<Query<TArg, TResult>> pages);
 
     private QueryOptions<TArg, TResult>? _options;
 
@@ -82,28 +110,23 @@ public sealed partial class UseEndpointInfinite<TArg, TResult> : ComponentBase, 
         }
     }
 
-    public async Task LoadNextPageAsync()
+    public async Task<TResult> LoadNextPageAsync()
     {
-        var lastQuery = _queries.LastOrDefault();
-        if (lastQuery is null)
-        {
-            // This might make more sense as a throw, it shouldn't be possible to get here in normal use.
-            ResetQueries();
-            return;
-        }
+        Debug.Assert(_isInitialized);
+        var lastQuery = _queries.LastOrDefault()
+            ?? throw new InvalidOperationException($"{nameof(LoadNextPageAsync)} was called before the component was initialized");
         if (!lastQuery.IsSuccess)
         {
-            return;
+            throw new InvalidOperationException("Cannot load next page because last page hasn't succeeded");
         }
-        var nextArg = GetNextPageArg(lastQuery, _queries.Count);
-        if (nextArg is null)
+        var (nextArg, hasNextPage) = GetNextPageArg(_queries);
+        if (!hasNextPage)
         {
-            return;
+            throw new InvalidOperationException($"Cannot load next page because {nameof(GetNextPageArg)} returned hasNextPage=false");
         }
         var newQuery = GetQuery(_endpoint);
         _queries.Add(newQuery);
-        // TODO: Return SetArgAsync result
-        await newQuery.SetArgAsync(nextArg).ConfigureAwait(false);
+        return await newQuery.SetArgAsync(nextArg!).ConfigureAwait(false);
     }
 
     protected override void OnInitialized()
@@ -134,7 +157,7 @@ public sealed partial class UseEndpointInfinite<TArg, TResult> : ComponentBase, 
         for (var i = 0; i < _queries.Count; i++)
         {
             var query = _queries[i];
-            query.SetArg(nextArg);
+            query.SetArg(nextArg!); // TODO: Improve null handling
 
             if (!query.IsSuccess)
             {
@@ -142,13 +165,13 @@ public sealed partial class UseEndpointInfinite<TArg, TResult> : ComponentBase, 
                 return;
             }
 
-            nextArg = GetNextPageArg(query, i + 1);
-            if (nextArg is null)
+            (nextArg, var hasNextPage) = GetNextPageArg(_queries.GetRange(0, i + 1));
+            if (!hasNextPage)
             {
                 RemoveQueriesAfter(i);
                 return;
             }
-            var nextIsCached = _endpoint!.GetCachedQuery(nextArg) is not null;
+            var nextIsCached = _endpoint!.GetCachedQuery(nextArg!) is not null;
 
             var isLastPage = i == _queries.Count - 1;
             if (isLastPage && query.IsSuccess && nextIsCached)
@@ -207,7 +230,7 @@ public sealed record UseEndpointInfiniteContext<TArg, TResult>
         var lastPage = pages.LastOrDefault();
         HasNextPage = lastPage is not null
             && lastPage.IsSuccess
-            && component.GetNextPageArg(lastPage, pages.Count) != null;
+            && component.GetNextPageArg(pages).hasNextPage;
     }
 
     private readonly UseEndpointInfinite<TArg, TResult> _component;
@@ -217,5 +240,5 @@ public sealed record UseEndpointInfiniteContext<TArg, TResult>
     public bool IsLoadingNextPage => Pages.Count > 0 && Pages[^1].IsFetching;
 
     public void LoadNextPage() => _ = _component.LoadNextPageAsync();
-    public Task LoadNextPageAsync() => _component.LoadNextPageAsync();
+    public Task<TResult> LoadNextPageAsync() => _component.LoadNextPageAsync();
 }

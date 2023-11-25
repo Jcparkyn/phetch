@@ -35,6 +35,16 @@ public class MockQueryFunction<TArg, TResult>(int numSources)
         Calls.Add(arg);
         return await resultTask;
     }
+
+    public void SetResult(int call, TResult result)
+    {
+        Sources[call].SetResult(result);
+    }
+
+    public void SetResult(int call, Func<TArg, TResult> queryFn)
+    {
+        Sources[call].SetResult(queryFn(Calls[call]));
+    }
 }
 
 public class MockQueryFunction<TResult>(int numSources) : MockQueryFunction<Unit, TResult>(numSources)

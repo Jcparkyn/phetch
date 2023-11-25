@@ -1,0 +1,16 @@
+@using Phetch.Blazor.Experimental
+@inherits TestContext
+
+@code {
+    RenderFragment EndpointFragment1(Endpoint<int, PageResponse> endpoint, int arg)
+    {
+        return @<UseEndpointInfinite
+            Endpoint="endpoint"
+            GetNextPageArg="pages => (pages[^1].Data!.NextCursor ?? 0, pages[^1].Data!.NextCursor is not null)"
+            Arg="arg"
+            Options="new()"
+        >
+            <UseEndpointInfiniteTestContent Context="@context"/>
+        </UseEndpointInfinite>;
+    }
+}

@@ -2,7 +2,7 @@
 
 <UseEndpointInfinite Endpoint="Api.GetTopStories"
                      Arg="Arg"
-                     GetNextPageArg="(q, pageCount) => pageCount < q.Data?.NbPages ? q.Arg?.GetNextPageArgs() : null">
+                     GetNextPageArg="pages => (pages[^1].Arg?.GetNextPageArgs(), pages.Count < pages[^1].Data?.NbPages)">
     <ul class="post-list">
         @foreach (var query in context.Pages)
         {

@@ -1,0 +1,6 @@
+@using Phetch.Blazor.Experimental
+
+@code {
+    [Parameter, EditorRequired]
+    public UseEndpointInfiniteContext<int, PageResponse> Context { get; set; } = null!;
+}
