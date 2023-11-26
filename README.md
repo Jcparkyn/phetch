@@ -1,4 +1,4 @@
-# Phetch&nbsp; ![Nuget](https://img.shields.io/nuget/v/Phetch.Blazor)
+# Phetch&nbsp; [![Nuget](https://img.shields.io/nuget/v/Phetch.Blazor)](https://www.nuget.org/packages/Phetch.Blazor) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ### [Documentation](https://jcparkyn.github.io/phetch/docs/getting-started.html) | [API Reference](https://jcparkyn.github.io/phetch/api/Phetch.Blazor.html) | [Sample app](./samples/HackerNewsClient)
 
