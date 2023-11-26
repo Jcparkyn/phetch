@@ -1,8 +1,8 @@
 ﻿namespace Phetch.Blazor.Experimental;
 
+using System.Diagnostics;
 using Microsoft.AspNetCore.Components;
 using Phetch.Core;
-using System.Diagnostics;
 
 /// <summary>
 /// An experimental component for creating "infinite scroll" features.

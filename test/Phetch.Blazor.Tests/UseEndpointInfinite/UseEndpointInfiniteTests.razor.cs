@@ -1,13 +1,13 @@
 ﻿namespace Phetch.Blazor.Tests.UseEndpointInfinite;
 
+using System;
+using System.Threading.Tasks;
 using Bunit.Rendering;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Phetch.Blazor.Experimental;
 using Phetch.Core;
 using Phetch.Tests;
-using System;
-using System.Threading.Tasks;
 
 public partial class UseEndpointInfiniteTests : TestContext
 {
