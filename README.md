@@ -1,4 +1,4 @@
-# Phetch&nbsp; [![Nuget](https://img.shields.io/nuget/v/Phetch.Blazor)](https://www.nuget.org/packages/Phetch.Blazor) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+# Phetch&nbsp; [![Nuget](https://img.shields.io/nuget/v/Phetch.Blazor)](https://www.nuget.org/packages/Phetch.Blazor) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![codecov](https://codecov.io/github/Jcparkyn/phetch/graph/badge.svg?token=S3VNHVJPD4)](https://codecov.io/github/Jcparkyn/phetch)
 
 ### [Documentation](https://jcparkyn.github.io/phetch/docs/getting-started.html) | [API Reference](https://jcparkyn.github.io/phetch/api/Phetch.Blazor.html) | [Sample app](./samples/HackerNewsClient)
 

@@ -34,4 +34,9 @@ jobs:
       run: dotnet build --no-restore -c Release /warnaserror
 
     - name: Run Tests
-      run: dotnet test --no-build -c Release
+      run: dotnet test --no-build -c Release --collect:"XPlat Code Coverage"
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        directory: test
