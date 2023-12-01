@@ -4,7 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <VersionPrefix>0.5.1</VersionPrefix>
+    <VersionPrefix>0.6.0</VersionPrefix>
     <Authors>Jcparkyn</Authors>
     <RepositoryUrl>https://github.com/Jcparkyn/Phetch</RepositoryUrl>
     <PackageTags>blazor;fetch;query;swr</PackageTags>

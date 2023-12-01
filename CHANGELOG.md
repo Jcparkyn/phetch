@@ -1,4 +1,4 @@
-# [v0.6.0] - Unreleased
+# [v0.6.0] - 1 Dec 2023
 
 ## Added
 - New DocFX site for documentation
