@@ -4,7 +4,7 @@
 <PageTitle>@UserId | Hacker News</PageTitle>
 <h1>@UserId</h1>
 
-<UseEndpoint Endpoint="@Api.GetUser" Arg="UserId" Context="query">
+<UseEndpoint Endpoint="@Api.GetUserEndpoint" Arg="UserId" Context="query">
     @if (query.HasData)
     {
         var user = query.Data;

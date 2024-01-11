@@ -1,6 +1,6 @@
 ﻿@inject HackerNewsApi Api
 
-<UseEndpointInfinite Endpoint="Api.GetTopStories"
+<UseEndpointInfinite Endpoint="Api.GetTopStoriesEndpoint"
                      Arg="Arg"
                      GetNextPageArg="pages => (pages[^1].Arg?.GetNextPageArgs(), pages.Count < pages[^1].Data?.NbPages)">
     <ul class="post-list">

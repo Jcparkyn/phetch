@@ -2,6 +2,8 @@
 
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.WebUtilities;
 using Phetch.Core;
@@ -21,11 +23,11 @@ public class HackerNewsApi
             OnFailure = e => Console.WriteLine(e.Exception.StackTrace),
         };
 
-        GetItem = new(GetItemMethod, defaultOptions);
+        GetItemEndpoint = new(GetItem, defaultOptions);
 
-        GetTopStories = new(GetTopStoriesMethod, defaultOptions);
+        GetTopStoriesEndpoint = new(GetTopStories, defaultOptions);
 
-        GetUser = new(
+        GetUserEndpoint = new(
             async (userId, ct) => (await httpClient.GetFromJsonAsync<HnUser>(
                 $"https://hn.algolia.com/api/v1/users/{userId}",
                 ct
@@ -34,7 +36,7 @@ public class HackerNewsApi
         );
     }
 
-    public async Task<HnItemDetails> GetItemMethod(int itemId, CancellationToken ct)
+    public async Task<HnItemDetails> GetItem(int itemId, CancellationToken ct)
     {
         return (await _httpClient.GetFromJsonAsync<HnItemDetails>(
             $"https://hn.algolia.com/api/v1/items/{itemId}",
@@ -42,7 +44,7 @@ public class HackerNewsApi
         ))!;
     }
 
-    public async Task<SearchResponse<HnItem>> GetTopStoriesMethod(SearchStoriesArgs args, CancellationToken ct)
+    public async Task<SearchResponse<HnItem>> GetTopStories(SearchStoriesArgs args, CancellationToken ct)
     {
         var queries = new Dictionary<string, string?>()
         {
@@ -61,11 +63,18 @@ public class HackerNewsApi
         return result!;
     }
 
-    public Endpoint<SearchStoriesArgs, SearchResponse<HnItem>> GetTopStories { get; }
+    public async Task<HnUser> GetUser(string userId, CancellationToken ct)
+    {
+        var url = $"https://hn.algolia.com/api/v1/users/{UrlEncoder.Default.Encode(userId)}";
+        var response = await _httpClient.GetFromJsonAsync<HnUser>(url, ct);
+        return response ?? throw new JsonException("API response was null");
+    }
 
-    public Endpoint<int, HnItemDetails> GetItem { get; }
+    public Endpoint<SearchStoriesArgs, SearchResponse<HnItem>> GetTopStoriesEndpoint { get; }
 
-    public Endpoint<string, HnUser> GetUser { get; }
+    public Endpoint<int, HnItemDetails> GetItemEndpoint { get; }
+
+    public Endpoint<string, HnUser> GetUserEndpoint { get; }
 
     public record SearchStoriesArgs(
         int Page,
@@ -74,6 +83,8 @@ public class HackerNewsApi
         string? Tag = "",
         DateTimeOffset? StartDate = null)
     {
+        // Note: For many apps (e.g. when using cursor pagination), this would instead be computed from the query result.
+        // This is just a simple example using page numbers.
         public SearchStoriesArgs GetNextPageArgs() => this with { Page = Page + 1 };
     }
 }

@@ -1,7 +1,7 @@
 ﻿@page "/post/{postId:int}"
 @inject HackerNewsApi Api
 
-<UseEndpoint Endpoint="@Api.GetItem" Arg="PostId" Context="query">
+<UseEndpoint Endpoint="@Api.GetItemEndpoint" Arg="PostId" Context="query">
     @if (query.HasData)
     {
         var post = query.Data;

@@ -6,6 +6,12 @@
 
 <MudText Typo="Typo.h3" GutterBottom="true">Counter</MudText>
 
+<MudText Class="mb-8">
+    This component demonstrates using <code>query.Trigger()</code> to update data on a server.
+    Since this is a demo, we simulate the server using local storage.
+</MudText>
+
+
 <div style="display: flex">
     <div style="flex: 1">
         <UseEndpoint Endpoint="Api.SetCounterValue" Context="query">

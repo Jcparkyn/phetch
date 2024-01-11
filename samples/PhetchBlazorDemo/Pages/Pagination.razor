@@ -1,11 +1,11 @@
 ﻿@page "/pagination"
-@inject CoinbaseApi Api
+@inject EarthquakeApi Api
 
 <PageTitle>Pagination Example</PageTitle>
 
 <MudText Typo="Typo.h3" GutterBottom="true">Pagination Example</MudText>
 
-<MudText Class="mb-8">This component demonstrates fetching paginated data from the server.</MudText>
+<MudText Class="mb-8">This component demonstrates fetching paginated data (a list of earthquakes) from a server.</MudText>
 
 <div>
     <MudCheckBox @bind-Checked="EnablePrefetch" Color="Color.Secondary">
@@ -13,12 +13,12 @@
     </MudCheckBox>
 </div>
 
-<UseEndpoint Endpoint="Api.GetTopAssets" Arg="CurrentPage" Context="query">
+<UseEndpoint Endpoint="Api.GetEarthquakesEndpoint" Arg="new(PageSize, CurrentPage)" Context="query">
     <div style="margin-block: 12px">
         <MudButton @onclick="query.Refetch">Refresh</MudButton>
 
         <MudPagination Color="Color.Primary"
-                       Count="query.LastData?.Pagination.TotalPages ?? 1"
+                       Count="query.LastData?.GetPageCount(PageSize) ?? 1"
                        @bind-Selected="@CurrentPage" />
     </div>
 
@@ -30,22 +30,22 @@
     {
         @if (query.HasData && EnablePrefetch)
         {
-            Api.GetTopAssets.Prefetch(CurrentPage + 1);
+            Api.GetEarthquakesEndpoint.Prefetch(new(PageSize, CurrentPage + 1));
         }
-        <MudTable Items="query.LastData?.Data"
+        <MudTable Items="query.LastData?.Features ?? []"
               Hover="true"
               Elevation="0"
               Dense
               Loading="query.IsFetching">
             <HeaderContent>
-                <MudTh>Name</MudTh>
-                <MudTh>Latest Price</MudTh>
-                <MudTh>ID</MudTh>
+                <MudTh>Location</MudTh>
+                <MudTh>Magnitude</MudTh>
+                <MudTh>Details</MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd DataLabel="Name">@context.Name</MudTd>
-                <MudTd DataLabel="Latest">$@context.Latest</MudTd>
-                <MudTd DataLabel="ID">@context.Id</MudTd>
+                <MudTd DataLabel="Name">@context.Properties.Place</MudTd>
+                <MudTd DataLabel="Magnitude">@context.Properties.Magnitude</MudTd>
+                <MudTd DataLabel="Details"><MudLink Href="@context.Properties.Url" Target="_blank">More info</MudLink></MudTd>
             </RowTemplate>
         </MudTable>
     }
@@ -54,4 +54,6 @@
 @code {
     private int CurrentPage { get; set; } = 1;
     private bool EnablePrefetch { get; set; } = false;
+    private int PageSize { get; set; } = 10;
+    private int GetPageCount(int totalCount, int pageSize) => (totalCount + pageSize - 1) / pageSize;
 }

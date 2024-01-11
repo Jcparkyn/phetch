@@ -5,7 +5,7 @@
 
 <h1>Front Page</h1>
 
-<UseEndpoint Endpoint="Api.GetTopStories"
+<UseEndpoint Endpoint="Api.GetTopStoriesEndpoint"
              Arg="@new(Page: 0, PageSize: 100, Tag: "front_page")"
              Context="query">
     @if (query.HasData)

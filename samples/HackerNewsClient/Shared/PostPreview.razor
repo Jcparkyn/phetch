@@ -19,7 +19,10 @@
         | <DateDisplay Date="@Post.CreatedAt" />
     </div>
     <div style="display: flex; flex-direction: column">
-        <span style="text-align: right">@Post.Points points</span>
+        @if (Post.Points is not null) // Some post types have points hidden
+        {
+            <span style="text-align: right">@Post.Points points</span>
+        }
         <a href="post/@Post.Id" style="text-align: right">@CommentText(Post.NumComments)</a>
     </div>
 </div>

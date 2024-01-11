@@ -8,7 +8,7 @@ public class IsEvenApi
 {
     public IsEvenApi(HttpClient httpClient)
     {
-        IsEven = new(
+        IsEvenEndpoint = new(
             async (val, ct) => (await httpClient.GetFromJsonAsync<IsEvenResponse>(
                 $"https://api.isevenapi.xyz/api/iseven/{WebUtility.UrlEncode(val.ToString())}",
                 ct
@@ -16,7 +16,7 @@ public class IsEvenApi
         );
     }
 
-    public Endpoint<int, bool> IsEven { get; }
+    public Endpoint<int, bool> IsEvenEndpoint { get; }
 }
 
 public record IsEvenResponse(bool IsEven);
