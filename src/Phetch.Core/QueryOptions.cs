@@ -117,4 +117,15 @@ public sealed record QueryOptions<TArg, TResult>()
     /// To remove the endpoint's retry handler if it has one, set this to <see cref="RetryHandler.None"/>.
     /// </summary>
     public IRetryHandler? RetryHandler { get; init; }
+
+    /// <summary>
+    /// Converts an untyped <see cref="QueryOptions"/> instance into an <see
+    /// cref="QueryOptions{TArg, TResult}"/>.
+    /// </summary>
+    /// <param name="original"></param>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Usage",
+        "CA2225:Operator overloads have named alternates",
+        Justification = "Constructor is clearer than ToEndpointOptions method.")]
+    public static implicit operator QueryOptions<TArg, TResult>(QueryOptions original) => new(original);
 }

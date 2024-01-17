@@ -141,7 +141,8 @@ public sealed record EndpointOptions<TArg, TResult>()
     public Func<TArg, object>? KeySelector { get; set; }
 
     /// <summary>
-    /// Converts an untyped <see cref="EndpointOptions"/> instance into an <see cref="Endpoint{TArg, TResult}"/>.
+    /// Converts an untyped <see cref="EndpointOptions"/> instance into an <see
+    /// cref="EndpointOptions{TArg, TResult}"/>.
     /// </summary>
     /// <param name="original"></param>
     [System.Diagnostics.CodeAnalysis.SuppressMessage(
