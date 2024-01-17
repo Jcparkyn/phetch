@@ -30,22 +30,21 @@ public sealed record QueryOptions()
     public TimeSpan? StaleTime { get; init; }
 
     /// <summary>
-    /// A function that gets run when this query succeeds.
+    /// A function that gets run when this query succeeds, including if the result was already
+    /// cached. If the cached result is stale, this will not be called until the new result is fetched.
     /// </summary>
     /// <remarks>
     /// This is only called when the query is currently being observed, which means:
     /// <list type="number">
-    /// <item>
+    /// <item/>
     /// If a query arg is changed while it is still fetching a previous arg, <c>OnSuccess</c> will
     /// only be called for the latest arg.
-    /// </item>
-    /// <item>
+    /// <item/>
     /// If the observing component is unmounted before the query finishes, <c>OnSuccess</c> will not
     /// be called.
-    /// </item>
     /// </list>
-    /// If you want to call a function <b>every</b> time a query succeeds, use <see
-    /// cref="EndpointOptions.OnSuccess"/> when creating an endpoint.
+    /// If you want to call a function <b>every</b> time a query succeeds (e.g., for invalidating a
+    /// cache), use <see cref="EndpointOptions.OnSuccess"/> when creating an endpoint.
     /// </remarks>
     public Action<EventArgs>? OnSuccess { get; init; }
 

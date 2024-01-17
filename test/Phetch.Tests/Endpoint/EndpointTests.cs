@@ -1,6 +1,7 @@
 ﻿namespace Phetch.Tests.Endpoint;
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -32,7 +33,11 @@ public class EndpointTests
     public async Task Should_share_cache_between_queries()
     {
         var (queryFn, queryFnCalls) = TestHelpers.MakeTrackedQueryFn();
-        var endpoint = new Endpoint<int, string>(queryFn);
+        var onSuccessCalls = new List<string>();
+        var endpoint = new Endpoint<int, string>(queryFn, new()
+        {
+            OnSuccess = e => onSuccessCalls.Add(e.Result),
+        });
 
         var options = new QueryOptions<int, string>()
         {
@@ -40,16 +45,31 @@ public class EndpointTests
         };
         var query1 = endpoint.Use(options);
         var query2 = endpoint.Use(options);
+        var query1Mon = query1.Monitor();
+        var query2Mon = query2.Monitor();
         var result1 = await query1.SetArgAsync(10);
         var result2 = await query2.SetArgAsync(10);
 
-        result1.Should().Be("10");
-        result2.Should().Be("10");
+        using (new AssertionScope())
+        {
+            result1.Should().Be("10");
+            result2.Should().Be("10");
 
-        query1.Data.Should().Be("10");
-        query2.Data.Should().Be("10");
+            query1.Data.Should().Be("10");
+            query2.Data.Should().Be("10");
 
-        queryFnCalls.Should().Equal(10);
+            queryFnCalls.Should().Equal(10);
+            query1Mon.OccurredEvents.Should().SatisfyRespectively(
+                e => e.EventName.Should().Be("StateChanged"),
+                e => e.EventName.Should().Be("Succeeded"),
+                e => e.EventName.Should().Be("StateChanged")
+            );
+            query2Mon.OccurredEvents.Should().SatisfyRespectively(
+                e => e.EventName.Should().Be("Succeeded"),
+                e => e.EventName.Should().Be("StateChanged")
+            );
+            onSuccessCalls.Should().Equal("10");
+        }
     }
 
     [UIFact]

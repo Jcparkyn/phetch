@@ -48,8 +48,12 @@ public sealed record EndpointOptions
     /// A function that gets run whenever this query succeeds.
     /// </summary>
     /// <remarks>
-    /// Unlike <see cref="QueryOptions.OnSuccess"/>, this will be called even if the query is not
-    /// being observed.
+    /// Unlike <see cref="QueryOptions.OnSuccess"/>, this will be called exactly once per successful invokation of the underlying query function. This means:
+    /// <list type="number">
+    /// <item/> It will be called even if the query is not being observed.
+    /// <item/> It will only be called once, even if there are multiple observers for the same arg.
+    /// <item/> It will not be called when a cached response is used.
+    /// </list>
     /// </remarks>
     public Action<EventArgs>? OnSuccess { get; init; }
 

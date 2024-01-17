@@ -324,6 +324,15 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
             {
                 return await newQuery.RefetchAsync(_options?.RetryHandler).ConfigureAwait(false);
             }
+            else
+            {
+                // Non-stale value retrieved from cache. Treat this as a success.
+                if (newQuery.Status == QueryStatus.Success)
+                {
+                    Succeeded?.Invoke(new(arg, newQuery.Data!));
+                }
+                StateChanged?.Invoke();
+            }
         }
         if (newQuery.LastInvocation is { } task)
         {
