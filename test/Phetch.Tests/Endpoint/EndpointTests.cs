@@ -39,10 +39,7 @@ public class EndpointTests
             OnSuccess = e => onSuccessCalls.Add(e.Result),
         });
 
-        var options = new QueryOptions<int, string>()
-        {
-            StaleTime = TimeSpan.FromMinutes(100),
-        };
+        var options = new QueryOptions() { StaleTime = TimeSpan.MaxValue };
         var query1 = endpoint.Use(options);
         var query2 = endpoint.Use(options);
         var query1Mon = query1.Monitor();
@@ -70,6 +67,34 @@ public class EndpointTests
             );
             onSuccessCalls.Should().Equal("10");
         }
+    }
+
+    [UIFact]
+    public async Task Should_deduplicate_concurrent_queries()
+    {
+        var qf = new MockQueryFunction<int, string>(1);
+        var onSuccessCalls = new List<string>();
+        var endpoint = new Endpoint<int, string>(qf.Query, new()
+        {
+            OnSuccess = e => onSuccessCalls.Add(e.Result),
+        });
+
+        var query1 = endpoint.Use();
+        var query2 = endpoint.Use();
+        var query1Mon = query1.Monitor();
+        var query2Mon = query2.Monitor();
+
+        var task1 = query1.SetArgAsync(10);
+        var task2 = query2.SetArgAsync(10);
+
+        qf.SetResult(0, "10");
+
+        await Task.WhenAll(task1, task2);
+
+        query1Mon.GetRecordingFor("Succeeded").Should().HaveCount(1);
+        query2Mon.GetRecordingFor("Succeeded").Should().HaveCount(1);
+        qf.Calls.Should().Equal(10);
+        onSuccessCalls.Should().Equal("10");
     }
 
     [UIFact]
