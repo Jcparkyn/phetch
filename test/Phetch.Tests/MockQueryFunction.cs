@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Phetch.Core;
@@ -33,6 +34,12 @@ public class MockQueryFunction<TArg, TResult>(int numSources)
         var resultTask = Sources[_queryCount].Task;
         _queryCount++;
         Calls.Add(arg);
+
+        if (!Debugger.IsAttached)
+        {
+            // Stop early if we're not debugging and it takes a while, we've probably forgotten to set a result before awaiting.
+            return await resultTask.WaitAsync(TimeSpan.FromSeconds(2));
+        }
         return await resultTask;
     }
 
