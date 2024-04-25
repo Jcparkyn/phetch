@@ -1,0 +1,100 @@
+﻿@page "/boats"
+@inject LocalStorageBoatApi Api
+@inject NavigationManager Nav
+@inject ISnackbar SnackbarService
+@inject SimulateErrorService SimulateErrorService
+@using static Shared.LocalStorageBoatApi
+
+<PageTitle>Boats</PageTitle>
+<MudText Typo="Typo.h3" GutterBottom="true">
+    Boats
+    @* <MudSwitch Label="Simulate Errors" @bind-Checked="SimulateErrorService.SimulateErrors" Color="Color.Secondary" Style="float: right" /> *@
+</MudText>
+
+<MudText Class="mb-8">
+    This is an example showing how to perform a range of CRUD (Create, Read, Update, Delete) operations with Phetch.
+    Data is stored in local storage to simulate an HTTP API.
+</MudText>
+
+
+<UseParameterlessEndpoint Endpoint="Api.GetBoatsEndpoint" Context="query">
+    <MudButton OnClick="query.Refetch">REFRESH</MudButton>
+    @if (query.IsError)
+    {
+        <MudAlert Severity="Severity.Error">
+            @query.Error.Message
+            <MudButton OnClick="query.Refetch">Retry</MudButton>
+        </MudAlert>
+    }
+    else
+    {
+        <MudTable T="Boat" Items="query.LastData ?? []" Loading="query.IsFetching" Dense="true" Elevation="0">
+            <HeaderContent>
+                <MudTh>Id</MudTh>
+                <MudTh>Name</MudTh>
+                <MudTh>Length (m)</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Id">@context.Id</MudTd>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Length (m)">@context.Length</MudTd>
+                <MudTd DataLabel="Actions">
+                    <MudButton Href=@($"boats/{context.Id}") Color="Color.Primary">Edit</MudButton>
+                    <MudButton Color="Color.Warning" OnClick="() => OpenDeleteDialog(context)">Delete</MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</UseParameterlessEndpoint>
+
+<MudButton Href="boats/create"
+           Style="float: right; margin-top: 12px"
+           StartIcon="@Icons.Material.Filled.Add"
+           Color="Color.Primary"
+           Variant="Variant.Outlined">
+    Create New Boat
+</MudButton>
+
+<UseEndpoint Endpoint="Api.DeleteEndpoint" Context="mutation">
+    <MudDialog IsVisible="_boatToDelete is not null">
+        <DialogContent>
+            <div class="mb-2">
+                Are you sure you want to delete this boat (<strong>@_boatToDelete?.Name</strong>)?
+            </div>
+            @if (mutation.IsLoading)
+            {
+                <MudProgressLinear Indeterminate />
+            }
+            else if (mutation.IsError)
+            {
+                <MudAlert Severity="Severity.Error">
+                    Error deleting boat, please try again. Details: @mutation.Error?.Message
+                </MudAlert>
+            }
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="CloseDeleteDialog" Disabled="mutation.IsLoading">Cancel</MudButton>
+            <MudButton Color="Color.Primary" Disabled="mutation.IsLoading"
+                       OnClick="() => mutation.Trigger(_boatToDelete!.Id, onSuccess: OnDeleteSuccess)">
+                Delete
+            </MudButton>
+        </DialogActions>
+    </MudDialog>
+</UseEndpoint>
+
+@code {
+    private Boat? _boatToDelete = null;
+
+    void OpenDeleteDialog(Boat boat) => _boatToDelete = boat;
+
+    void CloseDeleteDialog() {
+        _boatToDelete = null;
+        StateHasChanged();
+    }
+
+    void OnDeleteSuccess(EventArgs e) {
+        SnackbarService.Add($"Deleted boat: {_boatToDelete?.Name}", Severity.Success);
+        CloseDeleteDialog();
+    }
+}

@@ -1,0 +1,116 @@
+﻿@page "/boats/create"
+@page "/boats/{Id:long}"
+@inject LocalStorageBoatApi Api
+@inject NavigationManager Nav
+@inject ISnackbar SnackbarService
+@using static Shared.LocalStorageBoatApi
+
+<UseEndpoint Endpoint="Api.AddOrUpdateEndpoint" Context="mutation">
+    @if (Id is null)
+    {
+        <MudText Typo="Typo.h3" GutterBottom="true">Add a boat</MudText>
+        @FormContents(mutation)
+    }
+    else
+    {
+        <MudText Typo="Typo.h3" GutterBottom="true">Edit boat</MudText>
+        <UseEndpoint Endpoint="Api.GetBoatByIdEndpoint"
+                     Arg="Id.Value"
+                     Options="new(){ OnSuccess = e => SetInitialValues(e.Result!) }"
+                     Context="query">
+            @if (query.HasData)
+            {
+                @FormContents(mutation)
+                @if (mutation.IsSuccess)
+                {
+                    <MudAlert Severity="Severity.Success">
+                        @(Id is null ? "Created" : "Updated") boat with id = @(mutation.Arg?.Id).
+                        <MudLink Href="boats">Go back</MudLink>
+                    </MudAlert>
+                }
+            }
+            else if (query.IsLoading)
+            {
+                <MudProgressLinear Indeterminate />
+            }
+            else
+            {
+                <strong>
+                    There was an error loading the selected boat.
+                    <p>@query.Error?.Message</p>
+                </strong>
+            }
+        </UseEndpoint>
+    }
+</UseEndpoint>
+
+
+@code {
+    FormModel model = new();
+
+    [Parameter]
+    public long? Id { get; set; }
+
+    RenderFragment FormContents(Query<UpdateBoatModel, Boat> mutation) =>
+    @<text>
+        <EditForm Model="@model" OnValidSubmit="ec => mutation.Trigger(
+                FormToBoat(model),
+                onSuccess: e => OnSuccess(e.Result))">
+            <DataAnnotationsValidator />
+            <MudTextField Label="Name" @bind-Value="model.Name" For="() => model.Name" />
+            <MudNumericField Label="Length (m)" @bind-Value="model.Length" For="() => model.Length" Class="mb-4" />
+            <div class="d-flex gap-2 mb-2" style="align-items: center;">
+                <MudButton ButtonType="ButtonType.Submit" Color="Color.Secondary" Variant="Variant.Filled"
+                           Disabled="mutation.IsLoading" Class="flex-none">
+                    @if (mutation.IsLoading)
+                    {
+                        <MudProgressCircular Indeterminate Size="Size.Small" Class="mr-2" />
+                    }
+                    Save
+                </MudButton>
+                <MudButton Href="boats" Variant="Variant.Outlined" Class="flex-none">Cancel</MudButton>
+            </div>
+            @if (mutation.IsError)
+            {
+                <MudAlert Severity="Severity.Error">
+                    There was an error saving this boat, please try again. Details: @mutation.Error.Message
+                </MudAlert>
+            }
+        </EditForm>
+    </text>
+    ;
+
+    private void OnSuccess(Boat boat)
+    {
+        if (Id is null)
+        {
+            RenderFragment message = @<text>
+                Created new boat. <MudLink Href=@($"boats/{boat.Id}")>Edit</MudLink>
+            </text>;
+            SnackbarService.Add(message, Severity.Success, o => o.VisibleStateDuration = 10000);
+            Nav.NavigateTo("boats", replace: true);
+        }
+    }
+
+    private void SetInitialValues(Boat boat)
+    {
+        model.Name = boat.Name;
+        model.Length = boat.Length;
+    }
+
+    private UpdateBoatModel FormToBoat(FormModel form)
+    {
+        return new(Id, form.Name, form.Length);
+    }
+
+    public class FormModel
+    {
+        // public long? Id { get; set; }
+
+        [Required(AllowEmptyStrings = false)]
+        public string Name { get; set; } = "";
+
+        [Required, Range(0.1, 1000.0)]
+        public decimal Length { get; set; }
+    }
+}

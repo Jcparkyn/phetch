@@ -17,14 +17,23 @@
     <div style="margin-block: 12px">
         <MudButton @onclick="query.Refetch">Refresh</MudButton>
 
-        <MudPagination Color="Color.Primary"
-                       Count="query.LastData?.GetPageCount(PageSize) ?? 1"
-                       @bind-Selected="@CurrentPage" />
+        @if (query.LastData is not null)
+        {
+            <MudPagination Color="Color.Primary"
+                           Count="query.LastData.GetPageCount(PageSize)"
+                           @bind-Selected="@CurrentPage" />
+        }
     </div>
 
     @if (query.IsError)
     {
-        <MudAlert Severity="Severity.Error">@query.Error.Message</MudAlert>
+        var error = query.Error;
+        <MudAlert Severity="Severity.Error">
+            @error.Message
+            <MudButton @onclick=query.Refetch Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Refresh">
+                Retry
+            </MudButton>
+        </MudAlert>
     }
     else
     {

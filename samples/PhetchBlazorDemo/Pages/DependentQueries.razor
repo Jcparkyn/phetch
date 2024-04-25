@@ -1,6 +1,7 @@
 ﻿@page "/dependentQueries"
 @inject HttpClient Http
 @implements IDisposable
+@inject SimulateErrorService SimulateErrorService
 @using PhetchBlazorDemo.Shared
 @using System.Text.Json
 
@@ -81,6 +82,7 @@
             {
                 Console.WriteLine("Fetching random number...");
                 await Task.Delay(500, ct);
+                SimulateErrorService.MaybeSimulateError();
                 return Random.Shared.Next() % 10000;
             },
             // Note: you could also do this by conditionally calling query2.SetArg before each render.
@@ -92,6 +94,7 @@
             async (val, ct) =>
             {
                 await Task.Delay(500, ct);
+                SimulateErrorService.MaybeSimulateError();
                 return val + 1;
             }
         ).Use();

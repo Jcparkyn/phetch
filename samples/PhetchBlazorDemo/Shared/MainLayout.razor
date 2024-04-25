@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@inject SimulateErrorService SimulateErrorService
 
 <MudThemeProvider IsDarkMode />
 <MudDialogProvider />
@@ -8,7 +9,15 @@
     <MudAppBar Elevation="0">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/Jcparkyn/Phetch/" Target="_blank" />
+        <div class="flex-1" style="max-width: 15em">
+            <MudSelect T="double" Label="Simulate network errors" @bind-Value="SimulateErrorService.SimulateErrorRate"
+                       Margin="Margin.Dense">
+                <MudSelectItem Value="0.0">Never</MudSelectItem>
+                <MudSelectItem Value="0.3">Sometimes</MudSelectItem>
+                <MudSelectItem Value="1.0">Always</MudSelectItem>
+            </MudSelect>
+        </div>
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/Jcparkyn/Phetch/" Target="_blank" />
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" Elevation="1">
         <MudDrawerHeader>

@@ -11,10 +11,12 @@ using Phetch.Core;
 public class EarthquakeApi
 {
     private readonly HttpClient _httpClient;
+    private readonly SimulateErrorService _simulateErrorService;
 
-    public EarthquakeApi(HttpClient httpClient)
+    public EarthquakeApi(HttpClient httpClient, SimulateErrorService simulateErrorService)
     {
         _httpClient = httpClient;
+        _simulateErrorService = simulateErrorService;
         GetEarthquakesEndpoint = new(GetEarthquakes,
             options: new()
             {
@@ -42,6 +44,7 @@ public class EarthquakeApi
         var result = await _httpClient.GetFromJsonAsync<SearchResponse>(url, ct)
             ?? throw new JsonException("API response was null");
 
+        _simulateErrorService.MaybeSimulateError();
         return result with { TotalCount = (await countTask)!.Count };
     }
 

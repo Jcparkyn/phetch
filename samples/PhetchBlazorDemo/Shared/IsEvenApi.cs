@@ -6,14 +6,18 @@ using Phetch.Core;
 
 public class IsEvenApi
 {
-    public IsEvenApi(HttpClient httpClient)
+    public IsEvenApi(HttpClient httpClient, SimulateErrorService simulateErrorService)
     {
         IsEvenEndpoint = new(
-            async (val, ct) => (await httpClient.GetFromJsonAsync<IsEvenResponse>(
-                $"https://api.isevenapi.xyz/api/iseven/{WebUtility.UrlEncode(val.ToString())}",
-                ct
-            ))!.IsEven
-        );
+            async (val, ct) =>
+            {
+                var response = await httpClient.GetFromJsonAsync<IsEvenResponse>(
+                    $"https://api.isevenapi.xyz/api/iseven/{WebUtility.UrlEncode(val.ToString())}",
+                    ct
+                );
+                simulateErrorService.MaybeSimulateError();
+                return response!.IsEven;
+            });
     }
 
     public Endpoint<int, bool> IsEvenEndpoint { get; }

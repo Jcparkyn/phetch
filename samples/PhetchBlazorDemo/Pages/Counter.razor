@@ -26,7 +26,10 @@
         }
         else if (isEvenQuery.IsError)
         {
-            <MudAlert Severity="Severity.Error">@isEvenQuery.Error.Message</MudAlert>
+            <MudAlert Severity="Severity.Error">
+                @(isEvenQuery.Error.Message).
+                <MudButton OnClick="isEvenQuery.Refetch">Retry</MudButton>
+            </MudAlert>
         }
         else if (isEvenQuery.HasData)
         {
