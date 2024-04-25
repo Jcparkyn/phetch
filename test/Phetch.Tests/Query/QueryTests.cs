@@ -432,6 +432,62 @@ public class QueryTests
         }
     }
 
+    [UIFact]
+    public async Task LastData_success_then_arg_change_error()
+    {
+        var qf = new MockQueryFunction<int, string>(2);
+        var query = new Endpoint<int, string>(qf.Query).Use();
+
+        query.LastData.Should().BeNull();
+
+        // Fetch once
+        var task1 = query.SetArgAsync(0);
+        query.LastData.Should().BeNull();
+
+        qf.Sources[0].SetResult("0"); await task1;
+        query.LastData.Should().Be("0");
+
+        // Change arg
+        var task2 = query.SetArgAsync(1);
+        query.LastData.Should().Be("0");
+
+        qf.Sources[1].SetException(new Exception("boom"));
+        await task2.Invoking(t => t).Should().ThrowExactlyAsync<Exception>();
+        query.LastData.Should().Be("0");
+    }
+
+    [UIFact]
+    public async Task LastData_refetch_error_then_arg_change()
+    {
+        var qf = new MockQueryFunction<int, string>(3);
+        var query = new Endpoint<int, string>(qf.Query).Use();
+
+        query.LastData.Should().BeNull();
+
+        // Fetch once
+        var task1 = query.SetArgAsync(0);
+        query.LastData.Should().BeNull();
+
+        qf.Sources[0].SetResult("0"); await task1;
+        query.LastData.Should().Be("0");
+
+        // Refetch with failure
+        var task2 = query.RefetchAsync();
+        query.LastData.Should().Be("0");
+
+        qf.Sources[1].SetException(new Exception("boom1"));
+        await task2.Invoking(t => t).Should().ThrowExactlyAsync<Exception>().WithMessage("boom1");
+        query.LastData.Should().Be("0");
+
+        // Change arg with failure
+        var task4 = query.SetArgAsync(1);
+        query.LastData.Should().Be("0");
+
+        qf.Sources[2].SetException(new Exception("boom2"));
+        await task4.Invoking(t => t).Should().ThrowExactlyAsync<Exception>().WithMessage("boom2");
+        query.LastData.Should().Be("0");
+    }
+
     private static void AssertIsIdleState<TArg, TResult>(Query<TArg, TResult> query)
     {
         query.Status.Should().Be(QueryStatus.Idle);

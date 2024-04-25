@@ -240,16 +240,24 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
     public QueryStatus Status => _currentQuery?.Status ?? QueryStatus.Idle;
 
     /// <inheritdoc/>
-    public TResult? Data => _currentQuery is not null
+    public TResult? Data => _currentQuery?.Status == QueryStatus.Success
         ? _currentQuery.Data
         : default;
 
     /// <inheritdoc/>
-    public TResult? LastData => IsSuccess
-        ? _currentQuery.Data
-        : _lastSuccessfulQuery?.Status == QueryStatus.Success
-            ? _lastSuccessfulQuery.Data
-            : default;
+    public TResult? LastData
+    {
+        get
+        {
+            if (_currentQuery is null)
+                return default;
+            if (_currentQuery.HasSucceeded)
+                return _currentQuery.Data;
+            if (_lastSuccessfulQuery is not null)
+                return _lastSuccessfulQuery.Data;
+            return default;
+        }
+    }
 
     /// <inheritdoc/>
     public Exception? Error => _currentQuery?.Error;

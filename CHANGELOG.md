@@ -1,3 +1,17 @@
+
+
+# Unreleased
+
+## Added
+- The non-generic `QueryOptions` class can now be implicitly cast to `QueryOptions<TArg, TResult>`.
+
+## Changed
+- **BREAKING CHANGE**: If a query succeeds and then fails on a refetch, `query.Data` now returns `null`/`default`, instead of the old data. Also, `query.LastData` now returns the data from the last successful request (even if the arg was different) instead of `null`/`default`.
+- `QueryOptions.OnSuccess` is now called when a cached result is returned (unless it's stale).
+
+## Fixed
+-  If a query fails during a refetch, `query.LastData` now returns the last successful data for this arg, rather than falling back to a previous arg.
+
 # [v0.6.0] - 1 Dec 2023
 
 ## Added

@@ -51,6 +51,9 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
 
     internal Task<TResult>? LastInvocation { get; private set; }
 
+    // Separate from Status because queries can succeed then fail on a refetch.
+    internal bool HasSucceeded { get; private set; }
+
     internal FixedQuery(
         QueryCache<TArg, TResult> queryCache,
         Func<TArg, CancellationToken, Task<TResult>> queryFn,
@@ -214,6 +217,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         _isInvalidated = false;
         _dataUpdatedAt = DateTime.Now;
         Status = QueryStatus.Success;
+        HasSucceeded = true;
         Data = newData;
         Error = null;
     }
