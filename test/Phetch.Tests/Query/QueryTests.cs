@@ -488,6 +488,22 @@ public class QueryTests
         query.LastData.Should().Be("0");
     }
 
+    [UIFact]
+    public void Idle_query_tests()
+    {
+        var query = new ParameterlessEndpoint<string>(
+            _ => ReturnAsync("test")
+        ).Use();
+
+        AssertIsIdleState(query);
+
+        // These should be no-ops:
+        query.Detach();
+        query.Cancel();
+
+        AssertIsIdleState(query);
+    }
+
     private static void AssertIsIdleState<TArg, TResult>(Query<TArg, TResult> query)
     {
         query.Status.Should().Be(QueryStatus.Idle);

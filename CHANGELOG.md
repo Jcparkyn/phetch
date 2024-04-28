@@ -1,16 +1,19 @@
 
 
-# Unreleased
+# [v0.7.0] - Unreleased
 
 ## Added
 - The non-generic `QueryOptions` class can now be implicitly cast to `QueryOptions<TArg, TResult>`.
 
 ## Changed
 - **BREAKING CHANGE**: If a query succeeds and then fails on a refetch, `query.Data` now returns `null`/`default`, instead of the old data. Also, `query.LastData` now returns the data from the last successful request (even if the arg was different) instead of `null`/`default`.
-- `QueryOptions.OnSuccess` is now called when a cached result is returned (unless it's stale).
+- `QueryOptions.OnSuccess` is now called when a cached result is returned (unless it's stale). Note: `EndpointOptions.OnSuccess` is unchanged, and still won't be called when a cached result is returned.
 
-## Fixed
--  If a query fails during a refetch, `query.LastData` now returns the last successful data for this arg, rather than falling back to a previous arg.
+## Development
+- More tests.
+- Sample project improvements.
+
+[Changes][v0.7.0]
 
 # [v0.6.0] - 1 Dec 2023
 
@@ -204,7 +207,7 @@ This release removes the concept of mutations as the previously existed, and ins
 
 [Changes][v0.1.0]
 
-
+[v0.7.0]: https://github.com/Jcparkyn/phetch/compare/v0.6.0...v0.7.0
 [v0.6.0]: https://github.com/Jcparkyn/phetch/compare/v0.5.1...v0.6.0
 [v0.5.1]: https://github.com/Jcparkyn/phetch/compare/v0.5.0...v0.5.1
 [v0.5.0]: https://github.com/Jcparkyn/phetch/compare/v0.4.0...v0.5.0

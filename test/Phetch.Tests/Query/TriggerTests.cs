@@ -159,6 +159,14 @@ public class TriggerTests
     }
 
     [UIFact]
+    public async Task Should_validate_params()
+    {
+        var query = null as Query<int, string>;
+        var act = () => query!.TriggerAsync(0, onSuccess: _ => { });
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [UIFact]
     public async Task Should_not_inkove_failure_callback_when_cancelled()
     {
         var endpoint = new Endpoint<int, string>(

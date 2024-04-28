@@ -210,7 +210,7 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
     private FixedQuery<TArg, TResult>? _currentQuery;
 
     /// <inheritdoc/>
-    public event Action StateChanged = delegate { };
+    public event Action? StateChanged;
 
     /// <inheritdoc/>
     public event Action<QuerySuccessEventArgs<TArg, TResult>>? Succeeded;
@@ -342,14 +342,8 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
                 StateChanged?.Invoke();
             }
         }
-        if (newQuery.LastInvocation is { } task)
-        {
-            return await task;
-        }
-
-        // Probably not possible to get here, but just in case
-        Debug.Fail("newQuery should have been invoked before this point");
-        return newQuery.Data!;
+        Debug.Assert(newQuery.LastInvocation is not null, "newQuery should have been invoked before this point");
+        return await newQuery.LastInvocation;
     }
 
     /// <inheritdoc/>

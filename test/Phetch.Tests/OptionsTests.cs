@@ -8,8 +8,10 @@ using Xunit;
 
 public class OptionsTests
 {
-    [Fact]
-    public void QueryOptions_should_convert_from_non_generic_options()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void QueryOptions_should_convert_from_non_generic_options(bool useCtor)
     {
         var onSuccess = (EventArgs e) => { };
         var onFailure = (QueryFailureEventArgs e) => { };
@@ -21,7 +23,9 @@ public class OptionsTests
             OnFailure = onFailure,
         };
 
-        var options2 = new QueryOptions<int, string>(options);
+        var options2 = useCtor
+            ? new QueryOptions<int, string>(options)
+            : (QueryOptions<int, string>)options;
 
         using (new AssertionScope())
         {
@@ -32,8 +36,10 @@ public class OptionsTests
         }
     }
 
-    [Fact]
-    public void EndpointOptions_should_convert_from_non_generic_options()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void EndpointOptions_should_convert_from_non_generic_options(bool useCtor)
     {
         var onSuccess = (EventArgs e) => { };
         var onFailure = (QueryFailureEventArgs e) => { };
@@ -47,7 +53,9 @@ public class OptionsTests
             CacheTime = TimeSpan.FromSeconds(2),
         };
 
-        var options2 = new EndpointOptions<int, string>(options);
+        var options2 = useCtor
+            ? new EndpointOptions<int, string>(options)
+            : options;
 
         using (new AssertionScope())
         {
