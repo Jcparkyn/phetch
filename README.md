@@ -13,9 +13,9 @@ Currently, Phetch is only designed for use with Blazor WebAssembly. However, the
 - Automatically handles loading and error states, and updates your components whenever the state changes.
 - Automatically caches data returned by queries, and makes it easy to invalidate or update this cached data when needed.
 - Supports calling any async method as a query (not restricted just to HTTP requests).
-- Supports dependent queries, pagination, prefetching, request de-duplication, retries, CancellationTokens, and more.
+- Supports pagination, prefetching, request de-duplication, retries, dependent queries, CancellationTokens, and more.
 - 100% strongly typed, with nullability annotations.
-- Lightweight and easy to mix-and-match with other state management methods.
+- Lightweight and easy to combine with other state management methods.
 - No Javascript needed!
 
 ## Show me some code!
@@ -48,20 +48,27 @@ var isEvenEndpoint = new Endpoint<int, bool>(
 
 <UseEndpoint Endpoint="isEvenEndpoint" Arg="3" Context="query">
     @if (query.IsError) {
-        <p><em>Something went wrong!</em></p>
+        <p>Something went wrong!</p>
     } else if (query.IsLoading) {
-        <p><em>Loading...</em></p>
+        <p>Loading...</p>
     } else if (query.HasData) {
-        <b>The number is @(query.Data ? "even" : "odd")</b>
+        <p>The number is @(query.Data ? "even" : "odd")</p>
     }
 </UseEndpoint>
 ```
 
-Some notes on the example above:
+<details>
+<summary>Some notes on the example above</summary>
+
 - Inside the `<UseEndpoint>` component, you can use `query` to access the current state of the query. Changing the `Context` parameter will rename this object.
 - By changing the `Arg` parameter, the query will automatically be re-fetched when needed.
 - Normally, you would share endpoints around your application using dependency injection (see [Defining Query Endpoints](#defining-query-endpoints-recommended)).
 - If you need to access the query state inside the `@code` block of a component, you can replace `<UseEndpoint/>` with the pattern described in [Using Query Objects Directly](#using-query-objects-directly).
+
+</details>
+</br>
+
+[Click here to go to the full documentation](https://jcparkyn.github.io/phetch/docs/getting-started.html)
 
 ## Installing
 
