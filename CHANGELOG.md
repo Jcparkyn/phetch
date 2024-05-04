@@ -1,6 +1,6 @@
 
 
-# [v0.7.0] - Unreleased
+# [v0.7.0] - 2024-05-04
 
 ## Added
 - The non-generic `QueryOptions` class can now be implicitly cast to `QueryOptions<TArg, TResult>`.
@@ -16,7 +16,7 @@
 
 [Changes][v0.7.0]
 
-# [v0.6.0] - 1 Dec 2023
+# [v0.6.0] - 2023-12-01
 
 ## Added
 - New DocFX site for documentation
@@ -40,7 +40,7 @@
 [Changes][v0.6.0]
 
 <a name="v0.5.1"></a>
-# [v0.5.1](https://github.com/Jcparkyn/phetch/releases/tag/v0.5.1) - 14 Jul 2023
+# [v0.5.1](https://github.com/Jcparkyn/phetch/releases/tag/v0.5.1) - 2023-07-14
 
 ## Changed
 - Queries now trigger a `StateChanged` event when they begin fetching. This makes the behavior a bit more predictable when using endpoints across multiple components.
@@ -53,7 +53,7 @@
 
 
 <a name="v0.5.0"></a>
-# [v0.5.0](https://github.com/Jcparkyn/phetch/releases/tag/v0.5.0) - 19 Jun 2023
+# [v0.5.0](https://github.com/Jcparkyn/phetch/releases/tag/v0.5.0) - 2023-06-19
 
 ## Changed
 - **BREAKING CHANGE**: Removed public constructors for `Query` that were previously deprecated.
@@ -69,7 +69,7 @@
 
 
 <a name="v0.4.0"></a>
-# [v0.4.0](https://github.com/Jcparkyn/phetch/releases/tag/v0.4.0) - 06 Mar 2023
+# [v0.4.0](https://github.com/Jcparkyn/phetch/releases/tag/v0.4.0) - 2023-03-06
 
 ## Added
 - `Endpoint.TryGetCachedResult` method, to retrieve a cached result synchronously for the given query argument.
@@ -87,7 +87,7 @@
 
 
 <a name="v0.3.1"></a>
-# [v0.3.1](https://github.com/Jcparkyn/phetch/releases/tag/v0.3.1) - 21 Nov 2022
+# [v0.3.1](https://github.com/Jcparkyn/phetch/releases/tag/v0.3.1) - 2022-11-21
 
 ## Added
 - Lots more tests
@@ -109,7 +109,7 @@
 
 
 <a name="v0.3.0"></a>
-# [v0.3.0](https://github.com/Jcparkyn/phetch/releases/tag/v0.3.0) - 13 Nov 2022
+# [v0.3.0](https://github.com/Jcparkyn/phetch/releases/tag/v0.3.0) - 2022-11-13
 
 ## Added
 - New parameter for `UpdateQueryData`  to optionally insert a new cache entry if one doesn't already exist for the given argument.
@@ -128,7 +128,7 @@
 
 
 <a name="v0.2.0"></a>
-# [v0.2.0](https://github.com/Jcparkyn/phetch/releases/tag/v0.2.0) - 18 Aug 2022
+# [v0.2.0](https://github.com/Jcparkyn/phetch/releases/tag/v0.2.0) - 2022-08-18
 
 ## Added
 - New `GetCachedQuery` method on `Endpoint` to look up a cache entry.
@@ -148,7 +148,7 @@
 
 
 <a name="v0.1.2"></a>
-# [v0.1.2](https://github.com/Jcparkyn/phetch/releases/tag/v0.1.2) - 06 Aug 2022
+# [v0.1.2](https://github.com/Jcparkyn/phetch/releases/tag/v0.1.2) - 2022-08-06
 
 ## Changes
 - Enabled source link, debug symbols, and deterministic builds.
@@ -161,7 +161,7 @@
 
 
 <a name="v0.1.1"></a>
-# [v0.1.1](https://github.com/Jcparkyn/phetch/releases/tag/v0.1.1) - 01 Aug 2022
+# [v0.1.1](https://github.com/Jcparkyn/phetch/releases/tag/v0.1.1) - 2022-08-01
 
 ## Changes
 
@@ -181,7 +181,7 @@
 
 
 <a name="v0.1.0"></a>
-# [v0.1.0](https://github.com/Jcparkyn/phetch/releases/tag/v0.1.0) - 26 Jul 2022
+# [v0.1.0](https://github.com/Jcparkyn/phetch/releases/tag/v0.1.0) - 2022-07-26
 
 This release removes the concept of mutations as the previously existed, and instead combines the previous functionality of mutations into the `Query` class. This is a very significant change, but future releases should contain far fewer breaking changes.
 
