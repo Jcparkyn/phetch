@@ -37,6 +37,8 @@ jobs:
       run: dotnet test --no-build -c Release --collect:"XPlat Code Coverage"
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         directory: test
+        fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
