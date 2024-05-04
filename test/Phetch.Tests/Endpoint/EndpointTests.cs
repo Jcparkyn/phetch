@@ -59,11 +59,21 @@ public class EndpointTests
             query1Mon.OccurredEvents.Should().SatisfyRespectively(
                 e => e.EventName.Should().Be("StateChanged"),
                 e => e.EventName.Should().Be("Succeeded"),
-                e => e.EventName.Should().Be("StateChanged")
+                e => e.EventName.Should().Be("StateChanged"),
+                e =>
+                {
+                    e.EventName.Should().Be("DataChanged");
+                    e.Parameters.Should().Equal("10");
+                }
             );
             query2Mon.OccurredEvents.Should().SatisfyRespectively(
                 e => e.EventName.Should().Be("Succeeded"),
-                e => e.EventName.Should().Be("StateChanged")
+                e => e.EventName.Should().Be("StateChanged"),
+                e =>
+                {
+                    e.EventName.Should().Be("DataChanged");
+                    e.Parameters.Should().Equal("10");
+                }
             );
             onSuccessCalls.Should().Equal("10");
         }

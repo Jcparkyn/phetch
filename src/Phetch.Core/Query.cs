@@ -1,6 +1,7 @@
 ﻿namespace Phetch.Core;
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -107,6 +108,11 @@ public interface IQuery : IDisposable
 public interface IQuery<TArg, TResult> : IQuery
 {
     /// <summary>
+    /// An event that fires whenever the data of this query changes (including when loading is started).
+    /// </summary>
+    public event Action<TResult?>? DataChanged;
+
+    /// <summary>
     /// An event that fires whenever this query succeeds.
     /// </summary>
     public event Action<QuerySuccessEventArgs<TArg, TResult>>? Succeeded;
@@ -208,9 +214,13 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
     private readonly TimeSpan _staleTime;
     private FixedQuery<TArg, TResult>? _lastSuccessfulQuery;
     private FixedQuery<TArg, TResult>? _currentQuery;
+    private TResult? _oldData; // used for generating DataChanged events
 
     /// <inheritdoc/>
     public event Action? StateChanged;
+
+    /// <inheritdoc/>
+    public event Action<TResult?>? DataChanged;
 
     /// <inheritdoc/>
     public event Action<QuerySuccessEventArgs<TArg, TResult>>? Succeeded;
@@ -229,6 +239,7 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
         _cache = cache;
         _options = options;
         _staleTime = options?.StaleTime ?? endpointOptions.DefaultStaleTime;
+        DataChanged += options?.OnDataChanged;
         Succeeded += options?.OnSuccess;
         Failed += options?.OnFailure;
     }
@@ -330,7 +341,9 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
                 (newQuery.Status == QueryStatus.Error || newQuery.IsStaleByTime(_staleTime, DateTime.Now));
             if (shouldRefetch)
             {
-                return await newQuery.RefetchAsync(_options?.RetryHandler).ConfigureAwait(false);
+                var task = newQuery.RefetchAsync(_options?.RetryHandler).ConfigureAwait(false);
+                CheckDataChanged();
+                return await task;
             }
             else
             {
@@ -340,6 +353,7 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
                     Succeeded?.Invoke(new(arg, newQuery.Data!));
                 }
                 StateChanged?.Invoke();
+                CheckDataChanged();
             }
         }
         Debug.Assert(newQuery.LastInvocation is not null, "newQuery should have been invoked before this point");
@@ -354,7 +368,9 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
         _currentQuery?.RemoveObserver(this);
         query.AddObserver(this);
         _currentQuery = query;
-        return await query.RefetchAsync(_options?.RetryHandler).ConfigureAwait(false);
+        var task = query.RefetchAsync(_options?.RetryHandler).ConfigureAwait(false);
+        CheckDataChanged();
+        return await task;
     }
 
     internal void OnQuerySuccess(QuerySuccessEventArgs<TArg, TResult> args)
@@ -362,17 +378,31 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
         _lastSuccessfulQuery = _currentQuery;
         Succeeded?.Invoke(args);
         StateChanged?.Invoke();
+        CheckDataChanged();
     }
 
     internal void OnQueryFailure(QueryFailureEventArgs<TArg> args)
     {
         Failed?.Invoke(args);
         StateChanged?.Invoke();
+        CheckDataChanged();
     }
 
     internal void OnQueryUpdate()
     {
         StateChanged?.Invoke();
+        CheckDataChanged();
+    }
+
+    private void CheckDataChanged()
+    {
+        // This is a bit hacky, but much simpler and more reliable than doing separate checks every
+        // time data could change.
+        if (!Equals(_oldData, Data))
+        {
+            _oldData = Data;
+            DataChanged?.Invoke(Data);
+        }
     }
 
     /// <summary>
@@ -403,6 +433,14 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
+    }
+
+    private static bool Equals(TResult? a, TResult? b)
+    {
+        // Normal == doesn't work for generics, and EqualityComparer isn't guaranteed to handle nulls.
+        if (a is null && b is null) return true;
+        if (a is null || b is null) return false;
+        return EqualityComparer<TResult>.Default.Equals(a, b);
     }
 }
 

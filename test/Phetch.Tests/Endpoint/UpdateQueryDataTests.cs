@@ -44,6 +44,27 @@ public class UpdateQueryDataTests
     }
 
     [UIFact]
+    public async Task UpdateQueryData_should_trigger_events()
+    {
+        var endpoint = new Endpoint<int, string>(
+            val => TestHelpers.ReturnAsync(val.ToString())
+        );
+        var query = endpoint.Use();
+        await query.SetArgAsync(1);
+
+        var mon = query.Monitor();
+        endpoint.UpdateQueryData(1, "1 - test1");
+        mon.OccurredEvents.Should().SatisfyRespectively(
+            e => e.EventName.Should().Be("StateChanged"),
+            e =>
+            {
+                e.EventName.Should().Be("DataChanged");
+                e.Parameters.Should().Equal("1 - test1");
+            }
+        );
+    }
+
+    [UIFact]
     public async Task UpdateQueryData_should_affect_triggered_query()
     {
         var endpoint = new Endpoint<int, string>(

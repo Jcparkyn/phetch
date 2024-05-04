@@ -4,6 +4,7 @@
 
 ## Added
 - The non-generic `QueryOptions` class can now be implicitly cast to `QueryOptions<TArg, TResult>`.
+- New `DataChanged` event for queries, which is triggered whenever the `Data` property changes.
 
 ## Changed
 - **BREAKING CHANGE**: If a query succeeds and then fails on a refetch, `query.Data` now returns `null`/`default`, instead of the old data. Also, `query.LastData` now returns the data from the last successful request (even if the arg was different) instead of `null`/`default`.

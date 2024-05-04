@@ -11,45 +11,76 @@ public class TriggerTests
     [UIFact]
     public async Task Should_set_loading_states_correctly()
     {
-        var tcs = new TaskCompletionSource<int>();
-        var mut = new Endpoint<int, int>(
-            (val, _) => tcs.Task
-        ).Use();
+        var qf = new MockQueryFunction<int, string>(2);
+        var query = new Endpoint<int, string>(qf.Query).Use();
+        var mon = query.Monitor();
 
-        mut.Status.Should().Be(QueryStatus.Idle);
-        mut.IsUninitialized.Should().BeTrue();
-        mut.HasData.Should().BeFalse();
+        query.Status.Should().Be(QueryStatus.Idle);
+        query.IsUninitialized.Should().BeTrue();
+        query.HasData.Should().BeFalse();
 
         // Fetch once
-        var triggerTask1 = mut.TriggerAsync(10);
+        var triggerTask1 = query.TriggerAsync(10);
 
-        mut.IsLoading.Should().BeTrue();
-        mut.IsFetching.Should().BeTrue();
+        mon.OccurredEvents.Should().SatisfyRespectively(
+            e => e.EventName.Should().Be("StateChanged")
+        );
+        mon.Clear();
+
+        query.IsLoading.Should().BeTrue();
+        query.IsFetching.Should().BeTrue();
 
         await Task.Yield();
-        tcs.SetResult(11);
+        qf.Sources[0].SetResult("10");
         var result1 = await triggerTask1;
 
-        result1.Should().Be(11);
-        mut.Status.Should().Be(QueryStatus.Success);
-        mut.IsSuccess.Should().BeTrue();
-        mut.IsLoading.Should().BeFalse();
-        mut.Data.Should().Be(11);
-        mut.HasData.Should().BeTrue();
+        result1.Should().Be("10");
+        query.Status.Should().Be(QueryStatus.Success);
+        query.IsSuccess.Should().BeTrue();
+        query.IsLoading.Should().BeFalse();
+        query.Data.Should().Be("10");
+        query.HasData.Should().BeTrue();
 
-        tcs = new();
+        mon.OccurredEvents.Should().SatisfyRespectively(
+            e => e.EventName.Should().Be("Succeeded"),
+            e => e.EventName.Should().Be("StateChanged"),
+            e =>
+            {
+                e.EventName.Should().Be("DataChanged");
+                e.Parameters.Should().Equal("10");
+            });
+        mon.Clear();
+
         // Fetch again
-        var triggerTask2 = mut.TriggerAsync(20);
+        var triggerTask2 = query.TriggerAsync(20);
 
-        mut.Status.Should().Be(QueryStatus.Loading);
-        mut.IsLoading.Should().BeTrue();
-        mut.IsFetching.Should().BeTrue();
+        query.Status.Should().Be(QueryStatus.Loading);
+        query.IsLoading.Should().BeTrue();
+        query.IsFetching.Should().BeTrue();
 
-        tcs.SetResult(21);
+        mon.OccurredEvents.Should().SatisfyRespectively(
+            e => e.EventName.Should().Be("StateChanged"),
+            e =>
+            {
+                e.EventName.Should().Be("DataChanged");
+                e.Parameters.Should().Equal([null]);
+            });
+        mon.Clear();
+
+        qf.Sources[1].SetResult("20");
         var result2 = await triggerTask2;
 
-        result2.Should().Be(21);
-        mut.IsLoading.Should().BeFalse();
+        mon.OccurredEvents.Should().SatisfyRespectively(
+            e => e.EventName.Should().Be("Succeeded"),
+            e => e.EventName.Should().Be("StateChanged"),
+            e =>
+            {
+                e.EventName.Should().Be("DataChanged");
+                e.Parameters.Should().Equal("20");
+            });
+
+        result2.Should().Be("20");
+        query.IsLoading.Should().BeFalse();
     }
 
     [UIFact]

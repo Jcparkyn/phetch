@@ -58,7 +58,12 @@ public class QueryTests
         mon.OccurredEvents.Should().SatisfyRespectively(
             e => e.EventName.Should().Be("StateChanged"),
             e => e.EventName.Should().Be("Succeeded"),
-            e => e.EventName.Should().Be("StateChanged")
+            e => e.EventName.Should().Be("StateChanged"),
+            e =>
+            {
+                e.EventName.Should().Be("DataChanged");
+                e.Parameters.Should().Equal("test");
+            }
         );
         mon.Clear();
 
@@ -115,7 +120,8 @@ public class QueryTests
         mon.OccurredEvents.Should().SatisfyRespectively(
             e => e.EventName.Should().Be("StateChanged"),
             e => e.EventName.Should().Be("Succeeded"),
-            e => e.EventName.Should().Be("StateChanged")
+            e => e.EventName.Should().Be("StateChanged"),
+            e => e.EventName.Should().Be("DataChanged")
         );
         mon.Clear();
 
@@ -139,8 +145,18 @@ public class QueryTests
 
         mon.OccurredEvents.Should().SatisfyRespectively(
             e => e.EventName.Should().Be("StateChanged"),
+            e =>
+            {
+                e.EventName.Should().Be("DataChanged");
+                e.Parameters.Should().Equal([null]); // Normal params syntax breaks something here, so use an explicit array.
+            },
             e => e.EventName.Should().Be("Succeeded"),
-            e => e.EventName.Should().Be("StateChanged")
+            e => e.EventName.Should().Be("StateChanged"),
+            e =>
+            {
+                e.EventName.Should().Be("DataChanged");
+                e.Parameters.Should().Equal("two");
+            }
         );
         mon.Clear();
     }

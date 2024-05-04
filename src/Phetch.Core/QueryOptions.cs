@@ -45,6 +45,9 @@ public sealed record QueryOptions()
     /// </list>
     /// If you want to call a function <b>every</b> time a query succeeds (e.g., for invalidating a
     /// cache), use <see cref="EndpointOptions.OnSuccess"/> when creating an endpoint.
+    /// <para/>
+    /// This is also not called if the query is already cached and the cached data is used instead.
+    /// If you want to call a function every time the query data changes, use <see cref="OnDataChanged"/>.
     /// </remarks>
     public Action<EventArgs>? OnSuccess { get; init; }
 
@@ -69,6 +72,15 @@ public sealed record QueryOptions()
     public Action<QueryFailureEventArgs>? OnFailure { get; init; }
 
     /// <summary>
+    /// A function that gets run when this query's data changes. Unlike <see cref="OnSuccess"/>,
+    /// this is called if the query result is already cached.
+    /// </summary>
+    /// <remarks>
+    /// Like <see cref="OnSuccess"/>, this is only called if the query is currently being observed.
+    /// </remarks>
+    public Action? OnDataChanged { get; init; }
+
+    /// <summary>
     /// If set, overrides the default RetryHandler for the endpoint.
     /// <para/>
     /// To remove the endpoint's retry handler if it has one, set this to <see cref="RetryHandler.None"/>.
@@ -83,7 +95,7 @@ public sealed record QueryOptions()
 public sealed record QueryOptions<TArg, TResult>()
 {
     /// <summary>
-    /// Creates a strongly-typed QueryOptions&lt;TArg, TResult&gt; from a QueryOptions instance.
+    /// Creates a strongly-typed <see cref="QueryOptions{TArg, TResult}"/> from a <see cref="QueryOptions"/> instance.
     /// </summary>
     public QueryOptions(QueryOptions original) : this()
     {
@@ -91,6 +103,7 @@ public sealed record QueryOptions<TArg, TResult>()
         StaleTime = original.StaleTime;
         OnSuccess = original.OnSuccess;
         OnFailure = original.OnFailure;
+        OnDataChanged = _ => original.OnDataChanged?.Invoke();
         RetryHandler = original.RetryHandler;
     }
 
@@ -110,6 +123,9 @@ public sealed record QueryOptions<TArg, TResult>()
 
     /// <inheritdoc cref="QueryOptions.OnFailure"/>
     public Action<QueryFailureEventArgs<TArg>>? OnFailure { get; init; }
+
+    /// <inheritdoc cref="QueryOptions.OnDataChanged"/>
+    public Action<TResult>? OnDataChanged { get; init; }
 
     /// <summary>
     /// If set, overrides the default RetryHandler for the endpoint.
