@@ -95,7 +95,76 @@ public class RefetchIntervalTests
             query.IsFetching.Should().BeFalse();
     }
 
-    // TODO:
-    // - Should_stop_fetching_when_query_is_removed
-    // - Should_handle_interval_change_after_fetch
+    [UIFact]
+    public async Task Should_stop_fetching_when_query_is_removed()
+    {
+        var timeProvider = new PhetchFakeTimeProvider();
+        var qf = new MockQueryFunction<int, string>(2);
+        var endpoint = new Endpoint<int, string>(qf.Query, options: new()
+        {
+            TimeProvider = timeProvider,
+        });
+        var query = endpoint.Use(options: new()
+        {
+            RefetchInterval = TimeSpan.FromSeconds(10),
+        });
+
+        qf.SetResult(0, "result0");
+        await query.SetArgAsync(1);
+
+        // After refetch interval passes
+        timeProvider.Advance(TimeSpan.FromSeconds(11));
+        query.IsFetching.Should().BeTrue();
+        qf.SetResult(1, "result1");
+
+        query.IsFetching.Should().BeFalse();
+        query.Data.Should().Be("result1");
+        qf.Calls.Should().Equal(1, 1);
+
+        // Remove query
+        query.Dispose();
+
+        // Next refetch interval
+        timeProvider.Advance(TimeSpan.FromSeconds(10));
+        query.IsFetching.Should().BeFalse();
+    }
+
+    [UIFact]
+    public async Task Should_handle_interval_change_after_fetch()
+    {
+        var timeProvider = new PhetchFakeTimeProvider();
+        var qf = new MockQueryFunction<int, string>(3);
+        var endpoint = new Endpoint<int, string>(qf.Query, options: new()
+        {
+            TimeProvider = timeProvider,
+        });
+        var query1 = endpoint.Use(options: new()
+        {
+            RefetchInterval = TimeSpan.FromSeconds(10),
+        });
+
+        qf.SetResult(0, "result0");
+        await query1.SetArgAsync(1);
+
+        // Before refetch interval passes
+        timeProvider.Advance(TimeSpan.FromSeconds(9));
+
+        // Change interval
+        var query2 = endpoint.Use(options: new()
+        {
+            RefetchInterval = TimeSpan.FromSeconds(3),
+        });
+        qf.SetResult(1, "result1");
+        await query2.SetArgAsync(1);
+
+        timeProvider.Advance(TimeSpan.FromSeconds(2));
+        query2.IsFetching.Should().BeFalse();
+
+        // 3s interval should trigger, but not 10s interval.
+        timeProvider.Advance(TimeSpan.FromSeconds(2));
+        query2.IsFetching.Should().BeTrue();
+        qf.SetResult(2, "result2");
+
+        qf.Calls.Should().Equal(1, 1, 1);
+    }
 }

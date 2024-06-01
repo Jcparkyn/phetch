@@ -1,4 +1,14 @@
 
+# Unreleased
+
+## Added
+- New `RefetchInterval` option on queries to automatically re-fetch a query on a fixed interval.
+
+## Changed
+- Some minor improvements to type definitions for `Query` methods (non-breaking).
+
+## Development
+- More tests.
 
 # [v0.7.0] - 2024-05-04
 

@@ -352,7 +352,9 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         }
         // Funky order for slightly better rounding & overflow handling
         var time = refetchInterval - (now - _lastInvokationTime.Value);
-        return time >= TimeSpan.Zero ? time : TimeSpan.Zero;
+        return time >= TimeSpan.Zero
+            ? time
+            : refetchInterval; // Same explanation as above.
     }
 
     /// <summary>
