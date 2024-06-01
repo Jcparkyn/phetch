@@ -24,7 +24,9 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     private Task<TResult>? _lastActionCall;
     private bool _isInvalidated;
     private Timer? _gcTimer;
+    private Timer? _refetchTimer;
     private DateTime? _dataUpdatedAt;
+    private DateTime? _lastInvokationTime;
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "Undisposed CTSs are safe, and disposing would potentially cause issues with ongoing queries.")]
     private CancellationTokenSource _cts = new();
 
@@ -153,6 +155,9 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
             Status = QueryStatus.Loading;
         }
 
+        var now = DateTime.Now;
+        _lastInvokationTime = now;
+        ScheduleAutoRefetch(now); // If there was a refetch already scheduled, push it back.
         var thisCts = _cts; // Save _cts ahead of time so we can check the same reference later
 
         Task<TResult>? thisActionCall = null;
@@ -201,11 +206,13 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     {
         _observers.Add(observer);
         UnscheduleGc();
+        ScheduleAutoRefetch(DateTime.Now);
     }
 
     internal void RemoveObserver(Query<TArg, TResult> observer)
     {
         _observers.Remove(observer);
+        ScheduleAutoRefetch(DateTime.Now);
 
         if (_observers.Count == 0)
             ScheduleGc();
@@ -272,9 +279,10 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     {
         var cacheTime = _endpointOptions.CacheTime;
         _gcTimer?.Dispose();
+        _gcTimer = null;
         if (cacheTime > TimeSpan.Zero && cacheTime != TimeSpan.MaxValue)
         {
-            _gcTimer = new Timer(GcTimerCallback, null, cacheTime, Timeout.InfiniteTimeSpan);
+            _gcTimer = new Timer(s_gcTimerCallback, this, cacheTime, Timeout.InfiniteTimeSpan);
         }
         else if (cacheTime == TimeSpan.Zero)
         {
@@ -288,7 +296,61 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         _gcTimer = null;
     }
 
-    private void GcTimerCallback(object _) => this.Dispose();
+    private static readonly TimerCallback s_gcTimerCallback = (state) => (state as FixedQuery<TArg, TResult>)?.Dispose();
+
+    private static readonly TimerCallback s_refetchTimerCallback = static (state) =>
+    {
+        if (state is not FixedQuery<TArg, TResult> query)
+            return;
+        query?.RefetchAsync(null);
+    };
+
+    private void ScheduleAutoRefetch(DateTime now)
+    {
+        var refetchInterval = GetRefetchInterval();
+        if (refetchInterval <= TimeSpan.Zero || refetchInterval == TimeSpan.MaxValue)
+        {
+            _refetchTimer?.Dispose();
+            _refetchTimer = null;
+            return;
+        }
+
+        var timeToNextRefetch = GetTimeToNextRefetch(refetchInterval, now);
+        if (_refetchTimer is null)
+        {
+            _refetchTimer = new Timer(s_refetchTimerCallback, this, timeToNextRefetch, refetchInterval);
+        }
+        else
+        {
+            _refetchTimer.Change(timeToNextRefetch, refetchInterval);
+        }
+    }
+
+    // Returns the smallest refetch interval of all observers, or TimeSpan.MaxValue if none are set.
+    private TimeSpan GetRefetchInterval()
+    {
+        var min = TimeSpan.MaxValue;
+        foreach (var observer in _observers)
+        {
+            var interval = observer.Options.RefetchInterval ?? TimeSpan.MaxValue;
+            if (interval > TimeSpan.Zero && interval < min)
+            {
+                min = interval;
+            }
+        }
+        return min;
+    }
+
+    private TimeSpan GetTimeToNextRefetch(TimeSpan refetchInterval, DateTime now)
+    {
+        if (_lastInvokationTime is null)
+        {
+            return TimeSpan.Zero;
+        }
+        // Funky order for slightly better rounding & overflow handling
+        var time = refetchInterval - (now - _lastInvokationTime.Value);
+        return time >= TimeSpan.Zero ? time : TimeSpan.Zero;
+    }
 
     /// <summary>
     /// Removes this query from the cache.
@@ -297,6 +359,8 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     {
         _gcTimer?.Dispose();
         _gcTimer = null;
+        _refetchTimer?.Dispose();
+        _refetchTimer = null;
         _queryCache.Remove(this);
     }
 }

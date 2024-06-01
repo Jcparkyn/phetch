@@ -1,0 +1,33 @@
+﻿@inject TimeApi TimeApi
+
+<UseParameterlessEndpoint
+    Endpoint="TimeApi.TimeNowEndpoint"
+                          Options="new() { RefetchInterval = RefetchInterval }"
+    Context="query">
+    @if (query.HasData)
+    {
+        <MudText>
+            Time now:
+            @query.Data
+            @if (query.IsFetching)
+            {
+                <text> (fetching...)</text>
+            }
+        </MudText>
+    }
+    else if (query.IsLoading)
+    {
+        <MudProgressLinear Indeterminate />
+    }
+    else if (query.IsError)
+    {
+        <MudAlert Severity="Severity.Error">
+            @query.Error?.Message
+            <MudButton OnClick="query.Refetch">Retry</MudButton>
+        </MudAlert>
+    }
+</UseParameterlessEndpoint>
+
+@code {
+    [Parameter] public TimeSpan RefetchInterval { get; set; }
+}

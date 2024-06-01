@@ -18,6 +18,7 @@ public class OptionsTests
         var options = new QueryOptions()
         {
             StaleTime = TimeSpan.FromSeconds(1),
+            RefetchInterval = TimeSpan.FromSeconds(2),
             RetryHandler = RetryHandler.None,
             OnSuccess = onSuccess,
             OnFailure = onFailure,
@@ -32,6 +33,7 @@ public class OptionsTests
             options2.OnSuccess.Should().Be(onSuccess);
             options2.OnFailure.Should().Be(onFailure);
             options2.StaleTime.Should().Be(TimeSpan.FromSeconds(1));
+            options2.RefetchInterval.Should().Be(TimeSpan.FromSeconds(2));
             options2.RetryHandler.Should().Be(RetryHandler.None);
         }
     }

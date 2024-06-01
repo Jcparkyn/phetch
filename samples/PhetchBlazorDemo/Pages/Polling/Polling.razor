@@ -1,0 +1,39 @@
+﻿@page "/polling"
+
+
+<PageTitle>Polling</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Polling</MudText>
+
+<MudText Class="mb-4">
+
+    This component demonstrates using the <code>RefetchInterval</code> parameter to automatically
+    re-fetch data at a specified interval. Notice how when two different components use
+    <code>RefetchInterval</code> for the same data, the query is re-fetched at the shortest interval.
+
+    When the components are removed, the automatic re-fetching stops.
+</MudText>
+<MudText Class="mb-4">
+    Of course, you shouldn't use Phetch just for getting the time - this is just an example.
+</MudText>
+
+<MudCheckBox @bind-Value="showFastFetchingComponent" Label="Show fast fetching component"></MudCheckBox>
+@if (showFastFetchingComponent)
+{
+    <MudPaper Style="padding: 8px; margin-left: 16px">
+        <TimeNowDisplay RefetchInterval="TimeSpan.FromSeconds(3)"/>
+    </MudPaper>
+}
+<MudSpacer />
+<MudCheckBox @bind-Value="showSlowFetchingComponent" Label="Show slow fetching component"></MudCheckBox>
+@if (showSlowFetchingComponent)
+{
+    <MudPaper Style="padding: 8px; margin-left: 16px">
+        <TimeNowDisplay RefetchInterval="TimeSpan.FromSeconds(10)"/>
+    </MudPaper>
+}
+
+@code {
+    bool showFastFetchingComponent = true;
+    bool showSlowFetchingComponent = false;
+}

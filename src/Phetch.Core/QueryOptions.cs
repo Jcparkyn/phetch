@@ -30,6 +30,15 @@ public sealed record QueryOptions()
     public TimeSpan? StaleTime { get; init; }
 
     /// <summary>
+    /// If not null, the query will be automatically re-fetched at this interval.
+    /// </summary>
+    /// <remarks>
+    /// If a query is used in multiple components with different <c>RefetchInterval</c> values and
+    /// the same <c>Arg</c>, the query will be re-fetched at the shortest interval.
+    /// </remarks>
+    public TimeSpan? RefetchInterval { get; init; }
+
+    /// <summary>
     /// A function that gets run when this query succeeds, including if the result was already
     /// cached. If the cached result is stale, this will not be called until the new result is fetched.
     /// </summary>
@@ -101,6 +110,7 @@ public sealed record QueryOptions<TArg, TResult>()
     {
         _ = original ?? throw new ArgumentNullException(nameof(original));
         StaleTime = original.StaleTime;
+        RefetchInterval = original.RefetchInterval;
         OnSuccess = original.OnSuccess;
         OnFailure = original.OnFailure;
         OnDataChanged = _ => original.OnDataChanged?.Invoke();
@@ -117,6 +127,9 @@ public sealed record QueryOptions<TArg, TResult>()
 
     /// <inheritdoc cref="QueryOptions.StaleTime"/>
     public TimeSpan? StaleTime { get; init; }
+
+    /// <inheritdoc cref="QueryOptions.RefetchInterval"/>
+    public TimeSpan? RefetchInterval { get; init; }
 
     /// <inheritdoc cref="QueryOptions.OnSuccess"/>
     public Action<QuerySuccessEventArgs<TArg, TResult>>? OnSuccess { get; init; }

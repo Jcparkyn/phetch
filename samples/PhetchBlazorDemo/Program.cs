@@ -17,6 +17,7 @@ builder.Services.AddScoped<IsEvenApi>();
 builder.Services.AddScoped<EarthquakeApi>();
 builder.Services.AddScoped<LocalStorageCounterApi>();
 builder.Services.AddScoped<LocalStorageBoatApi>();
+builder.Services.AddScoped<TimeApi>();
 builder.Services.AddScoped<SimulateErrorService>();
 
 await builder.Build().RunAsync();

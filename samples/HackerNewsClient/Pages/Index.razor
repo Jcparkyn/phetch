@@ -7,6 +7,7 @@
 
 <UseEndpoint Endpoint="Api.GetTopStoriesEndpoint"
              Arg="@new(Page: 0, PageSize: 100, Tag: "front_page")"
+             Options="new(){ RefetchInterval = TimeSpan.FromSeconds(10) }"
              Context="query">
     @if (query.HasData)
     {

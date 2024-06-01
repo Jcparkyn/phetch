@@ -372,6 +372,7 @@ public class QueryTests
         query.Status.Should().Be(QueryStatus.Success);
         query.IsSuccess.Should().BeTrue();
         query.IsLoading.Should().BeFalse();
+        // Maybe this should be true? But not very important and hard to implement.
         query.IsFetching.Should().BeFalse();
         query.Data.Should().Be("test1");
 
