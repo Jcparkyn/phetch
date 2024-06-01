@@ -153,7 +153,6 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
             Status = QueryStatus.Loading;
         }
 
-        var startTime = DateTime.UtcNow;
         var thisCts = _cts; // Save _cts ahead of time so we can check the same reference later
 
         Task<TResult>? thisActionCall = null;
