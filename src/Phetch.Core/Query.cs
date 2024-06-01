@@ -211,6 +211,7 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
 {
     private readonly QueryCache<TArg, TResult> _cache;
     private readonly QueryOptions<TArg, TResult>? _options;
+    private readonly EndpointOptions<TArg, TResult> _endpointOptions;
     private readonly TimeSpan _staleTime;
     private FixedQuery<TArg, TResult>? _lastSuccessfulQuery;
     private FixedQuery<TArg, TResult>? _currentQuery;
@@ -238,6 +239,7 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
     {
         _cache = cache;
         _options = options;
+        _endpointOptions = endpointOptions;
         _staleTime = options?.StaleTime ?? endpointOptions.DefaultStaleTime;
         DataChanged += options?.OnDataChanged;
         Succeeded += options?.OnSuccess;
@@ -336,9 +338,9 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
             _currentQuery?.RemoveObserver(this);
             newQuery.AddObserver(this);
             _currentQuery = newQuery;
-
+            var now = _endpointOptions.TimeProvider.GetUtcNow();
             var shouldRefetch = !newQuery.IsFetching &&
-                (newQuery.Status == QueryStatus.Error || newQuery.IsStaleByTime(_staleTime, DateTime.Now));
+                (newQuery.Status == QueryStatus.Error || newQuery.IsStaleByTime(_staleTime, now));
             if (shouldRefetch)
             {
                 var task = newQuery.RefetchAsync(_options?.RetryHandler).ConfigureAwait(false);

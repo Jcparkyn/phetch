@@ -138,7 +138,9 @@ public sealed record EndpointOptions<TArg, TResult>()
     /// </code>
     /// </example>
     /// </remarks>
-    public Func<TArg, object>? KeySelector { get; set; }
+    public Func<TArg, object>? KeySelector { get; init; }
+
+    internal ITimeProvider TimeProvider { get; init; } = DefaultTimeProvider.Instance;
 
     /// <summary>
     /// Converts an untyped <see cref="EndpointOptions"/> instance into an <see

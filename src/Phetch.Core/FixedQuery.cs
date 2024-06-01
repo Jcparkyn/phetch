@@ -23,10 +23,10 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
 
     private Task<TResult>? _lastActionCall;
     private bool _isInvalidated;
-    private Timer? _gcTimer;
-    private Timer? _refetchTimer;
-    private DateTime? _dataUpdatedAt;
-    private DateTime? _lastInvokationTime;
+    private ITimer? _gcTimer;
+    private ITimer? _refetchTimer;
+    private DateTimeOffset? _dataUpdatedAt;
+    private DateTimeOffset? _lastInvokationTime;
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "Undisposed CTSs are safe, and disposing would potentially cause issues with ongoing queries.")]
     private CancellationTokenSource _cts = new();
 
@@ -83,7 +83,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         }
     }
 
-    internal bool IsStaleByTime(TimeSpan staleTime, DateTime now)
+    internal bool IsStaleByTime(TimeSpan staleTime, DateTimeOffset now)
     {
         return _isInvalidated
             || _dataUpdatedAt is null
@@ -155,7 +155,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
             Status = QueryStatus.Loading;
         }
 
-        var now = DateTime.Now;
+        var now = _endpointOptions.TimeProvider.GetUtcNow();
         _lastInvokationTime = now;
         ScheduleAutoRefetch(now); // If there was a refetch already scheduled, push it back.
         var thisCts = _cts; // Save _cts ahead of time so we can check the same reference later
@@ -206,13 +206,13 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     {
         _observers.Add(observer);
         UnscheduleGc();
-        ScheduleAutoRefetch(DateTime.Now);
+        ScheduleAutoRefetch(_endpointOptions.TimeProvider.GetUtcNow());
     }
 
     internal void RemoveObserver(Query<TArg, TResult> observer)
     {
         _observers.Remove(observer);
-        ScheduleAutoRefetch(DateTime.Now);
+        ScheduleAutoRefetch(_endpointOptions.TimeProvider.GetUtcNow());
 
         if (_observers.Count == 0)
             ScheduleGc();
@@ -221,7 +221,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
     private void SetSuccessState(TResult? newData)
     {
         _isInvalidated = false;
-        _dataUpdatedAt = DateTime.Now;
+        _dataUpdatedAt = _endpointOptions.TimeProvider.GetUtcNow();
         Status = QueryStatus.Success;
         HasSucceeded = true;
         Data = newData;
@@ -282,7 +282,7 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         _gcTimer = null;
         if (cacheTime > TimeSpan.Zero && cacheTime != TimeSpan.MaxValue)
         {
-            _gcTimer = new Timer(s_gcTimerCallback, this, cacheTime, Timeout.InfiniteTimeSpan);
+            _gcTimer = _endpointOptions.TimeProvider.CreateTimer(s_gcTimerCallback, this, cacheTime, Timeout.InfiniteTimeSpan);
         }
         else if (cacheTime == TimeSpan.Zero)
         {
@@ -296,16 +296,9 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         _gcTimer = null;
     }
 
-    private static readonly TimerCallback s_gcTimerCallback = (state) => (state as FixedQuery<TArg, TResult>)?.Dispose();
+    private static readonly TimerCallback s_gcTimerCallback = (state) => ((FixedQuery<TArg, TResult>)state).Dispose();
 
-    private static readonly TimerCallback s_refetchTimerCallback = static (state) =>
-    {
-        if (state is not FixedQuery<TArg, TResult> query)
-            return;
-        query?.RefetchAsync(null);
-    };
-
-    private void ScheduleAutoRefetch(DateTime now)
+    private void ScheduleAutoRefetch(DateTimeOffset now)
     {
         var refetchInterval = GetRefetchInterval();
         if (refetchInterval <= TimeSpan.Zero || refetchInterval == TimeSpan.MaxValue)
@@ -318,13 +311,21 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         var timeToNextRefetch = GetTimeToNextRefetch(refetchInterval, now);
         if (_refetchTimer is null)
         {
-            _refetchTimer = new Timer(s_refetchTimerCallback, this, timeToNextRefetch, refetchInterval);
+            _refetchTimer = _endpointOptions.TimeProvider.CreateTimer(s_refetchTimerCallback, this, timeToNextRefetch, refetchInterval);
         }
         else
         {
             _refetchTimer.Change(timeToNextRefetch, refetchInterval);
         }
     }
+
+    private static readonly TimerCallback s_refetchTimerCallback = (state) =>
+    {
+        var query = (FixedQuery<TArg, TResult>)state;
+        // There can be multiple separate observers triggering this, so to keep things simple, just
+        // use the retry handler from the endpoint.
+        query.RefetchAsync(query._endpointOptions.RetryHandler);
+    };
 
     // Returns the smallest refetch interval of all observers, or TimeSpan.MaxValue if none are set.
     private TimeSpan GetRefetchInterval()
@@ -341,11 +342,13 @@ public sealed class FixedQuery<TArg, TResult> : IDisposable
         return min;
     }
 
-    private TimeSpan GetTimeToNextRefetch(TimeSpan refetchInterval, DateTime now)
+    private TimeSpan GetTimeToNextRefetch(TimeSpan refetchInterval, DateTimeOffset now)
     {
         if (_lastInvokationTime is null)
         {
-            return TimeSpan.Zero;
+            // In some cases it'd be better to use zero here, but it's too complicated to avoid
+            // double-fetching. Most of the time, the query is fetched immediately after this anyway.
+            return refetchInterval;
         }
         // Funky order for slightly better rounding & overflow handling
         var time = refetchInterval - (now - _lastInvokationTime.Value);

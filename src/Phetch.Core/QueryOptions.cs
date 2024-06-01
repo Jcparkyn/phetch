@@ -33,8 +33,12 @@ public sealed record QueryOptions()
     /// If not null, the query will be automatically re-fetched at this interval.
     /// </summary>
     /// <remarks>
-    /// If a query is used in multiple components with different <c>RefetchInterval</c> values and
-    /// the same <c>Arg</c>, the query will be re-fetched at the shortest interval.
+    /// Automatic re-fetches will use the <see
+    /// cref="EndpointOptions.RetryHandler">RetryHandler</see> defined on the endpoint, not the one
+    /// for this query.
+    /// <para/>
+    /// If a query is used in multiple components with <c>RefetchInterval</c> enabled and the same
+    /// <c>Arg</c>, the query will be re-fetched at the shortest interval.
     /// </remarks>
     public TimeSpan? RefetchInterval { get; init; }
 
