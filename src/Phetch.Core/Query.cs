@@ -558,7 +558,7 @@ public static class QueryExtensions
     /// This is equivalent to <see cref="Query{TArg, TResult}.SetArgAsync(TArg)"/>, but for parameterless queries.
     /// </remarks>
     [ExcludeFromCodeCoverage]
-    public static void Fetch<TResult>(this Query<Unit, TResult> self)
+    public static void Fetch<TResult>(this IQuery<Unit, TResult> self)
     {
         _ = self ?? throw new ArgumentNullException(nameof(self));
         _ = self.SetArgAsync(default);
@@ -566,7 +566,7 @@ public static class QueryExtensions
 
     /// <inheritdoc cref="Fetch"/>
     [ExcludeFromCodeCoverage]
-    public static Task<TResult> FetchAsync<TResult>(this Query<Unit, TResult> self)
+    public static Task<TResult> FetchAsync<TResult>(this IQuery<Unit, TResult> self)
     {
         _ = self ?? throw new ArgumentNullException(nameof(self));
         return self.SetArgAsync(default);
@@ -575,7 +575,7 @@ public static class QueryExtensions
     /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
     [ExcludeFromCodeCoverage]
     public static void Trigger<TResult>(
-        this Query<Unit, TResult> self,
+        this IQuery<Unit, TResult> self,
         Action<QuerySuccessEventArgs<Unit, TResult>>? onSuccess = null,
         Action<QueryFailureEventArgs<Unit>>? onFailure = null)
     {
@@ -585,7 +585,7 @@ public static class QueryExtensions
 
     /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
     [ExcludeFromCodeCoverage]
-    public static Task<TResult> TriggerAsync<TResult>(this Query<Unit, TResult> self)
+    public static Task<TResult> TriggerAsync<TResult>(this IQuery<Unit, TResult> self)
     {
         _ = self ?? throw new ArgumentNullException(nameof(self));
         return self.TriggerAsync(default);
