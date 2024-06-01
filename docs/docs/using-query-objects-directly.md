@@ -38,5 +38,5 @@ This is also useful when using endpoints or queries inside DI services.
 Content outside of the `<ObserveQuery/>` component will not be re-rendered when the query state changes. If you need the whole component to re-render, you can call `StateHasChanged` without adding child content:
 
 ```cshtml
-<ObserveQuery Target="query" OnChanged="StateHasChanged">
+<ObserveQuery Target="query" OnChanged="StateHasChanged"/>
 ```
