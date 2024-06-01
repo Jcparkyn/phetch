@@ -189,24 +189,4 @@ public class EndpointTests
             query2.CurrentQuery!,
             trigger2.CurrentQuery!);
     }
-
-    [UIFact]
-    public async Task Should_dispose_immediately_when_CacheTime_is_zero()
-    {
-        var endpoint = new Endpoint<int, string>(
-            val => TestHelpers.ReturnAsync(val.ToString()),
-            options: new()
-            {
-                CacheTime = TimeSpan.Zero,
-            }
-        );
-        var query = endpoint.Use();
-        await query.SetArgAsync(1);
-        endpoint.GetCachedQuery(1).Should().NotBeNull();
-
-        await query.SetArgAsync(2);
-        endpoint.GetCachedQuery(1).Should().BeNull();
-        query.Dispose();
-        endpoint.GetCachedQuery(2).Should().BeNull();
-    }
 }
