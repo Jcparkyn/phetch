@@ -310,7 +310,7 @@ public class QueryTests
         // t1     --------- [keep]
         //        ^ refetch
 
-        var qf = new MockQueryFunction<string>(2);
+        var qf = new MockQueryFunction<string>();
         var query = new ParameterlessEndpoint<string>(
             qf.Query
         ).Use();
@@ -324,7 +324,7 @@ public class QueryTests
 
         query.Refetch();
 
-        qf.Sources[0].SetResult("test0");
+        qf.GetSource(0).SetResult("test0");
         await Task.Yield();
 
         query.Status.Should().Be(QueryStatus.Success);
@@ -333,7 +333,7 @@ public class QueryTests
         query.IsFetching.Should().BeTrue();
         query.Data.Should().Be("test0");
 
-        qf.Sources[1].SetResult("test1");
+        qf.GetSource(1).SetResult("test1");
         await Task.Yield();
 
         query.Status.Should().Be(QueryStatus.Success);
@@ -352,7 +352,7 @@ public class QueryTests
         // t1     --------- [keep]
         //        ^ refetch
 
-        var qf = new MockQueryFunction<string>(2);
+        var qf = new MockQueryFunction<string>();
         var query = new ParameterlessEndpoint<string>(
             qf.Query
         ).Use();
@@ -366,7 +366,7 @@ public class QueryTests
 
         query.Refetch();
 
-        qf.Sources[1].SetResult("test1");
+        qf.GetSource(1).SetResult("test1");
         await Task.Yield();
 
         query.Status.Should().Be(QueryStatus.Success);
@@ -376,7 +376,7 @@ public class QueryTests
         query.IsFetching.Should().BeFalse();
         query.Data.Should().Be("test1");
 
-        qf.Sources[0].SetResult("test0");
+        qf.GetSource(0).SetResult("test0");
         await Task.Yield();
 
         query.Status.Should().Be(QueryStatus.Success);
@@ -414,7 +414,7 @@ public class QueryTests
     [UIFact]
     public async Task SetArg_should_always_refetch_if_error()
     {
-        var qf = new MockQueryFunction<int, string>(4);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query, new()
         {
             // Disable automatic refetching
@@ -425,12 +425,12 @@ public class QueryTests
         // Trigger an initial success. This ensures that _dataUpdatedAt is set, because otherwise
         // this test passes "for free".
         var task1 = query.SetArgAsync(0);
-        qf.Sources[0].SetResult("0");
+        qf.GetSource(0).SetResult("0");
         await task1;
 
         // Refetch with failure
         var task2 = query.RefetchAsync();
-        qf.Sources[1].SetException(new IndexOutOfRangeException("BOOM!"));
+        qf.GetSource(1).SetException(new IndexOutOfRangeException("BOOM!"));
         await task2.Invoking(t => t)
             .Should().ThrowExactlyAsync<IndexOutOfRangeException>();
 
@@ -438,7 +438,7 @@ public class QueryTests
         // Instead we just change the arg twice.
         _ = query.SetArgAsync(1);
         var task3 = query.SetArgAsync(0);
-        qf.Sources[3].SetResult("0 again");
+        qf.GetSource(3).SetResult("0 again");
         await task3;
 
         using (new AssertionScope())
@@ -452,7 +452,7 @@ public class QueryTests
     [UIFact]
     public async Task LastData_success_then_arg_change_error()
     {
-        var qf = new MockQueryFunction<int, string>(2);
+        var qf = new MockQueryFunction<int, string>();
         var query = new Endpoint<int, string>(qf.Query).Use();
 
         query.LastData.Should().BeNull();
@@ -461,14 +461,14 @@ public class QueryTests
         var task1 = query.SetArgAsync(0);
         query.LastData.Should().BeNull();
 
-        qf.Sources[0].SetResult("0"); await task1;
+        qf.GetSource(0).SetResult("0"); await task1;
         query.LastData.Should().Be("0");
 
         // Change arg
         var task2 = query.SetArgAsync(1);
         query.LastData.Should().Be("0");
 
-        qf.Sources[1].SetException(new Exception("boom"));
+        qf.GetSource(1).SetException(new Exception("boom"));
         await task2.Invoking(t => t).Should().ThrowExactlyAsync<Exception>();
         query.LastData.Should().Be("0");
     }
@@ -476,7 +476,7 @@ public class QueryTests
     [UIFact]
     public async Task LastData_refetch_error_then_arg_change()
     {
-        var qf = new MockQueryFunction<int, string>(3);
+        var qf = new MockQueryFunction<int, string>();
         var query = new Endpoint<int, string>(qf.Query).Use();
 
         query.LastData.Should().BeNull();
@@ -485,14 +485,14 @@ public class QueryTests
         var task1 = query.SetArgAsync(0);
         query.LastData.Should().BeNull();
 
-        qf.Sources[0].SetResult("0"); await task1;
+        qf.GetSource(0).SetResult("0"); await task1;
         query.LastData.Should().Be("0");
 
         // Refetch with failure
         var task2 = query.RefetchAsync();
         query.LastData.Should().Be("0");
 
-        qf.Sources[1].SetException(new Exception("boom1"));
+        qf.GetSource(1).SetException(new Exception("boom1"));
         await task2.Invoking(t => t).Should().ThrowExactlyAsync<Exception>().WithMessage("boom1");
         query.LastData.Should().Be("0");
 
@@ -500,7 +500,7 @@ public class QueryTests
         var task4 = query.SetArgAsync(1);
         query.LastData.Should().Be("0");
 
-        qf.Sources[2].SetException(new Exception("boom2"));
+        qf.GetSource(2).SetException(new Exception("boom2"));
         await task4.Invoking(t => t).Should().ThrowExactlyAsync<Exception>().WithMessage("boom2");
         query.LastData.Should().Be("0");
     }

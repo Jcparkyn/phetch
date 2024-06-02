@@ -7,7 +7,7 @@
     [Fact]
     public void Should_render_loading_states()
     {
-        var qf = new MockQueryFunction<int, string>(1);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query);
 
         var cut = Render<TestWrapper>(
@@ -27,7 +27,7 @@
         }
         using (new AssertionScope())
         {
-            cut.InvokeAsync(() => qf.Sources[0].SetResult("1"));
+            cut.InvokeAsync(() => qf.GetSource(0).SetResult("1"));
             cut.MarkupMatches("1");
             component.RenderCount.Should().Be(2);
             cut.Instance.RenderCount.Should().Be(1);
@@ -38,7 +38,7 @@
     [Fact]
     public void Should_not_fetch_if_no_Arg_supplied()
     {
-        var qf = new MockQueryFunction<int, string>(1);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query);
 
         var cut = Render(
@@ -54,7 +54,7 @@
     [Fact]
     public void Should_not_fetch_if_AutoFetch_is_false()
     {
-        var qf = new MockQueryFunction<int, string>(1);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query);
 
         using var cut = Render(
@@ -72,7 +72,7 @@
     [InlineData(false)]
     public void Should_fetch_when_AutoFetch_changes(bool reverseParamOrder)
     {
-        var qf = new MockQueryFunction<int, string>(1);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query);
 
         using var cut = Render(
@@ -117,7 +117,7 @@
     [Fact]
     public void Should_refetch_when_Arg_changes()
     {
-        var qf = new MockQueryFunction<int, string>(2);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query);
 
         using var cut = Render(
@@ -128,13 +128,13 @@
 
         var component = cut.FindComponent<UseEndpoint<int, string>>();
         cut.MarkupMatches("False, True, null");
-        cut.InvokeAsync(() => qf.Sources[0].SetResult("0"));
+        cut.InvokeAsync(() => qf.GetSource(0).SetResult("0"));
         cut.WaitForAssertion(() => cut.MarkupMatches("False, False, 0"));
 
         // Refetch after previous query finished
         component.SetParametersAndRender(p => p.Add(x => x.Arg, 1));
         cut.MarkupMatches("False, True, null");
-        cut.InvokeAsync(() => qf.Sources[1].SetResult("1"));
+        cut.InvokeAsync(() => qf.GetSource(1).SetResult("1"));
         cut.WaitForAssertion(() => cut.MarkupMatches("False, False, 1"));
         qf.Calls.Should().Equal(0, 1);
     }
@@ -142,7 +142,7 @@
     [Fact]
     public void Should_refetch_when_Arg_changes_while_loading()
     {
-        var qf = new MockQueryFunction<int, string>(2);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query);
 
         using var cut = Render(
@@ -161,8 +161,8 @@
         cut.RenderCount.Should().Be(2);
 
         // Complete queries
-        cut.InvokeAsync(() => qf.Sources[0].SetResult("0"));
-        cut.InvokeAsync(() => qf.Sources[1].SetResult("1"));
+        cut.InvokeAsync(() => qf.GetSource(0).SetResult("0"));
+        cut.InvokeAsync(() => qf.GetSource(1).SetResult("1"));
         cut.WaitForAssertion(() => cut.MarkupMatches("False, False, 1"));
         cut.RenderCount.Should().Be(3);
 
@@ -172,7 +172,7 @@
     [Fact]
     public void Should_use_Options()
     {
-        var qf = new MockQueryFunction<int, string>(1);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query);
         var (onSuccess, onSuccessCalls) = MakeMonitoredAction<QuerySuccessEventArgs<int, string>>();
 
@@ -182,7 +182,7 @@
             </UseEndpoint>
         );
         var component = cut.FindComponent<UseEndpoint<int, string>>();
-        cut.InvokeAsync(() => qf.Sources[0].SetResult("0"));
+        cut.InvokeAsync(() => qf.GetSource(0).SetResult("0"));
 
         cut.WaitForAssertion(() => onSuccessCalls.Should().HaveCount(1));
     }

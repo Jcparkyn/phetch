@@ -7,7 +7,7 @@
     [Fact]
     public void Should_render_loading_states()
     {
-        var qf = new MockQueryFunction<string>(1);
+        var qf = new MockQueryFunction<string>();
         var endpoint = new ParameterlessEndpoint<string>(qf.Query);
 
         using var cut = Render<TestWrapper>(
@@ -27,7 +27,7 @@
         }
         using (new AssertionScope())
         {
-            cut.InvokeAsync(() => qf.Sources[0].SetResult("1"));
+            cut.InvokeAsync(() => qf.GetSource(0).SetResult("1"));
             cut.MarkupMatches("1");
             component.RenderCount.Should().Be(2);
             cut.Instance.RenderCount.Should().Be(1);
@@ -38,7 +38,7 @@
     [Fact]
     public void Should_not_fetch_if_AutoFetch_is_false()
     {
-        var qf = new MockQueryFunction<string>(1);
+        var qf = new MockQueryFunction<string>();
         var endpoint = new ParameterlessEndpoint<string>(qf.Query);
 
         using var cut = Render(

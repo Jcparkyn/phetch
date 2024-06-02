@@ -82,7 +82,7 @@ public class EndpointTests
     [UIFact]
     public async Task Should_deduplicate_concurrent_queries()
     {
-        var qf = new MockQueryFunction<int, string>(1);
+        var qf = new MockQueryFunction<int, string>();
         var onSuccessCalls = new List<string>();
         var endpoint = new Endpoint<int, string>(qf.Query, new()
         {

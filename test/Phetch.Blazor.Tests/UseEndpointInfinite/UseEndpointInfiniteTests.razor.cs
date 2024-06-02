@@ -29,7 +29,7 @@ public partial class UseEndpointInfiniteTests : TestContext
     [Fact]
     public async Task Basic_usage()
     {
-        var qf = new MockQueryFunction<int, PageResponse>(2);
+        var qf = new MockQueryFunction<int, PageResponse>();
         var endpoint = new Endpoint<int, PageResponse>(qf.Query);
         using var cut = Render<UseEndpointInfinite<int, PageResponse>>(EndpointFragment1(endpoint, arg: 0));
         var content = cut.FindComponent<UseEndpointInfiniteTestContent>();
@@ -109,13 +109,13 @@ public partial class UseEndpointInfiniteTests : TestContext
     [Fact]
     public async Task Error_on_first_page()
     {
-        var qf = new MockQueryFunction<int, PageResponse>(2);
+        var qf = new MockQueryFunction<int, PageResponse>();
         var endpoint = new Endpoint<int, PageResponse>(qf.Query);
         using var cut = Render<UseEndpointInfinite<int, PageResponse>>(EndpointFragment1(endpoint, arg: 0));
         var content = cut.FindComponent<UseEndpointInfiniteTestContent>();
 
         var ex = new ArgumentOutOfRangeException("boom");
-        await cut.InvokeAsync(() => qf.Sources[0].SetException(ex));
+        await cut.InvokeAsync(() => qf.GetSource(0).SetException(ex));
 
         using (new AssertionScope())
         {
@@ -168,7 +168,7 @@ public partial class UseEndpointInfiniteTests : TestContext
     [Fact]
     public async Task Should_refetch_when_Arg_changes_single_page()
     {
-        var qf = new MockQueryFunction<int, PageResponse>(2);
+        var qf = new MockQueryFunction<int, PageResponse>();
         var endpoint = new Endpoint<int, PageResponse>(qf.Query);
         using var cut = Render<UseEndpointInfinite<int, PageResponse>>(EndpointFragment1(endpoint, arg: 0));
         var content = cut.FindComponent<UseEndpointInfiniteTestContent>();
@@ -207,7 +207,7 @@ public partial class UseEndpointInfiniteTests : TestContext
     [Fact]
     public async Task Should_refetch_when_Arg_changes_multiple_pages()
     {
-        var qf = new MockQueryFunction<int, PageResponse>(3);
+        var qf = new MockQueryFunction<int, PageResponse>();
         var endpoint = new Endpoint<int, PageResponse>(qf.Query);
         using var cut = Render<UseEndpointInfinite<int, PageResponse>>(EndpointFragment1(endpoint, arg: 0));
         var content = cut.FindComponent<UseEndpointInfiniteTestContent>();
@@ -251,7 +251,7 @@ public partial class UseEndpointInfiniteTests : TestContext
     [Fact]
     public async Task Should_refetch_when_Arg_changes_precached()
     {
-        var qf = new MockQueryFunction<int, PageResponse>(1);
+        var qf = new MockQueryFunction<int, PageResponse>();
         var endpoint = new Endpoint<int, PageResponse>(qf.Query, new()
         {
             DefaultStaleTime = TimeSpan.MaxValue,
@@ -293,7 +293,7 @@ public partial class UseEndpointInfiniteTests : TestContext
     [Fact]
     public async Task Should_dispose_Query_when_disposed()
     {
-        var qf = new MockQueryFunction<int, PageResponse>(1);
+        var qf = new MockQueryFunction<int, PageResponse>();
         var endpoint = new Endpoint<int, PageResponse>(qf.Query, options: new()
         {
             CacheTime = TimeSpan.Zero,

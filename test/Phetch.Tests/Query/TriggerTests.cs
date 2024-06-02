@@ -11,7 +11,7 @@ public class TriggerTests
     [UIFact]
     public async Task Should_set_loading_states_correctly()
     {
-        var qf = new MockQueryFunction<int, string>(2);
+        var qf = new MockQueryFunction<int, string>();
         var query = new Endpoint<int, string>(qf.Query).Use();
         var mon = query.Monitor();
 
@@ -31,7 +31,7 @@ public class TriggerTests
         query.IsFetching.Should().BeTrue();
 
         await Task.Yield();
-        qf.Sources[0].SetResult("10");
+        qf.GetSource(0).SetResult("10");
         var result1 = await triggerTask1;
 
         result1.Should().Be("10");
@@ -67,7 +67,7 @@ public class TriggerTests
             });
         mon.Clear();
 
-        qf.Sources[1].SetResult("20");
+        qf.GetSource(1).SetResult("20");
         var result2 = await triggerTask2;
 
         mon.OccurredEvents.Should().SatisfyRespectively(
@@ -133,7 +133,7 @@ public class TriggerTests
     [UIFact]
     public async Task Should_not_share_cache_between_triggered_queries()
     {
-        var qf = new MockQueryFunction<int, string>(2);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query);
 
         var options = new QueryOptions<int, string>()
@@ -142,8 +142,8 @@ public class TriggerTests
         };
         var query1 = endpoint.Use(options);
         var query2 = endpoint.Use(options);
-        qf.Sources[0].SetResult("10-1");
-        qf.Sources[1].SetResult("10-2");
+        qf.GetSource(0).SetResult("10-1");
+        qf.GetSource(1).SetResult("10-2");
         var result1 = await query1.TriggerAsync(10);
         var result2 = await query2.TriggerAsync(10);
 

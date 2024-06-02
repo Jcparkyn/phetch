@@ -16,7 +16,7 @@ public class RetryHandlerTests
     [MemberData(nameof(GetRetryHandlers), 2)]
     public async Task Should_succeed_with_handler_if_query_succeeds(IRetryHandler retryHandler)
     {
-        var qf = new MockQueryFunction<int, string>(1);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query, new()
         {
             RetryHandler = retryHandler,
@@ -24,7 +24,7 @@ public class RetryHandlerTests
 
         var query = endpoint.Use();
         var setArgTask = query.SetArgAsync(1);
-        qf.Sources[0].SetResult("1");
+        qf.GetSource(0).SetResult("1");
 
         await setArgTask;
 
@@ -38,7 +38,7 @@ public class RetryHandlerTests
     [MemberData(nameof(GetRetryHandlers), 2)]
     public async Task Should_retry_with_handler(IRetryHandler retryHandler)
     {
-        var qf = new MockQueryFunction<int, string>(2);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query, new()
         {
             RetryHandler = retryHandler,
@@ -46,8 +46,8 @@ public class RetryHandlerTests
 
         var query = endpoint.Use();
         var setArgTask = query.SetArgAsync(1);
-        qf.Sources[0].SetException(new HttpRequestException("fail 1"));
-        qf.Sources[1].SetResult("1");
+        qf.GetSource(0).SetException(new HttpRequestException("fail 1"));
+        qf.GetSource(1).SetResult("1");
 
         await setArgTask;
 
@@ -60,7 +60,7 @@ public class RetryHandlerTests
     [MemberData(nameof(GetRetryHandlers), 1)]
     public async Task Should_fail_with_handler_if_retry_fails(IRetryHandler retryHandler)
     {
-        var qf = new MockQueryFunction<int, string>(2);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query, new()
         {
             RetryHandler = retryHandler,
@@ -70,9 +70,9 @@ public class RetryHandlerTests
         var setArgTask = query.Invoking(q => q.SetArgAsync(1))
             .Should().ThrowExactlyAsync<HttpRequestException>().WithMessage("fail 2");
 
-        qf.Sources[0].SetException(new HttpRequestException("fail 1"));
+        qf.GetSource(0).SetException(new HttpRequestException("fail 1"));
         var ex2 = new HttpRequestException("fail 2");
-        qf.Sources[1].SetException(ex2);
+        qf.GetSource(1).SetException(ex2);
 
         await setArgTask;
 
@@ -85,7 +85,7 @@ public class RetryHandlerTests
     [UIFact]
     public async Task Should_work_with_NoRetryHandler()
     {
-        var qf = new MockQueryFunction<int, string>(1);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query, new()
         {
             RetryHandler = RetryHandler.None,
@@ -94,7 +94,7 @@ public class RetryHandlerTests
         var query = endpoint.Use();
         var setArgTask = query.SetArgAsync(1);
 
-        qf.Sources[0].SetResult("1");
+        qf.GetSource(0).SetResult("1");
 
         await setArgTask;
 
@@ -107,7 +107,7 @@ public class RetryHandlerTests
     [MemberData(nameof(GetRetryHandlers), 1)]
     public async Task Should_use_query_RetryHandler_if_passed(IRetryHandler retryHandler)
     {
-        var qf = new MockQueryFunction<int, string>(2);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query, new()
         {
             RetryHandler = RetryHandler.None,
@@ -119,8 +119,8 @@ public class RetryHandlerTests
         });
 
         var setArgTask = query.SetArgAsync(1);
-        qf.Sources[0].SetException(new HttpRequestException("fail 1"));
-        qf.Sources[1].SetResult("1");
+        qf.GetSource(0).SetException(new HttpRequestException("fail 1"));
+        qf.GetSource(1).SetResult("1");
 
         await setArgTask;
 
@@ -132,7 +132,7 @@ public class RetryHandlerTests
     [UIFact]
     public async Task Should_have_no_retry_if_RetryHandler_None_is_used_in_query()
     {
-        var qf = new MockQueryFunction<int, string>(1);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query, new()
         {
             RetryHandler = RetryHandler.Simple(1),
@@ -146,7 +146,7 @@ public class RetryHandlerTests
             .Should().ThrowExactlyAsync<HttpRequestException>().WithMessage("fail 1");
 
         var ex = new HttpRequestException("fail 1");
-        qf.Sources[0].SetException(ex);
+        qf.GetSource(0).SetException(ex);
 
         await setArgTask;
 

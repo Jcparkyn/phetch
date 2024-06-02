@@ -17,7 +17,7 @@
     [Fact]
     public async Task Should_call_correct_callbacks()
     {
-        var qf = new MockQueryFunction<int, string>(3);
+        var qf = new MockQueryFunction<int, string>();
         var query = new Endpoint<int, string>(qf.Query).Use();
 
         var (onChanged, onChangedCalls) = MakeMonitoredAction();
@@ -37,7 +37,7 @@
         onSuccessCalls.Should().HaveCount(0);
         cut.RenderCount.Should().Be(2);
 
-        await cut.InvokeAsync(() => qf.Sources[0].SetResult("0"));
+        await cut.InvokeAsync(() => qf.GetSource(0).SetResult("0"));
         using (new AssertionScope())
         {
             onChangedCalls.Should().HaveCount(2);
@@ -57,7 +57,7 @@
 
         // Failed query
         await cut.InvokeAsync(() => query.SetArg(1));
-        await cut.InvokeAsync(() => qf.Sources[1].SetException(new Exception("boom")));
+        await cut.InvokeAsync(() => qf.GetSource(1).SetException(new Exception("boom")));
         using (new AssertionScope())
         {
             onChangedCalls.Should().HaveCount(4);
@@ -76,7 +76,7 @@
         // Dispose and test that callbacks are no longer called
         DisposeComponents();
         await cut.InvokeAsync(() => query.SetArg(2));
-        await cut.InvokeAsync(() => qf.Sources[2].SetResult("2"));
+        await cut.InvokeAsync(() => qf.GetSource(2).SetResult("2"));
         using (new AssertionScope())
         {
             onChangedCalls.Should().HaveCount(4);
@@ -88,7 +88,7 @@
     [Fact]
     public void Should_render_child_content()
     {
-        var qf = new MockQueryFunction<int, string>(1);
+        var qf = new MockQueryFunction<int, string>();
         var query = new Endpoint<int, string>(qf.Query)
             .Use();
 
@@ -111,7 +111,7 @@
             cut.WaitForAssertion(() => cut.MarkupMatches("Loading"));
             component.RenderCount.Should().Be(2);
         }
-        cut.InvokeAsync(() => qf.Sources[0].SetResult("1"));
+        cut.InvokeAsync(() => qf.GetSource(0).SetResult("1"));
 
         using (new AssertionScope())
         {

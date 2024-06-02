@@ -14,7 +14,7 @@ public class RefetchIntervalTests
     public async Task RefetchInterval_with_single_query()
     {
         var timeProvider = new PhetchFakeTimeProvider();
-        var qf = new MockQueryFunction<int, string>(3);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query, options: new()
         {
             TimeProvider = timeProvider,
@@ -55,7 +55,7 @@ public class RefetchIntervalTests
     public async Task RefetchInterval_with_two_queries()
     {
         var timeProvider = new PhetchFakeTimeProvider();
-        var qf = new MockQueryFunction<int, string>(2);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query, options: new()
         {
             TimeProvider = timeProvider,
@@ -99,7 +99,7 @@ public class RefetchIntervalTests
     public async Task Should_stop_fetching_when_query_is_removed()
     {
         var timeProvider = new PhetchFakeTimeProvider();
-        var qf = new MockQueryFunction<int, string>(2);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query, options: new()
         {
             TimeProvider = timeProvider,
@@ -133,7 +133,7 @@ public class RefetchIntervalTests
     public async Task Should_handle_interval_change_after_fetch()
     {
         var timeProvider = new PhetchFakeTimeProvider();
-        var qf = new MockQueryFunction<int, string>(3);
+        var qf = new MockQueryFunction<int, string>();
         var endpoint = new Endpoint<int, string>(qf.Query, options: new()
         {
             TimeProvider = timeProvider,
