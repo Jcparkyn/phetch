@@ -1,5 +1,5 @@
 
-# Unreleased
+# [v0.7.1] - 2024-06-08
 
 ## Added
 - New `RefetchInterval` option on queries to automatically re-fetch a query on a fixed interval.
@@ -10,6 +10,8 @@
 
 ## Development
 - More tests.
+
+[Changes][v0.7.1]
 
 # [v0.7.0] - 2024-05-04
 
@@ -219,6 +221,7 @@ This release removes the concept of mutations as the previously existed, and ins
 
 [Changes][v0.1.0]
 
+[v0.7.1]: https://github.com/Jcparkyn/phetch/compare/v0.7.0...v0.7.1
 [v0.7.0]: https://github.com/Jcparkyn/phetch/compare/v0.6.0...v0.7.0
 [v0.6.0]: https://github.com/Jcparkyn/phetch/compare/v0.5.1...v0.6.0
 [v0.5.1]: https://github.com/Jcparkyn/phetch/compare/v0.5.0...v0.5.1
