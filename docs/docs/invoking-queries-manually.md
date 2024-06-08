@@ -11,6 +11,8 @@ The `Query` class contains four different methods for manually invoking queries,
 1. **`Trigger`**: This always runs the query using the passed argument, regardless of whether cached data is available. Importantly, this will **not** share cached data with other components. This is the recommended way to call endpoints with side-effects (e.g. PUT, POST, or DELETE endpoints) in most cases, and works a lot like mutations in React Query.
 1. **`Invoke`**: This simply calls the original query function, completely ignoring all Phetch functionality (caching and state management).
 
+Each of these (except for `Invoke`) has an `Async` variant, which will **return the result of the query, or re-throw the exception if the query failed**. Unless you specifically need to `await` the query, you should usually use the non-async versions listed above.
+
 > :information_source: If you are coming from React Query, you may be used to "queries" and "mutations" being different things.
 In Phetch, these have been combined, so that everything is just a query.
 To get the same behavior as a mutation in React Query or RTK Query, use the `query.Trigger()` method.

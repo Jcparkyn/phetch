@@ -6,6 +6,7 @@
 
 ## Changed
 - Some minor improvements to type definitions for `Query` methods (non-breaking).
+- Improved docs for async `Query` methods.
 
 ## Development
 - More tests.

@@ -167,28 +167,45 @@ public interface IQuery<TArg, TResult> : IQuery
     public Task<TResult> Invoke(TArg arg, CancellationToken ct = default);
 
     /// <summary>
-    /// Re-runs the query using the most recent argument and returns the result asynchronously.
+    /// Re-runs the query using the most recent argument and returns the result asynchronously. If
+    /// the query fails, this will <b>re-throw the error</b> from the query function.
     /// </summary>
+    /// <remarks>
+    /// If you do not need to <c>await</c> the completion of the query, use <see
+    /// cref="QueryExtensions.Refetch">Refetch</see> instead.
+    /// </remarks>
     /// <returns>The value returned by the query function</returns>
-    /// <exception cref="InvalidOperationException">Thrown if no argument has been provided to the query</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if no argument has been provided to the query
+    /// </exception>
+    /// <exception cref="Exception">Thrown if the query function throws an exception</exception>
     public Task<TResult> RefetchAsync();
 
     /// <summary>
-    /// Updates the argument for this query, and re-run the query if the argument has changed.
+    /// Updates the argument for this query, and re-run the query if the argument has changed. If
+    /// the query fails, this will <b>re-throw the error</b> from the query function.
     /// </summary>
     /// <remarks>
-    /// If you do not need to <c>await</c> the completion of the query, use <see cref="QueryExtensions.SetArg"/> instead.
+    /// If you do not need to <c>await</c> the completion of the query, use <see
+    /// cref="QueryExtensions.SetArg"/> instead.
     /// </remarks>
     /// <returns>
     /// A <see cref="Task"/> which completes when the query returns, or immediately if there is a
     /// non-stale cached value for this argument.
     /// </returns>
+    /// <exception cref="Exception">Thrown if the query function throws an exception</exception>
     public Task<TResult> SetArgAsync(TArg arg);
 
     /// <summary>
-    /// Run the query function without sharing state or cache with other queries.
+    /// Run the query function without sharing state or cache with other queries. If the query
+    /// fails, this will <b>re-throw the error</b> from the query function.
     /// </summary>
     /// <remarks>
+    /// If you do not need to <c>await</c> the completion of the query, use <see
+    /// cref="QueryExtensions.Trigger{TArg, TResult}(IQuery{TArg, TResult}, TArg,
+    /// Action{QuerySuccessEventArgs{TArg, TResult}}?,
+    /// Action{QueryFailureEventArgs{TArg}}?)">Trigger</see> instead.
+    /// <para/>
     /// This is typically used for queries that have side effects (e.g., POST requests). This has
     /// the following differences from <see cref="SetArgAsync(TArg)"/>:
     /// <list type="bullet">
@@ -203,6 +220,7 @@ public interface IQuery<TArg, TResult> : IQuery
     /// </remarks>
     /// <param name="arg">The argument to pass to the query function</param>
     /// <returns>The value returned by the query function</returns>
+    /// <exception cref="Exception">Thrown if the query function throws an exception</exception>
     public Task<TResult> TriggerAsync(TArg arg);
 }
 
@@ -509,7 +527,7 @@ public static class QueryExtensions
         _ = self.RefetchAsync();
     }
 
-    /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
+    /// <inheritdoc cref="IQuery{TArg, TResult}.TriggerAsync(TArg)"/>
     /// <param name="self">The query to trigger.</param>
     /// <param name="arg">The argument to pass to the query.</param>
     /// <param name="onFailure">
@@ -538,10 +556,31 @@ public static class QueryExtensions
         }
     }
 
+    /// <summary>
+    /// Run the query function without sharing state or cache with other queries.
+    /// </summary>
     /// <remarks>
-    /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
     /// To also return the result of the query, use <see cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>.
+    /// <para/>
+    /// This is typically used for queries that have side effects (e.g., POST requests). This has
+    /// the following differences from <see cref="SetArg{TArg, TResult}(IQuery{TArg, TResult}, TArg)">SetArg</see>:
+    /// <list type="bullet">
+    /// <item>
+    /// This will always run the query function, even if it was previously run with the same query argument.
+    /// </item>
+    /// <item>
+    /// The state of this query (including the cached return value) will not be shared with other
+    /// queries that use the same query argument.
+    /// </item>
+    /// </list>
     /// </remarks>
+    /// <param name="self">The query to trigger.</param>
+    /// <param name="arg">The argument to pass to the query.</param>
+    /// <param name="onFailure">
+    /// An optional callback which will be fired if the query fails. This is not fired if the query
+    /// is cancelled.
+    /// </param>
+    /// <param name="onSuccess">An optional callback which will be fired if the query succeeds.</param>
     [ExcludeFromCodeCoverage]
     public static void Trigger<TArg, TResult>(
         this IQuery<TArg, TResult> self,
@@ -557,7 +596,7 @@ public static class QueryExtensions
     /// Causes this query to fetch if it has not already.
     /// </summary>
     /// <remarks>
-    /// This is equivalent to <see cref="Query{TArg, TResult}.SetArgAsync(TArg)"/>, but for parameterless queries.
+    /// This is equivalent to <see cref="SetArg{TArg, TResult}(IQuery{TArg, TResult}, TArg)"/>, but for parameterless queries.
     /// </remarks>
     [ExcludeFromCodeCoverage]
     public static void Fetch<TResult>(this IQuery<Unit, TResult> self)
@@ -566,7 +605,19 @@ public static class QueryExtensions
         _ = self.SetArgAsync(default);
     }
 
-    /// <inheritdoc cref="Fetch"/>
+    /// <summary>
+    /// Causes this query to fetch if it has not already. If the query fails, this will <b>re-throw
+    /// the error</b> from the query function.
+    /// </summary>
+    /// <remarks>
+    /// If you do not need to <c>await</c> the completion of the query, use <see
+    /// cref="Fetch"/> instead.
+    /// <para/>
+    /// This is equivalent to <see cref="Query{TArg,TResult}.SetArgAsync(TArg)"/>, but for
+    /// parameterless queries.
+    /// </remarks>
+    /// <returns>The value returned by the query function</returns>
+    /// <exception cref="Exception">Thrown if the query function throws an exception</exception>
     [ExcludeFromCodeCoverage]
     public static Task<TResult> FetchAsync<TResult>(this IQuery<Unit, TResult> self)
     {
@@ -574,7 +625,7 @@ public static class QueryExtensions
         return self.SetArgAsync(default);
     }
 
-    /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
+    /// <inheritdoc cref="Trigger{TArg, TResult}(IQuery{TArg, TResult}, TArg, Action{QuerySuccessEventArgs{TArg, TResult}}?, Action{QueryFailureEventArgs{TArg}}?)"/>
     [ExcludeFromCodeCoverage]
     public static void Trigger<TResult>(
         this IQuery<Unit, TResult> self,

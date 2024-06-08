@@ -226,6 +226,16 @@ public class QueryTests
     }
 
     [UIFact]
+    public void SetArg_should_not_throw_when_query_fails_synchronously()
+    {
+        var query = new Endpoint<int, string>(
+            val => throw new IndexOutOfRangeException("BOOM!")
+        ).Use();
+        query.SetArg(1); // Should not throw
+        query.Error!.Message.Should().Be("BOOM!");
+    }
+
+    [UIFact]
     public async Task Should_handle_query_error()
     {
         var error = new IndexOutOfRangeException("BOOM!");
