@@ -163,7 +163,7 @@ public class Endpoint<TArg, TResult>
     public FixedQuery<TArg, TResult>? GetCachedQuery(TArg arg) => Cache.GetCachedQuery(arg);
 
     /// <summary>
-    /// Similar to <see cref="GetCachedQuery(TArg)"/>, but looks up a query by it's key directly.
+    /// Similar to <see cref="GetCachedQuery(TArg)"/>, but looks up a query by its key directly.
     /// This is only useful when using <see cref="EndpointOptions{TArg, TResult}.KeySelector"/>,
     /// because otherwise the key and arguments are equivalent.
     /// </summary>
