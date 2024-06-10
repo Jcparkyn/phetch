@@ -24,3 +24,5 @@
   href: retries.md
 - name: Sharing options between endpoints
   href: sharing-options-between-endpoints.md
+- name: FAQ and Troubleshooting
+  href: faq.md
