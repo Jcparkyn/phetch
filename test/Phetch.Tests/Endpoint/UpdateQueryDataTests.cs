@@ -78,8 +78,8 @@ public class UpdateQueryDataTests
 
         using (new AssertionScope())
         {
-            result1.Should().Be("1");
-            result2.Should().Be("2");
+            result1.Result.Should().Be("1");
+            result2.Result.Should().Be("2");
             query1.Data.Should().Be("1");
             query2.Data.Should().Be("2");
         }

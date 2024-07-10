@@ -159,7 +159,8 @@ public interface IQuery<TArg, TResult> : IQuery
     public FixedQuery<TArg, TResult>? CurrentQuery { get; }
 
     /// <summary>
-    /// Runs the original query function once, completely bypassing caching and other extra behavior
+    /// Runs the original query function once, completely bypassing caching and other extra
+    /// behavior. Re-throws any exception thrown by the query function.
     /// </summary>
     /// <param name="arg">The argument passed to the query function</param>
     /// <param name="ct">An optional cancellation token</param>
@@ -221,7 +222,7 @@ public interface IQuery<TArg, TResult> : IQuery
     /// <param name="arg">The argument to pass to the query function</param>
     /// <returns>The value returned by the query function</returns>
     /// <exception cref="Exception">Thrown if the query function throws an exception</exception>
-    public Task<TResult> TriggerAsync(TArg arg);
+    public Task<QueryResult<TResult>> TriggerAsync(TArg arg);
 }
 
 /// <inheritdoc cref="IQuery{TArg, TResult}"/>
@@ -386,7 +387,12 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
     }
 
     /// <inheritdoc/>
-    public async Task<TResult> TriggerAsync(TArg arg)
+    public Task<QueryResult<TResult>> TriggerAsync(TArg arg)
+    {
+        return QueryResult.OfAsync(() => TriggerAsyncInternal(arg));
+    }
+
+    internal async Task<TResult> TriggerAsyncInternal(TArg arg)
     {
         // TODO: Re-use when arguments unchanged?
         var query = _cache.AddUncached(arg);
@@ -540,25 +546,24 @@ public static class QueryExtensions
     /// is cancelled.
     /// </param>
     /// <param name="onSuccess">An optional callback which will be fired if the query succeeds.</param>
-    public static async Task<TResult> TriggerAsync<TArg, TResult>(
+    public static async Task<QueryResult<TResult>> TriggerAsync<TArg, TResult>(
         this IQuery<TArg, TResult> self,
         TArg arg,
         Action<QuerySuccessEventArgs<TArg, TResult>>? onSuccess = null,
         Action<QueryFailureEventArgs<TArg>>? onFailure = null)
     {
         _ = self ?? throw new ArgumentNullException(nameof(self));
-        try
+        var result = await self.TriggerAsync(arg);
+        if (result.IsSuccess)
         {
-            var result = await self.TriggerAsync(arg);
-            onSuccess?.Invoke(new(arg, result));
-            return result;
+            onSuccess?.Invoke(new(arg, result.Result!));
         }
         // OperationCancelledException is generally not considered a failure
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        else if (result.Error is not OperationCanceledException)
         {
-            onFailure?.Invoke(new(arg, ex));
-            throw;
+            onFailure?.Invoke(new(arg, result.Error));
         }
+        return result;
     }
 
     /// <summary>
@@ -643,7 +648,7 @@ public static class QueryExtensions
 
     /// <inheritdoc cref="Query{TArg, TResult}.TriggerAsync(TArg)"/>
     [ExcludeFromCodeCoverage]
-    public static Task<TResult> TriggerAsync<TResult>(this IQuery<Unit, TResult> self)
+    public static Task<QueryResult<TResult>> TriggerAsync<TResult>(this IQuery<Unit, TResult> self)
     {
         _ = self ?? throw new ArgumentNullException(nameof(self));
         return self.TriggerAsync(default);

@@ -27,13 +27,14 @@ public record QueryResult<TResult>
     /// <summary>
     /// Whether or not the query succeeded (completed without throwing an exception).
     /// </summary>
+    // Can't use MemberNotNullWhen for Result because it lies if TResult is nullable
+    [MemberNotNullWhen(false, nameof(Error))]
     public bool IsSuccess { get; internal init; }
 
     /// <summary>
     /// The exception thrown by the query if it failed, otherwise <see langword="null"/>.
     /// </summary>
     ///
-    [MemberNotNullWhen(false, nameof(IsSuccess))]
     public Exception? Error { get; internal init; }
 
     /// <summary>
@@ -61,8 +62,13 @@ public record QueryResult<TResult>
         }
         else
         {
-            throw Error!;
+            throw Error;
         }
+    }
+
+    public TResult GetOrDefault(TResult defaultValue)
+    {
+        return IsSuccess ? Result! : defaultValue;
     }
 }
 

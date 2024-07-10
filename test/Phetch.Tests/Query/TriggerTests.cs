@@ -34,7 +34,7 @@ public class TriggerTests
         qf.GetSource(0).SetResult("10");
         var result1 = await triggerTask1;
 
-        result1.Should().Be("10");
+        result1.Result.Should().Be("10");
         query.Status.Should().Be(QueryStatus.Success);
         query.IsSuccess.Should().BeTrue();
         query.IsLoading.Should().BeFalse();
@@ -79,7 +79,7 @@ public class TriggerTests
                 e.Parameters.Should().Equal("20");
             });
 
-        result2.Should().Be("20");
+        result2.Result.Should().Be("20");
         query.IsLoading.Should().BeFalse();
     }
 
@@ -91,8 +91,9 @@ public class TriggerTests
             (_, _) => Task.FromException(error)
         ).Use();
 
-        await query.Invoking(x => x.TriggerAsync("test"))
-            .Should().ThrowExactlyAsync<IndexOutOfRangeException>();
+        var result = await query.TriggerAsync("test");
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Be(error);
 
         query.HasData.Should().BeFalse();
         query.Status.Should().Be(QueryStatus.Error);
@@ -112,15 +113,15 @@ public class TriggerTests
             (val, ct) => Task.Delay(1000, ct)
         ).Use();
 
-        var task = query.Invoking(x => x.TriggerAsync("test"))
-            .Should().ThrowExactlyAsync<TaskCanceledException>();
+        var task = query.TriggerAsync("test");
+
         if (awaitBeforeCancel)
         {
             await Task.Yield();
         }
         query.Cancel();
 
-        await task;
+        (await task).Error.Should().BeOfType<TaskCanceledException>();
 
         query.Status.Should().Be(QueryStatus.Idle);
         query.Error.Should().Be(null);
@@ -147,8 +148,8 @@ public class TriggerTests
         var result1 = await query1.TriggerAsync(10);
         var result2 = await query2.TriggerAsync(10);
 
-        result1.Should().Be("10-1");
-        result2.Should().Be("10-2");
+        result1.Result.Should().Be("10-1");
+        result2.Result.Should().Be("10-2");
 
         query1.Data.Should().Be("10-1");
         query2.Data.Should().Be("10-2");
@@ -181,8 +182,9 @@ public class TriggerTests
 
         var query = endpoint.Use();
         QueryFailureEventArgs<int>? args = null;
-        await query.Invoking(q => q.TriggerAsync(10, onFailure: e => args = e)).Should()
-            .ThrowAsync<Exception>().WithMessage("boom");
+
+        var result = await query.TriggerAsync(10, onFailure: e => args = e);
+        result.Error!.Message.Should().Be("boom");
 
         args.Should().NotBeNull();
         args!.Exception.Message.Should().Be("boom");
@@ -203,7 +205,7 @@ public class TriggerTests
         var endpoint = new Endpoint<int, string>(
             async (x, ct) =>
             {
-                await Task.Delay(1000, ct);
+                await Task.Delay(10000, ct);
                 return x.ToString();
             }
         );
@@ -211,10 +213,11 @@ public class TriggerTests
         var query = endpoint.Use();
         int calls = 0;
 
-        var task = query.Invoking(q => q.TriggerAsync(10, onFailure: _ => calls++)).Should()
-            .ThrowAsync<OperationCanceledException>();
+        var task = query.TriggerAsync(10, onFailure: _ => calls++);
         query.Cancel();
-        await task;
+        var result = await task;
+
+        result.Error.Should().BeOfType<TaskCanceledException>();
 
         calls.Should().Be(0);
     }
