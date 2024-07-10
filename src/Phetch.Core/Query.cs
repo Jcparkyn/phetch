@@ -179,7 +179,7 @@ public interface IQuery<TArg, TResult> : IQuery
     /// Thrown if no argument has been provided to the query
     /// </exception>
     /// <exception cref="Exception">Thrown if the query function throws an exception</exception>
-    public Task<TResult> RefetchAsync();
+    public Task<QueryResult<TResult>> RefetchAsync();
 
     /// <summary>
     /// Updates the argument for this query, and re-run the query if the argument has changed. If
@@ -194,7 +194,7 @@ public interface IQuery<TArg, TResult> : IQuery
     /// non-stale cached value for this argument.
     /// </returns>
     /// <exception cref="Exception">Thrown if the query function throws an exception</exception>
-    public Task<TResult> SetArgAsync(TArg arg);
+    public Task<QueryResult<TResult>> SetArgAsync(TArg arg);
 
     /// <summary>
     /// Run the query function without sharing state or cache with other queries. If the query
@@ -339,16 +339,21 @@ public class Query<TArg, TResult> : IQuery<TArg, TResult>
     public void Cancel() => _currentQuery?.Cancel();
 
     /// <inheritdoc/>
-    public Task<TResult> RefetchAsync()
+    public Task<QueryResult<TResult>> RefetchAsync()
     {
         if (_currentQuery is null)
             throw new InvalidOperationException("Cannot refetch an uninitialized query");
 
-        return _currentQuery.RefetchAsync(_options?.RetryHandler);
+        return QueryResult.OfAsync(() => _currentQuery.RefetchAsync(_options?.RetryHandler));
     }
 
     /// <inheritdoc/>
-    public async Task<TResult> SetArgAsync(TArg arg)
+    public Task<QueryResult<TResult>> SetArgAsync(TArg arg)
+    {
+        return QueryResult.OfAsync(() => SetArgAsyncInternal(arg));
+    }
+
+    internal async Task<TResult> SetArgAsyncInternal(TArg arg)
     {
         var newQuery = _cache.GetOrAdd(arg);
         if (newQuery != _currentQuery)
@@ -619,7 +624,7 @@ public static class QueryExtensions
     /// <returns>The value returned by the query function</returns>
     /// <exception cref="Exception">Thrown if the query function throws an exception</exception>
     [ExcludeFromCodeCoverage]
-    public static Task<TResult> FetchAsync<TResult>(this IQuery<Unit, TResult> self)
+    public static Task<QueryResult<TResult>> FetchAsync<TResult>(this IQuery<Unit, TResult> self)
     {
         _ = self ?? throw new ArgumentNullException(nameof(self));
         return self.SetArgAsync(default);

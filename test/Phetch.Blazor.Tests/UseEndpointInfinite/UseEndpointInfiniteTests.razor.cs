@@ -64,7 +64,7 @@ public partial class UseEndpointInfiniteTests : TestContext
         }
 
         // Explicit <Task> to ensure we don't wait for LoadNextPageAsync to complete
-        var loadTask = await cut.InvokeAsync<Task<PageResponse>>(content.Instance.Context.LoadNextPageAsync);
+        var loadTask = await cut.InvokeAsync<Task<QueryResult<PageResponse>>>(content.Instance.Context.LoadNextPageAsync);
 
         // Loading second and final page
         using (new AssertionScope())
@@ -85,7 +85,7 @@ public partial class UseEndpointInfiniteTests : TestContext
                 });
         }
         await cut.InvokeAsync(() => qf.SetResult(1, new PageResponse(null)));
-        var loadTaskResult = await loadTask;
+        var loadTaskResult = (await loadTask).GetOrThrow();
         loadTaskResult.Should().Be(new PageResponse(null));
 
         // Loaded final page

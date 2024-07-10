@@ -16,7 +16,7 @@ public class QueryTests
         var query = new ParameterlessEndpoint<string>(
             _ => ReturnAsync("test")
         ).Use();
-        var result = await query.SetArgAsync(default);
+        var result = await query.SetArgAsyncInternal(default);
         result.Should().Be("test");
         query.Data.Should().Be("test");
         AssertIsSuccessState(query);
@@ -38,7 +38,7 @@ public class QueryTests
         query.LastData.Should().BeNull();
 
         // Fetch once
-        var fetchTask = query.SetArgAsync(default);
+        var fetchTask = query.SetArgAsyncInternal(default);
 
         query.IsLoading.Should().BeTrue();
         query.IsFetching.Should().BeTrue();
@@ -100,7 +100,7 @@ public class QueryTests
         query.Arg.Should().Be(0);
 
         // Fetch once
-        var fetchTask = query.SetArgAsync(1);
+        var fetchTask = query.SetArgAsyncInternal(1);
         query.Arg.Should().Be(1);
         query.IsLoading.Should().BeTrue();
         query.IsFetching.Should().BeTrue();
@@ -127,7 +127,7 @@ public class QueryTests
 
         tcs = new();
         // Fetch again
-        var refetchTask = query.SetArgAsync(2);
+        var refetchTask = query.SetArgAsyncInternal(2);
 
         query.Arg.Should().Be(2);
         query.IsLoading.Should().BeTrue();
@@ -173,7 +173,7 @@ public class QueryTests
 
         using var mon = query.Monitor();
 
-        var task = query.Invoking(x => x.SetArgAsync(1))
+        var task = query.Invoking(x => x.SetArgAsyncInternal(1))
             .Should().ThrowExactlyAsync<TaskCanceledException>();
         if (awaitBeforeCancel)
         {
@@ -205,7 +205,7 @@ public class QueryTests
 
         using var mon = query.Monitor();
 
-        var task = query.SetArgAsync(1);
+        var task = query.SetArgAsyncInternal(1);
         if (awaitBeforeCancel)
         {
             await Task.Yield();
@@ -244,7 +244,7 @@ public class QueryTests
         ).Use();
         using var mon = query.Monitor();
 
-        await query.Invoking(x => x.SetArgAsync(default))
+        await query.Invoking(x => x.SetArgAsyncInternal(default))
             .Should().ThrowExactlyAsync<IndexOutOfRangeException>();
 
         using (new AssertionScope())
@@ -278,7 +278,7 @@ public class QueryTests
             }
         );
 
-        var result = await query.SetArgAsync(1);
+        var result = await query.SetArgAsyncInternal(1);
         result.Should().Be("1");
         AssertIsSuccessState(query);
         // TODO: We can't easily assert event calls here, because FluentAssertions doesn't handle exceptions properly yet.
@@ -301,7 +301,7 @@ public class QueryTests
             }
         );
 
-        await query.Invoking(x => x.SetArgAsync(1))
+        await query.Invoking(x => x.SetArgAsyncInternal(1))
            .Should().ThrowExactlyAsync<IndexOutOfRangeException>();
 
         query.Status.Should().Be(QueryStatus.Error);
@@ -434,20 +434,19 @@ public class QueryTests
 
         // Trigger an initial success. This ensures that _dataUpdatedAt is set, because otherwise
         // this test passes "for free".
-        var task1 = query.SetArgAsync(0);
+        var task1 = query.SetArgAsyncInternal(0);
         qf.GetSource(0).SetResult("0");
         await task1;
 
         // Refetch with failure
         var task2 = query.RefetchAsync();
         qf.GetSource(1).SetException(new IndexOutOfRangeException("BOOM!"));
-        await task2.Invoking(t => t)
-            .Should().ThrowExactlyAsync<IndexOutOfRangeException>();
+        (await task2).Error.Should().BeOfType<IndexOutOfRangeException>();
 
         // Currently, setting the same arg twice will never refetch, which is intentional.
         // Instead we just change the arg twice.
-        _ = query.SetArgAsync(1);
-        var task3 = query.SetArgAsync(0);
+        _ = query.SetArgAsyncInternal(1);
+        var task3 = query.SetArgAsyncInternal(0);
         qf.GetSource(3).SetResult("0 again");
         await task3;
 
@@ -468,14 +467,14 @@ public class QueryTests
         query.LastData.Should().BeNull();
 
         // Fetch once
-        var task1 = query.SetArgAsync(0);
+        var task1 = query.SetArgAsyncInternal(0);
         query.LastData.Should().BeNull();
 
         qf.GetSource(0).SetResult("0"); await task1;
         query.LastData.Should().Be("0");
 
         // Change arg
-        var task2 = query.SetArgAsync(1);
+        var task2 = query.SetArgAsyncInternal(1);
         query.LastData.Should().Be("0");
 
         qf.GetSource(1).SetException(new Exception("boom"));
@@ -492,7 +491,7 @@ public class QueryTests
         query.LastData.Should().BeNull();
 
         // Fetch once
-        var task1 = query.SetArgAsync(0);
+        var task1 = query.SetArgAsyncInternal(0);
         query.LastData.Should().BeNull();
 
         qf.GetSource(0).SetResult("0"); await task1;
@@ -503,15 +502,18 @@ public class QueryTests
         query.LastData.Should().Be("0");
 
         qf.GetSource(1).SetException(new Exception("boom1"));
-        await task2.Invoking(t => t).Should().ThrowExactlyAsync<Exception>().WithMessage("boom1");
+        //await task2.Invoking(t => t).Should().ThrowExactlyAsync<Exception>().WithMessage("boom1");
+        var result2 = await task2;
+        result2.IsSuccess.Should().BeFalse();
+        result2.Error!.Message.Should().Be("boom1");
         query.LastData.Should().Be("0");
 
         // Change arg with failure
-        var task4 = query.SetArgAsync(1);
+        var task3 = query.SetArgAsyncInternal(1);
         query.LastData.Should().Be("0");
 
         qf.GetSource(2).SetException(new Exception("boom2"));
-        await task4.Invoking(t => t).Should().ThrowExactlyAsync<Exception>().WithMessage("boom2");
+        await task3.Invoking(t => t).Should().ThrowExactlyAsync<Exception>().WithMessage("boom2");
         query.LastData.Should().Be("0");
     }
 

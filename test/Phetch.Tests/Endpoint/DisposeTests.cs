@@ -19,10 +19,10 @@ public class DisposeTests
             }
         );
         var query = endpoint.Use();
-        await query.SetArgAsync(1);
+        await query.SetArgAsyncInternal(1);
         endpoint.GetCachedQuery(1).Should().NotBeNull();
 
-        await query.SetArgAsync(2);
+        await query.SetArgAsyncInternal(2);
         endpoint.GetCachedQuery(1).Should().BeNull();
         query.Dispose();
         endpoint.GetCachedQuery(2).Should().BeNull();
@@ -41,7 +41,7 @@ public class DisposeTests
             }
         );
         var query = endpoint.Use();
-        await query.SetArgAsync(1);
+        await query.SetArgAsyncInternal(1);
         query.Dispose();
         endpoint.GetCachedQuery(1).Should().NotBeNull();
 
@@ -64,13 +64,13 @@ public class DisposeTests
             }
         );
         var query1 = endpoint.Use();
-        await query1.SetArgAsync(1);
+        await query1.SetArgAsyncInternal(1);
         query1.Dispose();
         endpoint.GetCachedQuery(1).Should().NotBeNull();
 
         timeProvider.Advance(TimeSpan.FromSeconds(9));
         var query2 = endpoint.Use();
-        await query2.SetArgAsync(1);
+        await query2.SetArgAsyncInternal(1);
 
         timeProvider.Advance(TimeSpan.FromSeconds(2));
         endpoint.GetCachedQuery(1).Should().NotBeNull();

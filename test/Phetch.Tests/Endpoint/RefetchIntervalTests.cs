@@ -25,7 +25,7 @@ public class RefetchIntervalTests
         });
         qf.SetResult(0, "result0");
 
-        await query.SetArgAsync(1);
+        await query.SetArgAsyncInternal(1);
         query.Status.Should().Be(QueryStatus.Success);
         query.Data.Should().Be("result0");
 
@@ -76,7 +76,7 @@ public class RefetchIntervalTests
         qf.SetResult(0, "result0");
 
         foreach (var query in queries)
-            await query.SetArgAsync(1);
+            await query.SetArgAsyncInternal(1);
 
         qf.Calls.Should().Equal(1);
         foreach (var query in queries)
@@ -110,7 +110,7 @@ public class RefetchIntervalTests
         });
 
         qf.SetResult(0, "result0");
-        await query.SetArgAsync(1);
+        await query.SetArgAsyncInternal(1);
 
         // After refetch interval passes
         timeProvider.Advance(TimeSpan.FromSeconds(11));
@@ -144,7 +144,7 @@ public class RefetchIntervalTests
         });
 
         qf.SetResult(0, "result0");
-        await query1.SetArgAsync(1);
+        await query1.SetArgAsyncInternal(1);
 
         // Before refetch interval passes
         timeProvider.Advance(TimeSpan.FromSeconds(9));
@@ -155,7 +155,7 @@ public class RefetchIntervalTests
             RefetchInterval = TimeSpan.FromSeconds(3),
         });
         qf.SetResult(1, "result1");
-        await query2.SetArgAsync(1);
+        await query2.SetArgAsyncInternal(1);
 
         timeProvider.Advance(TimeSpan.FromSeconds(2));
         query2.IsFetching.Should().BeFalse();

@@ -21,15 +21,15 @@ public class KeySelectorTests
             }
         );
         var query1 = endpoint.Use();
-        var result = await query1.SetArgAsync((10, new object()));
+        var result = await query1.SetArgAsyncInternal((10, new object()));
 
         var query2 = endpoint.Use();
-        var setArgAgainTask = query2.SetArgAsync((10, new object()));
+        var setArgAgainTask = query2.SetArgAsyncInternal((10, new object()));
         setArgAgainTask.IsCompletedSuccessfully.Should().BeTrue();
         (await setArgAgainTask).Should().Be("10");
 
         var query3 = endpoint.Use();
-        await query3.SetArgAsync((11, new object()));
+        await query3.SetArgAsyncInternal((11, new object()));
 
         using (new AssertionScope())
         {

@@ -20,8 +20,8 @@ public class InvalidateTests
         var query1 = endpoint.Use();
         var query2 = endpoint.Use();
 
-        await query1.SetArgAsync(1);
-        var setArg2Task = query2.SetArgAsync(2);
+        await query1.SetArgAsyncInternal(1);
+        var setArg2Task = query2.SetArgAsyncInternal(2);
         if (!invalidateWhileRunning)
         {
             await setArg2Task;
@@ -52,8 +52,8 @@ public class InvalidateTests
         var query1 = endpoint.Use();
         var query2 = endpoint.Use();
 
-        await query1.SetArgAsync(1);
-        await query2.SetArgAsync(2);
+        await query1.SetArgAsyncInternal(1);
+        await query2.SetArgAsyncInternal(2);
 
         endpoint.InvalidateWhere(q => q.Arg == 1);
 
@@ -79,8 +79,8 @@ public class InvalidateTests
         var query1 = endpoint.Use();
         var query2 = endpoint.Use();
 
-        await query1.SetArgAsync(1);
-        await query2.SetArgAsync(2);
+        await query1.SetArgAsyncInternal(1);
+        await query2.SetArgAsyncInternal(2);
 
         endpoint.Invalidate(3);
 
@@ -104,7 +104,7 @@ public class InvalidateTests
             StaleTime = TimeSpan.MaxValue,
         });
 
-        await query1.SetArgAsync(1);
+        await query1.SetArgAsyncInternal(1);
 
         query1.Detach();
 
@@ -112,7 +112,7 @@ public class InvalidateTests
         queryFnCalls.Should().Equal(1);
 
         var query2 = endpoint.Use();
-        var setArgTask = query2.SetArgAsync(1);
+        var setArgTask = query2.SetArgAsyncInternal(1);
 
         using (new AssertionScope())
         {

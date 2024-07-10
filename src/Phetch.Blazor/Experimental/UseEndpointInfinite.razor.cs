@@ -110,7 +110,7 @@ public sealed partial class UseEndpointInfinite<TArg, TResult> : ComponentBase, 
         }
     }
 
-    public async Task<TResult> LoadNextPageAsync()
+    public async Task<QueryResult<TResult>> LoadNextPageAsync()
     {
         Debug.Assert(_isInitialized);
         var lastQuery = _queries.LastOrDefault()
@@ -240,5 +240,5 @@ public sealed record UseEndpointInfiniteContext<TArg, TResult>
     public bool IsLoadingNextPage => Pages.Count > 0 && Pages[^1].IsFetching;
 
     public void LoadNextPage() => _ = _component.LoadNextPageAsync();
-    public Task<TResult> LoadNextPageAsync() => _component.LoadNextPageAsync();
+    public Task<QueryResult<TResult>> LoadNextPageAsync() => _component.LoadNextPageAsync();
 }

@@ -17,7 +17,7 @@ public class EndpointTests
             val => TestHelpers.ReturnAsync(val.ToString())
         );
         var query = endpoint.Use();
-        var result = await query.SetArgAsync(10);
+        var result = await query.SetArgAsyncInternal(10);
 
         using (new AssertionScope())
         {
@@ -44,8 +44,8 @@ public class EndpointTests
         var query2 = endpoint.Use(options);
         var query1Mon = query1.Monitor();
         var query2Mon = query2.Monitor();
-        var result1 = await query1.SetArgAsync(10);
-        var result2 = await query2.SetArgAsync(10);
+        var result1 = await query1.SetArgAsyncInternal(10);
+        var result2 = await query2.SetArgAsyncInternal(10);
 
         using (new AssertionScope())
         {
@@ -94,8 +94,8 @@ public class EndpointTests
         var query1Mon = query1.Monitor();
         var query2Mon = query2.Monitor();
 
-        var task1 = query1.SetArgAsync(10);
-        var task2 = query2.SetArgAsync(10);
+        var task1 = query1.SetArgAsyncInternal(10);
+        var task2 = query2.SetArgAsyncInternal(10);
 
         qf.SetResult(0, "10");
 
@@ -124,9 +124,9 @@ public class EndpointTests
             val => TestHelpers.ReturnAsync(val?.ToString() ?? "null")
         );
         var query1 = endpoint.Use();
-        var result1 = await query1.SetArgAsync(10);
+        var result1 = await query1.SetArgAsyncInternal(10);
         var queryNull = endpoint.Use();
-        var resultNull = await queryNull.SetArgAsync(null);
+        var resultNull = await queryNull.SetArgAsyncInternal(null);
 
         using (new AssertionScope())
         {
@@ -150,9 +150,9 @@ public class EndpointTests
             val => TestHelpers.ReturnAsync(val?.ToString() ?? "null")
         );
         var query1 = endpoint.Use();
-        var result1 = await query1.SetArgAsync("10");
+        var result1 = await query1.SetArgAsyncInternal("10");
         var queryNull = endpoint.Use();
-        var resultNull = await queryNull.SetArgAsync(null);
+        var resultNull = await queryNull.SetArgAsyncInternal(null);
 
         using (new AssertionScope())
         {
@@ -180,8 +180,8 @@ public class EndpointTests
         var trigger1 = endpoint.Use();
         var trigger2 = endpoint.Use();
 
-        await query1.SetArgAsync(1);
-        await query2.SetArgAsync(2);
+        await query1.SetArgAsyncInternal(1);
+        await query2.SetArgAsyncInternal(2);
         await trigger1.TriggerAsync(1);
         await trigger2.TriggerAsync(2);
 

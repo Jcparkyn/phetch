@@ -19,9 +19,9 @@ public class UpdateQueryDataTests
         var query2 = endpoint.Use();
         var query3 = endpoint.Use();
 
-        var result1 = await query1.SetArgAsync(1);
-        var result2 = await query2.SetArgAsync(2);
-        var result3 = await query3.SetArgAsync(3);
+        var result1 = await query1.SetArgAsyncInternal(1);
+        var result2 = await query2.SetArgAsyncInternal(2);
+        var result3 = await query3.SetArgAsyncInternal(3);
 
         using (new AssertionScope())
         {
@@ -50,7 +50,7 @@ public class UpdateQueryDataTests
             val => TestHelpers.ReturnAsync(val.ToString())
         );
         var query = endpoint.Use();
-        await query.SetArgAsync(1);
+        await query.SetArgAsyncInternal(1);
 
         var mon = query.Monitor();
         endpoint.UpdateQueryData(1, "1 - test1");
@@ -104,7 +104,7 @@ public class UpdateQueryDataTests
             StaleTime = TimeSpan.FromSeconds(30),
         });
 
-        var setArgTask = query1.SetArgAsync(1);
+        var setArgTask = query1.SetArgAsyncInternal(1);
 
         using (new AssertionScope())
         {

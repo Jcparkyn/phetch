@@ -23,7 +23,7 @@ public class PrefetchTests
         {
             StaleTime = TimeSpan.FromSeconds(10),
         });
-        var setArgTask = query.SetArgAsync(1);
+        var setArgTask = query.SetArgAsyncInternal(1);
 
         // The query should have completed synchronously without re-fetching
         query.IsSuccess.Should().BeTrue();
@@ -40,7 +40,7 @@ public class PrefetchTests
         var endpoint = new Endpoint<int, string>(queryFn);
         // Query in progress:
         var query1 = endpoint.Use();
-        var setArgTask1 = query1.SetArgAsync(1);
+        var setArgTask1 = query1.SetArgAsyncInternal(1);
         var prefetchResult1 = await endpoint.PrefetchAsync(1);
         prefetchResult1.Should().Be("1");
         await setArgTask1;
@@ -50,7 +50,7 @@ public class PrefetchTests
 
         // Complete query:
         var query2 = endpoint.Use();
-        await query2.SetArgAsync(1);
+        await query2.SetArgAsyncInternal(1);
         var prefetchResult2 = await endpoint.PrefetchAsync(1);
         prefetchResult2.Should().Be("1");
 
@@ -76,7 +76,7 @@ public class PrefetchTests
             StaleTime = TimeSpan.FromSeconds(10),
         });
 
-        await query.Awaiting(q => q.SetArgAsync(1)).Should().ThrowAsync<Exception>();
+        await query.Awaiting(q => q.SetArgAsyncInternal(1)).Should().ThrowAsync<Exception>();
         var prefetchTask = endpoint.Awaiting(e => e.PrefetchAsync(1)).Should().ThrowAsync<Exception>();
 
         queryFnCalls.Should().Equal(1, 1);

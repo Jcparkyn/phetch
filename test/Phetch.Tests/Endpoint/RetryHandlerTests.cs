@@ -23,7 +23,7 @@ public class RetryHandlerTests
         });
 
         var query = endpoint.Use();
-        var setArgTask = query.SetArgAsync(1);
+        var setArgTask = query.SetArgAsyncInternal(1);
         qf.GetSource(0).SetResult("1");
 
         await setArgTask;
@@ -45,7 +45,7 @@ public class RetryHandlerTests
         });
 
         var query = endpoint.Use();
-        var setArgTask = query.SetArgAsync(1);
+        var setArgTask = query.SetArgAsyncInternal(1);
         qf.GetSource(0).SetException(new HttpRequestException("fail 1"));
         qf.GetSource(1).SetResult("1");
 
@@ -67,7 +67,7 @@ public class RetryHandlerTests
         });
 
         var query = endpoint.Use();
-        var setArgTask = query.Invoking(q => q.SetArgAsync(1))
+        var setArgTask = query.Invoking(q => q.SetArgAsyncInternal(1))
             .Should().ThrowExactlyAsync<HttpRequestException>().WithMessage("fail 2");
 
         qf.GetSource(0).SetException(new HttpRequestException("fail 1"));
@@ -92,7 +92,7 @@ public class RetryHandlerTests
         });
 
         var query = endpoint.Use();
-        var setArgTask = query.SetArgAsync(1);
+        var setArgTask = query.SetArgAsyncInternal(1);
 
         qf.GetSource(0).SetResult("1");
 
@@ -118,7 +118,7 @@ public class RetryHandlerTests
             RetryHandler = retryHandler,
         });
 
-        var setArgTask = query.SetArgAsync(1);
+        var setArgTask = query.SetArgAsyncInternal(1);
         qf.GetSource(0).SetException(new HttpRequestException("fail 1"));
         qf.GetSource(1).SetResult("1");
 
@@ -142,7 +142,7 @@ public class RetryHandlerTests
         {
             RetryHandler = RetryHandler.None,
         });
-        var setArgTask = query.Invoking(q => q.SetArgAsync(1))
+        var setArgTask = query.Invoking(q => q.SetArgAsyncInternal(1))
             .Should().ThrowExactlyAsync<HttpRequestException>().WithMessage("fail 1");
 
         var ex = new HttpRequestException("fail 1");
