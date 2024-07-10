@@ -34,7 +34,7 @@ public class TriggerTests
         qf.GetSource(0).SetResult("10");
         var result1 = await triggerTask1;
 
-        result1.Result.Should().Be("10");
+        result1.Data.Should().Be("10");
         query.Status.Should().Be(QueryStatus.Success);
         query.IsSuccess.Should().BeTrue();
         query.IsLoading.Should().BeFalse();
@@ -79,7 +79,7 @@ public class TriggerTests
                 e.Parameters.Should().Equal("20");
             });
 
-        result2.Result.Should().Be("20");
+        result2.Data.Should().Be("20");
         query.IsLoading.Should().BeFalse();
     }
 
@@ -148,8 +148,8 @@ public class TriggerTests
         var result1 = await query1.TriggerAsync(10);
         var result2 = await query2.TriggerAsync(10);
 
-        result1.Result.Should().Be("10-1");
-        result2.Result.Should().Be("10-2");
+        result1.Data.Should().Be("10-1");
+        result2.Data.Should().Be("10-2");
 
         query1.Data.Should().Be("10-1");
         query2.Data.Should().Be("10-2");

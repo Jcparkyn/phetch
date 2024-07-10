@@ -14,7 +14,7 @@ public class QueryResultTests
         var result = new QueryResult<string>("123");
         result.IsSuccess.Should().BeTrue();
         result.Error.Should().BeNull();
-        result.Result.Should().Be("123");
+        result.Data.Should().Be("123");
 
         result.GetOrThrow().Should().Be("123");
         result.GetOrDefault("default").Should().Be("123");
@@ -27,7 +27,7 @@ public class QueryResultTests
         var result = new QueryResult<string>(error);
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be(error);
-        result.Result.Should().BeNull();
+        result.Data.Should().BeNull();
 
         result.Invoking(r => r.GetOrThrow()).Should().Throw<IndexOutOfRangeException>();
         result.GetOrDefault("default").Should().Be("default");
@@ -37,7 +37,7 @@ public class QueryResultTests
     public async Task OfAsync_success()
     {
         var result = await QueryResult.OfAsync(() => TestHelpers.ReturnAsync("123"));
-        result.Result.Should().Be("123");
+        result.Data.Should().Be("123");
     }
 
     [Fact]

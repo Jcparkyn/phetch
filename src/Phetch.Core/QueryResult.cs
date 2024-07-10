@@ -36,18 +36,18 @@ public record QueryResult<TResult>
     /// </summary>
     // Can't use MemberNotNullWhen for Result because it lies if TResult is nullable
     [MemberNotNullWhen(false, nameof(Error))]
-    public bool IsSuccess { get; internal init; }
+    public bool IsSuccess { get; }
 
     /// <summary>
     /// The exception thrown by the query if it failed, otherwise <see langword="null"/>.
     /// </summary>
     ///
-    public Exception? Error { get; internal init; }
+    public Exception? Error { get; }
 
     /// <summary>
     /// The result returned by the query if it succeeded, otherwise <see langword="default"/>.
     /// </summary>
-    public TResult? Result { get; internal init; }
+    public TResult? Data { get; }
 
     /// <summary>
     /// Creates a new successful result.
@@ -55,7 +55,7 @@ public record QueryResult<TResult>
     public QueryResult(TResult? result)
     {
         IsSuccess = true;
-        Result = result;
+        Data = result;
         Error = null;
     }
 
@@ -65,7 +65,7 @@ public record QueryResult<TResult>
     public QueryResult(Exception error)
     {
         IsSuccess = false;
-        Result = default;
+        Data = default;
         Error = error;
     }
 
@@ -76,14 +76,7 @@ public record QueryResult<TResult>
     [SuppressMessage("Design", "CA1024:Use properties where appropriate", Justification = "<Pending>")]
     public TResult GetOrThrow()
     {
-        if (IsSuccess)
-        {
-            return Result!;
-        }
-        else
-        {
-            throw Error;
-        }
+        return IsSuccess ? Data! : throw Error;
     }
 
     /// <summary>
@@ -91,7 +84,7 @@ public record QueryResult<TResult>
     /// </summary>
     public TResult GetOrDefault(TResult defaultValue)
     {
-        return IsSuccess ? Result! : defaultValue;
+        return IsSuccess ? Data! : defaultValue;
     }
 }
 

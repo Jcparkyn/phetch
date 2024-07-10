@@ -556,7 +556,7 @@ public static class QueryExtensions
         var result = await self.TriggerAsync(arg);
         if (result.IsSuccess)
         {
-            onSuccess?.Invoke(new(arg, result.Result!));
+            onSuccess?.Invoke(new(arg, result.Data!));
         }
         // OperationCancelledException is generally not considered a failure
         else if (result.Error is not OperationCanceledException)
