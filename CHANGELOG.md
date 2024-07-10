@@ -1,4 +1,9 @@
 
+# Unreleased
+
+## Removed
+- **BREAKING CHANGE**: Removed old `Mutation<TArg>` class which was previously marked obsolete. Use Query<TArg, Unit> instead, which is equivalent.
+
 # [v0.7.1] - 2024-06-08
 
 ## Added
