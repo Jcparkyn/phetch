@@ -3,25 +3,32 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
-public static class QueryResult
+internal static class QueryResult
 {
-    public static QueryResult<T> OfSuccess<T>(T result) => new(true, null, result);
-    public static QueryResult<T> OfFailure<T>(Exception error) => new(false, error, default);
     internal static async Task<QueryResult<T>> OfAsync<T>(Func<Task<T>> func)
     {
         try
         {
-            return new(true, null, await func());
+            return new(await func());
         }
 #pragma warning disable CA1031 // Do not catch general exception types
         catch (Exception ex)
         {
-            return new(false, ex, default);
+            return new(ex);
         }
 #pragma warning restore CA1031 // Do not catch general exception types
     }
 }
 
+/// <summary>
+/// Represents the result of a query invokation, which either succeeded with data or failed with an exception.
+/// </summary>
+/// <remarks>
+/// This type mostly exists so that methods like <see
+/// cref="Query{TArg,TResult}.TriggerAsync">TriggerAsync</see> don't need to re-throw the exception
+/// directly, which makes them safe to use in Blazor component callbacks.
+/// </remarks>
+/// <typeparam name="TResult"></typeparam>
 public record QueryResult<TResult>
 {
     /// <summary>
@@ -42,18 +49,31 @@ public record QueryResult<TResult>
     /// </summary>
     public TResult? Result { get; internal init; }
 
-    internal QueryResult(bool isSuccess, Exception? error, TResult? result)
+    /// <summary>
+    /// Creates a new successful result.
+    /// </summary>
+    public QueryResult(TResult? result)
     {
-        IsSuccess = isSuccess;
-        Error = error;
+        IsSuccess = true;
         Result = result;
+        Error = null;
+    }
+
+    /// <summary>
+    /// Creates a new unsuccessful result.
+    /// </summary>
+    public QueryResult(Exception error)
+    {
+        IsSuccess = false;
+        Result = default;
+        Error = error;
     }
 
     /// <summary>
     /// Returns the query result if the query succeeded, otherwise throws the exception thrown by
     /// the query.
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1024:Use properties where appropriate", Justification = "<Pending>")]
+    [SuppressMessage("Design", "CA1024:Use properties where appropriate", Justification = "<Pending>")]
     public TResult GetOrThrow()
     {
         if (IsSuccess)
@@ -66,6 +86,9 @@ public record QueryResult<TResult>
         }
     }
 
+    /// <summary>
+    /// Returns the query result if the query succeeded, otherwise returns <paramref name="defaultValue"/>.
+    /// </summary>
     public TResult GetOrDefault(TResult defaultValue)
     {
         return IsSuccess ? Result! : defaultValue;
