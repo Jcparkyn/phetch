@@ -1,6 +1,5 @@
 ﻿namespace Phetch.Blazor;
 
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Components;
 using Phetch.Core;
 
@@ -29,19 +28,6 @@ public partial class UseEndpoint<TArg, TResult> : UseEndpointBase<TArg, TResult>
             _hasSetArg = true;
         }
     }
-
-    /// <summary>
-    /// If true, the query will not be run automatically.
-    /// This does not affect manual query invocations using methods on the Query object.
-    /// </summary>
-    /// <remarks>
-    /// This is useful for delaying queries until the data they depend on is available.
-    /// If no value for <see cref="Arg"/> is provided, this has no effect.
-    /// </remarks>
-    [Parameter]
-    [ExcludeFromCodeCoverage]
-    [Obsolete("Use AutoFetch instead. This will be removed in a future version of Phetch.")]
-    public bool Skip { get => !AutoFetch; set => AutoFetch = !value; }
 
     /// <summary>
     /// If set to true (the default) and the <see cref="Arg">Arg</see> has been set, the query will be run automatically when the component is initialized.

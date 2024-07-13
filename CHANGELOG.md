@@ -1,12 +1,18 @@
-
+﻿
 # Unreleased
 
+# [v1.0.0] - 2024-07-13
+
+🎉 Version 1.0! No new features, but after much procrastination I'm confident that Phetch is stable and ready to release properly.
+
 ## Changed
-- **BREAKING CHANGE**: `SetArgAsync`, `RefetchAsync`, and `TriggerAsync` no longer throw an exception if the query function fails, and instead return a `QueryResult<T>` type which is either a success or failure. This makes them safer to use as callbacks in your Blazor components, but _in most cases you should still use the non-async versions_.
+- **BREAKING CHANGE**: `SetArgAsync`, `RefetchAsync`, and `TriggerAsync` no longer throw an exception if the query function fails, and instead return a `QueryResult<T>` type which is either a success or failure.
+  - This makes them safer to use as callbacks in your Blazor components, but _in most cases you should still use the non-async versions_ (`SetArg`, `Refetch`, `Trigger`).
   - To migrate code using these methods without changing the functionality, simply replace `await query.SetArgAsync(..)` with `(await query.SetArgAsync(..)).GetOrThrow()`.
 
 ## Removed
 - **BREAKING CHANGE**: Removed the old `Mutation<TArg>` class which was previously marked obsolete. Use ``Query<TArg, Unit>`` instead, which is equivalent.
+- **BREAKING CHANGE**: Removed the old `Skip` option on `<UseEndpoint/>`, which was previously marked obsolete. Use `AutoFetch` instead.
 
 # [v0.7.1] - 2024-06-08
 
@@ -230,6 +236,7 @@ This release removes the concept of mutations as the previously existed, and ins
 
 [Changes][v0.1.0]
 
+[v1.0.0]: https://github.com/Jcparkyn/phetch/compare/v0.7.1...v1.0.0
 [v0.7.1]: https://github.com/Jcparkyn/phetch/compare/v0.7.0...v0.7.1
 [v0.7.0]: https://github.com/Jcparkyn/phetch/compare/v0.6.0...v0.7.0
 [v0.6.0]: https://github.com/Jcparkyn/phetch/compare/v0.5.1...v0.6.0

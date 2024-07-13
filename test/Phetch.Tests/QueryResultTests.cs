@@ -1,9 +1,9 @@
 ﻿namespace Phetch.Tests;
 
-using FluentAssertions;
-using Phetch.Core;
 using System;
 using System.Threading.Tasks;
+using FluentAssertions;
+using Phetch.Core;
 using Xunit;
 
 public class QueryResultTests

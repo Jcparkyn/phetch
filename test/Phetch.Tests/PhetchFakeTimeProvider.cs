@@ -1,9 +1,9 @@
 ﻿namespace Phetch.Tests;
 
-using Microsoft.Extensions.Time.Testing;
-using Phetch.Core;
 using System;
 using System.Threading;
+using Microsoft.Extensions.Time.Testing;
+using Phetch.Core;
 using IPhetchTimer = Core.ITimer;
 using ISystemTimer = System.Threading.ITimer;
 
