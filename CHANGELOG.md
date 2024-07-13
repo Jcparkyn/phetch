@@ -1,8 +1,12 @@
 
 # Unreleased
 
+## Changed
+- **BREAKING CHANGE**: `SetArgAsync`, `RefetchAsync`, and `TriggerAsync` no longer throw an exception if the query function fails, and instead return a `QueryResult<T>` type which is either a success or failure. This makes them safer to use as callbacks in your Blazor components, but _in most cases you should still use the non-async versions_.
+  - To migrate code using these methods without changing the functionality, simply replace `await query.SetArgAsync(..)` with `(await query.SetArgAsync(..)).GetOrThrow()`.
+
 ## Removed
-- **BREAKING CHANGE**: Removed old `Mutation<TArg>` class which was previously marked obsolete. Use Query<TArg, Unit> instead, which is equivalent.
+- **BREAKING CHANGE**: Removed the old `Mutation<TArg>` class which was previously marked obsolete. Use ``Query<TArg, Unit>`` instead, which is equivalent.
 
 # [v0.7.1] - 2024-06-08
 
